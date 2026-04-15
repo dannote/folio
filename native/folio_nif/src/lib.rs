@@ -3,10 +3,13 @@ mod convert;
 mod mdex_bridge;
 mod world;
 
-use rustler::NifResult;
+use rustler::{Env, NifResult, OwnedBinary};
+
+use world::FolioWorld;
+use types::ExContent;
 
 #[rustler::nif(schedule = "DirtyCpu")]
-fn parse_markdown(markdown: String) -> NifResult<Vec<types::ExContent>> {
+fn parse_markdown(markdown: String) -> NifResult<Vec<ExContent>> {
     let arena = typed_arena::Arena::new();
     let mut options = comrak::Options::default();
     options.extension.table = true;
@@ -18,6 +21,21 @@ fn parse_markdown(markdown: String) -> NifResult<Vec<types::ExContent>> {
     let content = mdex_bridge::convert_children(root);
 
     Ok(content)
+}
+
+#[rustler::nif(schedule = "DirtyCpu")]
+fn compile_pdf<'a>(env: Env<'a>, content: Vec<ExContent>) -> NifResult<rustler::Binary<'a>> {
+    let world = FolioWorld::new();
+
+    match world.compile_to_pdf(&content) {
+        Ok(bytes) => {
+            let mut binary = OwnedBinary::new(bytes.len())
+                .ok_or(rustler::Error::Term(Box::new("failed to allocate binary")))?;
+            binary.as_mut_slice().copy_from_slice(&bytes);
+            Ok(binary.release(env))
+        }
+        Err(msg) => Err(rustler::Error::RaiseTerm(Box::new(msg))),
+    }
 }
 
 rustler::init!("Elixir.Folio.Native");
