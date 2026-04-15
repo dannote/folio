@@ -17,6 +17,7 @@ typst-pdf = { path = "../../vendor/typst/crates/typst-pdf" }
 typst-svg = { path = "../../vendor/typst/crates/typst-svg" }
 typst-render = { path = "../../vendor/typst/crates/typst-render" }
 typst-syntax = { path = "../../vendor/typst/crates/typst-syntax" }
+typst-eval = { path = "../../vendor/typst/crates/typst-eval" }
 typst-assets = { git = "https://github.com/typst/typst-assets", rev = "57a38ca", features = ["fonts"] }
 comrak = { version = "0.52", default-features = false }
 ecow = "0.2"

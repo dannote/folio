@@ -551,6 +551,7 @@ dependencies = [
  "typed-arena",
  "typst",
  "typst-assets",
+ "typst-eval",
  "typst-layout",
  "typst-library",
  "typst-pdf",
