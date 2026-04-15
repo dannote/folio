@@ -1,0 +1,4 @@
+[submodule "vendor/typst"]
+	path = vendor/typst
+	url = https://github.com/typst/typst.git
+	shallow = true

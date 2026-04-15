@@ -10,17 +10,18 @@ crate-type = ["cdylib"]
 
 [dependencies]
 rustler = "0.37"
-typst = { path = "../../typst/crates/typst" }
-typst-library = { path = "../../typst/crates/typst-library" }
-typst-layout = { path = "../../typst/crates/typst-layout" }
-typst-pdf = { path = "../../typst/crates/typst-pdf" }
-typst-svg = { path = "../../typst/crates/typst-svg" }
-typst-render = { path = "../../typst/crates/typst-render" }
-typst-syntax = { path = "../../typst/crates/typst-syntax" }
-typst-assets = { version = "0.14", features = ["fonts"] }
+typst = { path = "../../vendor/typst/crates/typst" }
+typst-library = { path = "../../vendor/typst/crates/typst-library" }
+typst-layout = { path = "../../vendor/typst/crates/typst-layout" }
+typst-pdf = { path = "../../vendor/typst/crates/typst-pdf" }
+typst-svg = { path = "../../vendor/typst/crates/typst-svg" }
+typst-render = { path = "../../vendor/typst/crates/typst-render" }
+typst-syntax = { path = "../../vendor/typst/crates/typst-syntax" }
+typst-assets = { git = "https://github.com/typst/typst-assets", rev = "57a38ca", features = ["fonts"] }
 comrak = { version = "0.52", default-features = false }
 ecow = "0.2"
 parking_lot = "0.12"
+typed-arena = "2.0"
 
 [features]
 default = ["nif_version_2_15"]
