@@ -1,26 +1,30 @@
-use std::sync::LazyLock;
+use std::collections::HashMap;
+use std::sync::{Arc, LazyLock, Mutex};
 
 use typst::comemo::{Track, TrackedMut};
 use typst::diag::{FileError, FileResult};
 use typst::engine::{Engine, Route, Sink, Traced};
 use typst::foundations::{
-    Bytes, Content, Context, Datetime, Duration, NativeElement, Smart, StyleChain, Styles,
+    Bytes, Content, Context, Datetime, Derived, Duration, NativeElement, Smart, StyleChain, Styles,
     Target, TargetElem,
 };
 use typst::introspection::EmptyIntrospector;
+use typst::layout::{Abs, Margin, Sides};
+use typst::layout::PageElem;
+use typst::loading::{DataSource, LoadSource, Loaded};
 use typst::math::EquationElem;
-use typst::syntax::{FileId, RootedPath, Source, Span, SyntaxMode, VirtualPath, VirtualRoot};
-use typst::text::{Font, FontBook, TextElem};
+use typst::syntax::{FileId, RootedPath, Source, Span, Spanned, SyntaxMode, VirtualPath, VirtualRoot};
+use typst::text::{Font, FontBook, TextElem, TextSize};
 use typst::utils::LazyHash;
+use typst::visualize::ImageElem;
 use typst::{Features, Library, LibraryExt, World};
 use typst_layout::layout_document;
-use typst_layout::PagedDocument;
 use typst_pdf::{PdfOptions, pdf};
 use typst_svg::svg;
 use typst_render::render;
 use ecow::eco_format;
 
-use crate::types::ExContent;
+use crate::types::{ExContent, ExStyle};
 use crate::convert::build_content;
 
 struct GlobalState {
@@ -48,10 +52,21 @@ static GLOBAL: LazyLock<GlobalState> = LazyLock::new(|| {
     GlobalState { library, fonts, book, main_id }
 });
 
-pub struct FolioWorld;
+static FILE_STORE: LazyLock<Arc<Mutex<HashMap<String, Vec<u8>>>>> =
+    LazyLock::new(|| Arc::new(Mutex::new(HashMap::new())));
+
+pub fn register_file(path: String, data: Vec<u8>) {
+    FILE_STORE.lock().unwrap().insert(path, data);
+}
+
+pub struct FolioWorld {
+    styles: Vec<ExStyle>,
+}
 
 impl FolioWorld {
-    pub fn new() -> Self { Self }
+    pub fn new(styles: Vec<ExStyle>) -> Self {
+        Self { styles }
+    }
 
     pub fn compile_to_pdf(&self, content: &[ExContent]) -> Result<Vec<u8>, String> {
         let doc = self.layout(content)?;
@@ -75,7 +90,7 @@ impl FolioWorld {
         Ok(doc.pages().iter().map(|p| render(p, 2.0).encode_png().unwrap_or_default()).collect())
     }
 
-    fn layout(&self, content: &[ExContent]) -> Result<PagedDocument, String> {
+    fn layout(&self, content: &[ExContent]) -> Result<typst_layout::PagedDocument, String> {
         let mut sink = Sink::new();
         let introspector = EmptyIntrospector;
         let traced = Traced::default();
@@ -90,7 +105,18 @@ impl FolioWorld {
         };
 
         let body = build_content(&mut engine, content);
-        let base = StyleChain::new(&GLOBAL.library.styles);
+
+        // Clone the library and apply user styles
+        let lib_styles = {
+            let base_styles = &GLOBAL.library.styles;
+            let mut s = base_styles.clone();
+            apply_styles(&mut s, &self.styles);
+            s
+        };
+        let base_lib: &Library = &GLOBAL.library;
+        let lib = Library { styles: lib_styles, ..base_lib.clone() };
+        let lib = LazyHash::new(lib);
+        let base = StyleChain::new(&lib.styles);
         let target_style: Styles = TargetElem::target.set(Target::Paged).wrap().into();
         let styles = base.chain(&target_style);
 
@@ -112,13 +138,62 @@ impl FolioWorld {
         );
 
         match result {
-            Ok(value) => {
-                match value.cast::<Content>() {
-                    Ok(content) => EquationElem::new(content).with_block(block).pack(),
-                    Err(_) => TextElem::packed(eco_format!("${}$", math_str)),
+            Ok(value) => match value.cast::<Content>() {
+                Ok(content) => EquationElem::new(content).with_block(block).pack(),
+                Err(_) => TextElem::packed(eco_format!("${}$", math_str)),
+            },
+            Err(_) => TextElem::packed(eco_format!("${}$", math_str)),
+        }
+    }
+
+    pub fn make_image(_engine: &mut Engine, src: &str) -> Content {
+        let bytes = {
+            let store = FILE_STORE.lock().unwrap();
+            store.get(src).cloned()
+        };
+
+        match bytes {
+            Some(data) => {
+                let bytes = Bytes::new(data);
+                let loaded = Loaded::new(
+                    Spanned::new(LoadSource::Bytes, Span::detached()),
+                    bytes.clone(),
+                );
+                let source = Derived::new(DataSource::Bytes(bytes), loaded);
+                ImageElem::new(source).pack()
+            }
+            None => TextElem::packed(eco_format!("[image: {}]", src)),
+        }
+    }
+}
+
+fn apply_styles(styles: &mut typst::foundations::Styles, user_styles: &[ExStyle]) {
+    for s in user_styles {
+        match s {
+            ExStyle::PageSize(sz) => {
+                if let Some(w) = sz.width {
+                    styles.set(PageElem::width, Smart::Custom(Abs::pt(w).into()));
+                }
+                if let Some(h) = sz.height {
+                    styles.set(PageElem::height, Smart::Custom(Abs::pt(h).into()));
                 }
             }
-            Err(_) => TextElem::packed(eco_format!("${}$", math_str)),
+            ExStyle::PageMargin(m) => {
+                let pt = |v: f64| Some(Smart::Custom(Abs::pt(v).into()));
+                styles.set(PageElem::margin, Margin {
+                    sides: Sides {
+                        top: m.top.map_or_else(|| pt(70.866), pt),
+                        right: m.right.map_or_else(|| pt(70.866), pt),
+                        bottom: m.bottom.map_or_else(|| pt(70.866), pt),
+                        left: m.left.map_or_else(|| pt(70.866), pt),
+                    },
+                    two_sided: None,
+                });
+            }
+            ExStyle::PagePaper(_) => {}
+            ExStyle::FontSize(fs) => {
+                styles.set(TextElem::size, TextSize(Abs::pt(fs.size).into()));
+            }
         }
     }
 }
@@ -137,7 +212,12 @@ impl World for FolioWorld {
     }
 
     fn file(&self, id: FileId) -> FileResult<Bytes> {
-        Err(FileError::NotFound(id.vpath().get_without_slash().into()))
+        let path = id.vpath().get_without_slash();
+        let store = FILE_STORE.lock().unwrap();
+        match store.get(path) {
+            Some(data) => Ok(Bytes::new(data.clone())),
+            None => Err(FileError::NotFound(path.into())),
+        }
     }
 
     fn font(&self, index: usize) -> Option<Font> { GLOBAL.fonts.get(index).cloned() }

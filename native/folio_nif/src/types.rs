@@ -221,3 +221,41 @@ pub enum ExContent {
     Block(ExBlock),
     Sequence(ExSequence),
 }
+
+// --- Style Rules ---
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Styles.PagePaper"]
+pub struct ExPagePaper {
+    pub paper: String,
+}
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Styles.PageSize"]
+pub struct ExPageSize {
+    pub width: Option<f64>,
+    pub height: Option<f64>,
+}
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Styles.PageMargin"]
+pub struct ExPageMargin {
+    pub top: Option<f64>,
+    pub right: Option<f64>,
+    pub bottom: Option<f64>,
+    pub left: Option<f64>,
+}
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Styles.FontSize"]
+pub struct ExFontSize {
+    pub size: f64,
+}
+
+#[derive(Clone, Debug, NifUntaggedEnum)]
+pub enum ExStyle {
+    PagePaper(ExPagePaper),
+    PageSize(ExPageSize),
+    PageMargin(ExPageMargin),
+    FontSize(ExFontSize),
+}

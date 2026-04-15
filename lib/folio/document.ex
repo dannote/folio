@@ -1,6 +1,6 @@
 defmodule Folio.Document do
   @moduledoc """
-  A complete Typst document with content and styles.
+  A complete document with content and styles.
   """
 
   alias Folio.{Content, Styles}
@@ -29,12 +29,6 @@ defmodule Folio.Document do
     %{doc | styles: styles ++ [rule]}
   end
 
-  @doc "Add multiple style rules."
-  @spec add_styles(t(), [Styles.rule()]) :: t()
-  def add_styles(%__MODULE__{styles: styles} = doc, rules) do
-    %{doc | styles: styles ++ rules}
-  end
-
   @doc "Create a document with page and text setup."
   @spec configure(keyword()) :: t()
   def configure(opts) do
@@ -43,20 +37,14 @@ defmodule Folio.Document do
     styles =
       case Keyword.get(opts, :page) do
         nil -> styles
-        page_opts when is_list(page_opts) -> styles ++ [Styles.page_setup(page_opts)]
-        paper when is_atom(paper) -> styles ++ [Styles.set(:page, paper: paper)]
-      end
-
-    styles =
-      case Keyword.get(opts, :font) do
-        nil -> styles
-        font -> styles ++ [Styles.set(:text, font: font)]
+        page_opts when is_list(page_opts) -> styles ++ [Styles.page_size(page_opts)]
+        paper when is_atom(paper) -> styles ++ [Styles.page_paper(to_string(paper))]
       end
 
     styles =
       case Keyword.get(opts, :font_size) do
         nil -> styles
-        size -> styles ++ [Styles.set(:text, size: size)]
+        size -> styles ++ [Styles.font_size(size)]
       end
 
     %__MODULE__{content: [], styles: styles}

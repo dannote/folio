@@ -1,80 +1,69 @@
 defmodule Folio.Styles do
   @moduledoc """
-  Style rules that map to Typst's set/show system.
+  Style rules for customizing document appearance.
+
+  Pass a list of style structs via the `:styles` option:
+
+      Folio.to_pdf("# Hello", styles: [
+        Folio.Styles.page_size(width: 595, height: 842),
+        Folio.Styles.page_margin(top: 40, bottom: 40, left: 50, right: 50),
+        Folio.Styles.font_size(11)
+      ])
   """
 
-  defmodule SetRule do
-    @moduledoc "Maps to `#set element(fields...)`"
-    defstruct [:element, :fields]
+  defmodule PagePaper do
+    @moduledoc "Set paper size by name (a4, letter, etc.)."
+    defstruct [:paper]
+    @type t :: %__MODULE__{paper: String.t()}
+  end
+
+  defmodule PageSize do
+    @moduledoc "Set page dimensions in points."
+    defstruct [:width, :height]
+    @type t :: %__MODULE__{width: float() | nil, height: float() | nil}
+  end
+
+  defmodule PageMargin do
+    @moduledoc "Set page margins in points."
+    defstruct [:top, :right, :bottom, :left]
     @type t :: %__MODULE__{
-      element: atom(),
-      fields: keyword() | map()
+      top: float() | nil,
+      right: float() | nil,
+      bottom: float() | nil,
+      left: float() | nil
     }
   end
 
-  defmodule ShowSetRule do
-    @moduledoc "Maps to `#show selector: set element(fields...)`"
-    defstruct [:selector, :element, :fields]
-    @type t :: %__MODULE__{
-      selector: atom() | {atom(), keyword()},
-      element: atom(),
-      fields: keyword() | map()
+  defmodule FontSize do
+    @moduledoc "Set base font size in points."
+    defstruct [:size]
+    @type t :: %__MODULE__{size: float()}
+  end
+
+  @type rule :: PagePaper.t() | PageSize.t() | PageMargin.t() | FontSize.t()
+
+  @doc "Set page dimensions in points."
+  @spec page_size(keyword()) :: PageSize.t()
+  def page_size(opts) when is_list(opts) do
+    %PageSize{width: Keyword.get(opts, :width), height: Keyword.get(opts, :height)}
+  end
+
+  @doc "Set page margins in points."
+  @spec page_margin(keyword()) :: PageMargin.t()
+  def page_margin(opts) when is_list(opts) do
+    %PageMargin{
+      top: Keyword.get(opts, :top),
+      right: Keyword.get(opts, :right),
+      bottom: Keyword.get(opts, :bottom),
+      left: Keyword.get(opts, :left)
     }
   end
 
-  defmodule ShowRule do
-    @moduledoc "Maps to `#show selector: transform_fn`"
-    defstruct [:selector, :transform]
-    @type t :: %__MODULE__{
-      selector: atom() | {atom(), keyword()} | :all,
-      transform: atom() | function()
-    }
-  end
+  @doc "Set base font size in points."
+  @spec font_size(number()) :: FontSize.t()
+  def font_size(size) when is_number(size), do: %FontSize{size: size * 1.0}
 
-  @type rule :: SetRule.t() | ShowSetRule.t() | ShowRule.t()
-
-  @doc "Create a set rule."
-  @spec set(atom(), keyword()) :: SetRule.t()
-  def set(element, fields) when is_atom(element) and is_list(fields) do
-    %SetRule{element: element, fields: fields}
-  end
-
-  @doc "Create a show-set rule."
-  @spec show_set(atom() | {atom(), keyword()}, atom(), keyword()) :: ShowSetRule.t()
-  def show_set(selector, element, fields) do
-    %ShowSetRule{selector: selector, element: element, fields: fields}
-  end
-
-  @doc "Create a show-transform rule."
-  @spec show(atom() | {atom(), keyword()}, atom() | function()) :: ShowRule.t()
-  def show(selector, transform) do
-    %ShowRule{selector: selector, transform: transform}
-  end
-
-  @doc "Convenience: page setup from keyword options."
-  @spec page_setup(keyword()) :: SetRule.t()
-  def page_setup(opts) do
-    fields =
-      opts
-      |> Enum.map(fn
-        {:margin, v} -> {:margin, v}
-        {:paper, v} -> {:paper, v}
-        {:width, v} -> {:width, v}
-        {:height, v} -> {:height, v}
-        {:numbering, v} -> {:numbering, v}
-        {:header, v} -> {:header, v}
-        {:footer, v} -> {:footer, v}
-        {:columns, v} -> {:columns, v}
-        {:orientation, v} -> {:orientation, v}
-        other -> other
-      end)
-
-    %SetRule{element: :page, fields: fields}
-  end
-
-  @doc "Convenience: text setup from keyword options."
-  @spec text_setup(keyword()) :: SetRule.t()
-  def text_setup(opts) do
-    %SetRule{element: :text, fields: opts}
-  end
+  @doc "Set paper by name."
+  @spec page_paper(String.t()) :: PagePaper.t()
+  def page_paper(paper) when is_binary(paper), do: %PagePaper{paper: paper}
 end

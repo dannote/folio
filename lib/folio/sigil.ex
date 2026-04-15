@@ -33,7 +33,7 @@ defmodule Folio.Sigil do
 
     case format do
       :document -> content
-      :pdf -> Folio.Native.compile_pdf(content)
+      :pdf -> Folio.Native.compile_pdf(content, [])
     end
   end
 end

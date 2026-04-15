@@ -5,15 +5,14 @@ use typst::engine::Engine;
 use typst::foundations::{Content, NativeElement, Smart};
 use typst::layout::{PagebreakElem, Sizing, TrackSizings};
 use typst::model::{
-    EmphElem, EnumItem, HeadingElem, ListItem, ParbreakElem, QuoteElem, StrongElem,
-    TableChild, TableElem, TableHeader, TableItem, TableCell,
+    EmphElem, EnumItem, FigureCaption, FigureElem, HeadingElem, ListItem, ParbreakElem,
+    QuoteElem, StrongElem, TableChild, TableElem, TableHeader, TableItem, TableCell,
 };
 use typst::text::{LinebreakElem, RawContent, RawElem, SpaceElem, TextElem};
 
 use crate::types::ExContent;
 use crate::world::FolioWorld;
 
-/// Build a Typst Content tree from a list of ExContent nodes.
 pub fn build_content(engine: &mut Engine, nodes: &[ExContent]) -> Content {
     let mut seq: Vec<Content> = Vec::new();
     for (i, node) in nodes.iter().enumerate() {
@@ -46,7 +45,6 @@ fn is_block(node: &ExContent) -> bool {
 fn convert_node(engine: &mut Engine, node: &ExContent) -> Content {
     match node {
         ExContent::Text(t) => TextElem::packed(&t.text),
-
         ExContent::Space(_) => SpaceElem::shared().clone(),
 
         ExContent::Heading(h) => {
@@ -58,71 +56,27 @@ fn convert_node(engine: &mut Engine, node: &ExContent) -> Content {
         ExContent::Paragraph(p) => convert_children(engine, &p.body),
 
         ExContent::Strong(s) => StrongElem::new(convert_children(engine, &s.body)).pack(),
-
         ExContent::Emph(e) => EmphElem::new(convert_children(engine, &e.body)).pack(),
-
         ExContent::Strike(s) => convert_children(engine, &s.body),
 
-        ExContent::Image(_img) => TextElem::packed("[image]"),
+        ExContent::Image(img) => FolioWorld::make_image(engine, &img.src),
 
-        ExContent::Figure(fig) => convert_children(engine, &fig.body),
-
-        ExContent::Table(tbl) => {
-            let num_cols = if tbl.num_columns > 0 { tbl.num_columns } else { 1 };
-            let columns = TrackSizings(
-                std::iter::repeat_with(|| Sizing::Auto).take(num_cols).collect()
-            );
-            let mut children: Vec<TableChild> = Vec::new();
-
-            for child in &tbl.children {
-                match child {
-                    ExContent::TableHeader(th) => {
-                        let cells: Vec<TableItem> = th.children.iter()
-                            .filter_map(|c| match c {
-                                ExContent::TableCell(tc) => Some(TableItem::Cell(
-                                    typst::foundations::Packed::new(
-                                        TableCell::new(convert_children(engine, &tc.body))
-                                    )
-                                )),
-                                _ => None,
-                            }).collect();
-                        children.push(TableChild::Header(
-                            typst::foundations::Packed::new(TableHeader::new(cells))
-                        ));
-                    }
-                    ExContent::TableRow(tr) => {
-                        for cell_node in &tr.children {
-                            if let ExContent::TableCell(tc) = cell_node {
-                                children.push(TableChild::Item(TableItem::Cell(
-                                    typst::foundations::Packed::new(
-                                        TableCell::new(convert_children(engine, &tc.body))
-                                    )
-                                )));
-                            }
-                        }
-                    }
-                    ExContent::TableCell(tc) => {
-                        children.push(TableChild::Item(TableItem::Cell(
-                            typst::foundations::Packed::new(
-                                TableCell::new(convert_children(engine, &tc.body))
-                            )
-                        )));
-                    }
-                    _ => {}
-                }
+        ExContent::Figure(fig) => {
+            let body = convert_children(engine, &fig.body);
+            let mut elem = FigureElem::new(body);
+            if let Some(caption_nodes) = &fig.caption {
+                let caption_body = convert_children(engine, caption_nodes);
+                elem = elem.with_caption(Some(typst::foundations::Packed::new(FigureCaption::new(caption_body))));
             }
-
-            TableElem::new(children).with_columns(columns).pack()
+            elem.pack()
         }
 
-        ExContent::TableHeader(_) => Content::empty(),
-        ExContent::TableRow(_) => Content::empty(),
+        ExContent::Table(tbl) => convert_table(engine, tbl),
+
+        ExContent::TableHeader(_) | ExContent::TableRow(_) => Content::empty(),
         ExContent::TableCell(tc) => convert_children(engine, &tc.body),
-
         ExContent::Columns(cols) => convert_children(engine, &cols.body),
-
         ExContent::Pagebreak(_) => PagebreakElem::new().pack(),
-
         ExContent::Parbreak(_) => ParbreakElem::shared().clone(),
         ExContent::Linebreak(_) => LinebreakElem::shared().clone(),
 
@@ -141,16 +95,14 @@ fn convert_node(engine: &mut Engine, node: &ExContent) -> Content {
 
         ExContent::Quote(q) => QuoteElem::new(convert_children(engine, &q.body)).pack(),
 
-        ExContent::List(list) => {
-            Content::sequence(list.children.iter().map(|c| convert_node(engine, c)).collect::<Vec<_>>())
-        }
-
+        ExContent::List(list) => Content::sequence(
+            list.children.iter().map(|c| convert_node(engine, c)).collect::<Vec<_>>()
+        ),
         ExContent::ListItem(li) => ListItem::new(convert_children(engine, &li.body)).pack(),
 
-        ExContent::Enum(en) => {
-            Content::sequence(en.children.iter().map(|c| convert_node(engine, c)).collect::<Vec<_>>())
-        }
-
+        ExContent::Enum(en) => Content::sequence(
+            en.children.iter().map(|c| convert_node(engine, c)).collect::<Vec<_>>()
+        ),
         ExContent::EnumItem(ei) => {
             let mut elem = EnumItem::new(convert_children(engine, &ei.body));
             if let Some(n) = ei.number {
@@ -165,6 +117,54 @@ fn convert_node(engine: &mut Engine, node: &ExContent) -> Content {
         ExContent::Block(b) => convert_children(engine, &b.body),
         ExContent::Sequence(seq) => convert_children(engine, &seq.children),
     }
+}
+
+fn convert_table(engine: &mut Engine, tbl: &crate::types::ExTable) -> Content {
+    let num_cols = if tbl.num_columns > 0 { tbl.num_columns } else { 1 };
+    let columns = TrackSizings(
+        std::iter::repeat_with(|| Sizing::Auto).take(num_cols).collect()
+    );
+    let mut children: Vec<TableChild> = Vec::new();
+
+    for child in &tbl.children {
+        match child {
+            ExContent::TableHeader(th) => {
+                let cells: Vec<TableItem> = th.children.iter()
+                    .filter_map(|c| match c {
+                        ExContent::TableCell(tc) => Some(TableItem::Cell(
+                            typst::foundations::Packed::new(
+                                TableCell::new(convert_children(engine, &tc.body))
+                            )
+                        )),
+                        _ => None,
+                    }).collect();
+                children.push(TableChild::Header(
+                    typst::foundations::Packed::new(TableHeader::new(cells))
+                ));
+            }
+            ExContent::TableRow(tr) => {
+                for cell_node in &tr.children {
+                    if let ExContent::TableCell(tc) = cell_node {
+                        children.push(TableChild::Item(TableItem::Cell(
+                            typst::foundations::Packed::new(
+                                TableCell::new(convert_children(engine, &tc.body))
+                            )
+                        )));
+                    }
+                }
+            }
+            ExContent::TableCell(tc) => {
+                children.push(TableChild::Item(TableItem::Cell(
+                    typst::foundations::Packed::new(
+                        TableCell::new(convert_children(engine, &tc.body))
+                    )
+                )));
+            }
+            _ => {}
+        }
+    }
+
+    TableElem::new(children).with_columns(columns).pack()
 }
 
 fn convert_children(engine: &mut Engine, nodes: &[ExContent]) -> Content {
