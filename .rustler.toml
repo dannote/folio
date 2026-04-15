@@ -1,0 +1,5 @@
+[config]
+nectar = false
+
+[rustler]
+crate = "folio_nif"

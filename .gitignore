@@ -1,0 +1,9 @@
+*.so
+*.dylib
+*.dll
+/build/
+/_build/
+/deps/
+/priv/
+native/folio_nif/target/
+.elixir_ls/
