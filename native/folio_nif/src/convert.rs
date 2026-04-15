@@ -2,9 +2,10 @@ use std::num::NonZeroUsize;
 
 use ecow::{EcoString, eco_format};
 use typst::foundations::{Content, NativeElement, Smart};
-use typst::layout::PagebreakElem;
+use typst::layout::{PagebreakElem, Sizing, TrackSizings};
 use typst::model::{
     EmphElem, EnumItem, HeadingElem, ListItem, ParbreakElem, QuoteElem, StrongElem,
+    TableChild, TableElem, TableHeader, TableItem, TableCell,
 };
 use typst::text::{LinebreakElem, RawContent, RawElem, SpaceElem, TextElem};
 
@@ -71,9 +72,61 @@ fn convert_node(node: &ExContent) -> Content {
 
         ExContent::Figure(fig) => convert_children(&fig.body),
 
-        ExContent::Table(tbl) => convert_children(&tbl.children),
-        ExContent::TableHeader(th) => convert_children(&th.children),
-        ExContent::TableRow(tr) => convert_children(&tr.children),
+        ExContent::Table(tbl) => {
+            let num_cols = if tbl.num_columns > 0 { tbl.num_columns } else { 1 };
+            let columns = TrackSizings(
+                std::iter::repeat_with(|| Sizing::Auto)
+                    .take(num_cols)
+                    .collect()
+            );
+
+            let mut children: Vec<TableChild> = Vec::new();
+
+            for child in &tbl.children {
+                match child {
+                    ExContent::TableHeader(th) => {
+                        let cells: Vec<TableItem> = th.children.iter()
+                            .filter_map(|c| match c {
+                                ExContent::TableCell(tc) => {
+                                    Some(TableItem::Cell(
+                                        typst::foundations::Packed::new(
+                                            TableCell::new(convert_children(&tc.body))
+                                        )
+                                    ))
+                                }
+                                _ => None,
+                            })
+                            .collect();
+                        let header = TableHeader::new(cells);
+                        children.push(TableChild::Header(typst::foundations::Packed::new(header)));
+                    }
+                    ExContent::TableRow(tr) => {
+                        for cell_node in &tr.children {
+                            if let ExContent::TableCell(tc) = cell_node {
+                                let cell = TableCell::new(convert_children(&tc.body));
+                                children.push(TableChild::Item(TableItem::Cell(
+                                    typst::foundations::Packed::new(cell)
+                                )));
+                            }
+                        }
+                    }
+                    ExContent::TableCell(tc) => {
+                        let cell = TableCell::new(convert_children(&tc.body));
+                        children.push(TableChild::Item(TableItem::Cell(
+                            typst::foundations::Packed::new(cell)
+                        )));
+                    }
+                    _ => {}
+                }
+            }
+
+            TableElem::new(children)
+                .with_columns(columns)
+                .pack()
+        }
+
+        ExContent::TableHeader(_) => Content::empty(),
+        ExContent::TableRow(_) => Content::empty(),
         ExContent::TableCell(tc) => convert_children(&tc.body),
 
         ExContent::Columns(cols) => convert_children(&cols.body),

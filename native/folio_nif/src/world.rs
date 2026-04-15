@@ -6,13 +6,16 @@ use typst::foundations::{
     Bytes, Datetime, Duration, Smart, StyleChain, Styles, Target, TargetElem,
 };
 use typst::introspection::EmptyIntrospector;
+use typst_layout::PagedDocument;
 use typst::syntax::{FileId, RootedPath, Source, VirtualPath, VirtualRoot};
 use typst::text::{Font, FontBook};
 use typst::utils::LazyHash;
 use typst::{Features, Library, LibraryExt, World};
+use typst::comemo::Track;
 use typst_layout::layout_document;
 use typst_pdf::{PdfOptions, pdf};
-use typst::comemo::Track;
+use typst_svg::svg;
+use typst_render::render;
 
 use crate::types::ExContent;
 use crate::convert::build_content;
@@ -50,7 +53,7 @@ impl FolioWorld {
         Self { main_id }
     }
 
-    pub fn compile_to_pdf(&self, content: &[ExContent]) -> Result<Vec<u8>, String> {
+    fn layout(&self, content: &[ExContent]) -> Result<PagedDocument, String> {
         let body = build_content(content);
 
         let library = &GLOBAL.library;
@@ -71,8 +74,12 @@ impl FolioWorld {
             route: Route::root(),
         };
 
-        let doc = layout_document(&mut engine, &body, styles)
-            .map_err(|e| format!("Layout error: {:?}", e))?;
+        layout_document(&mut engine, &body, styles)
+            .map_err(|e| format!("Layout error: {:?}", e))
+    }
+
+    pub fn compile_to_pdf(&self, content: &[ExContent]) -> Result<Vec<u8>, String> {
+        let doc = self.layout(content)?;
 
         let options = PdfOptions {
             ident: Smart::Auto,
@@ -83,6 +90,21 @@ impl FolioWorld {
         };
 
         pdf(&doc, &options).map_err(|e| format!("PDF export error: {:?}", e))
+    }
+
+    pub fn compile_to_svg(&self, content: &[ExContent]) -> Result<Vec<String>, String> {
+        let doc = self.layout(content)?;
+        Ok(doc.pages().iter().map(|page| svg(page)).collect())
+    }
+
+    pub fn compile_to_png(&self, content: &[ExContent]) -> Result<Vec<Vec<u8>>, String> {
+        let doc = self.layout(content)?;
+        let pixel_per_pt = 2.0;
+        Ok(doc.pages().iter().map(|page| {
+            let pixmap = render(page, pixel_per_pt);
+            pixmap.encode_png()
+                .unwrap_or_else(|_| Vec::new())
+        }).collect())
     }
 }
 

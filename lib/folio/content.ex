@@ -324,7 +324,7 @@ defmodule Folio.Content do
   @doc "Flatten nested sequences."
   @spec flatten([t()]) :: [t()]
   def flatten(nodes) do
-    Enum.flat_map(nodes, fn
+    Elixir.Enum.flat_map(nodes, fn
       %Sequence{children: children} -> flatten(children)
       node -> [node]
     end)
@@ -332,7 +332,7 @@ defmodule Folio.Content do
 
   @doc "Convert a string or content to content list."
   @spec to_content(t() | String.t() | [t()]) :: [t()]
-  def to_content(%mod{} = node), do: [node]
+  def to_content(%_mod{} = node), do: [node]
   def to_content(str) when is_binary(str), do: [%Text{text: str}]
-  def to_content(list) when is_list(list), do: Enum.flat_map(list, &to_content/1)
+  def to_content(list) when is_list(list), do: Elixir.Enum.flat_map(list, &to_content/1)
 end

@@ -7,7 +7,7 @@ defmodule Folio.DSL do
   or directly in Elixir code building documents programmatically.
   """
 
-  alias Folio.{Content, Value}
+  alias Folio.Content
 
   # --- Text ---
 
@@ -53,23 +53,25 @@ defmodule Folio.DSL do
   # --- Figures ---
 
   @doc "Wrap content in a figure with optional caption."
-  def figure(opts \\ [], do: body) when is_list(opts) do
-    caption = Keyword.get(opts, :caption)
-    %Content.Figure{
-      body: Content.flatten(Content.to_content(body)),
-      caption: if(caption, do: Content.to_content(caption)),
-      placement: Keyword.get(opts, :placement),
-      scope: Keyword.get(opts, :scope),
-      numbering: Keyword.get(opts, :numbering),
-      separator: Keyword.get(opts, :separator)
-    }
-  end
+  def figure(content_or_opts, opts \\ [])
 
   def figure(content, opts) when (is_binary(content) or is_struct(content)) and is_list(opts) do
     %Content.Figure{
       body: Content.to_content(content),
       caption: Keyword.get(opts, :caption) |> then_if_some(&Content.to_content/1),
       placement: Keyword.get(opts, :placement)
+    }
+  end
+
+  def figure(opts, _body) when is_list(opts) do
+    caption = Keyword.get(opts, :caption)
+    %Content.Figure{
+      body: [],
+      caption: if(caption, do: Content.to_content(caption)),
+      placement: Keyword.get(opts, :placement),
+      scope: Keyword.get(opts, :scope),
+      numbering: Keyword.get(opts, :numbering),
+      separator: Keyword.get(opts, :separator)
     }
   end
 

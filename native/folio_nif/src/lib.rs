@@ -24,18 +24,43 @@ fn parse_markdown(markdown: String) -> NifResult<Vec<ExContent>> {
 }
 
 #[rustler::nif(schedule = "DirtyCpu")]
-fn compile_pdf<'a>(env: Env<'a>, content: Vec<ExContent>) -> NifResult<rustler::Binary<'a>> {
+fn compile_pdf(env: Env<'_>, content: Vec<ExContent>) -> NifResult<rustler::Binary<'_>> {
     let world = FolioWorld::new();
-
     match world.compile_to_pdf(&content) {
-        Ok(bytes) => {
-            let mut binary = OwnedBinary::new(bytes.len())
-                .ok_or(rustler::Error::Term(Box::new("failed to allocate binary")))?;
-            binary.as_mut_slice().copy_from_slice(&bytes);
-            Ok(binary.release(env))
+        Ok(bytes) => alloc_binary(env, &bytes),
+        Err(msg) => Err(rustler::Error::RaiseTerm(Box::new(msg))),
+    }
+}
+
+#[rustler::nif(schedule = "DirtyCpu")]
+fn compile_svg(content: Vec<ExContent>) -> NifResult<Vec<String>> {
+    let world = FolioWorld::new();
+    match world.compile_to_svg(&content) {
+        Ok(pages) => Ok(pages),
+        Err(msg) => Err(rustler::Error::RaiseTerm(Box::new(msg))),
+    }
+}
+
+#[rustler::nif(schedule = "DirtyCpu")]
+fn compile_png(env: Env<'_>, content: Vec<ExContent>) -> NifResult<Vec<rustler::Binary<'_>>> {
+    let world = FolioWorld::new();
+    match world.compile_to_png(&content) {
+        Ok(pages) => {
+            let result: NifResult<Vec<rustler::Binary<'_>>> = pages
+                .iter()
+                .map(|bytes| alloc_binary(env, bytes))
+                .collect();
+            result
         }
         Err(msg) => Err(rustler::Error::RaiseTerm(Box::new(msg))),
     }
+}
+
+fn alloc_binary<'a>(env: Env<'a>, bytes: &[u8]) -> NifResult<rustler::Binary<'a>> {
+    let mut binary = OwnedBinary::new(bytes.len())
+        .ok_or(rustler::Error::Term(Box::new("failed to allocate binary")))?;
+    binary.as_mut_slice().copy_from_slice(bytes);
+    Ok(binary.release(env))
 }
 
 rustler::init!("Elixir.Folio.Native");
