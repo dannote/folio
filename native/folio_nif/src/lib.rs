@@ -3,24 +3,48 @@ mod convert;
 mod mdex_bridge;
 mod world;
 
+use std::panic::AssertUnwindSafe;
+
 use rustler::{Env, NifResult, OwnedBinary};
 
 use world::FolioWorld;
 use world as world_mod;
 use types::{ExContent, ExStyle};
 
+/// Wrap a NIF body in `catch_unwind` so Rust panics become structured
+/// Rustler errors instead of crashing the BEAM.
+fn catch_nif<F, T>(label: &str, f: F) -> NifResult<T>
+where
+    F: FnOnce() -> NifResult<T>,
+{
+    match std::panic::catch_unwind(AssertUnwindSafe(f)) {
+        Ok(result) => result,
+        Err(panic) => {
+            let msg = match panic.downcast::<String>() {
+                Ok(s) => format!("{} panicked: {}", label, *s),
+                Err(p) => match p.downcast::<&str>() {
+                    Ok(s) => format!("{} panicked: {}", label, *s),
+                    Err(_) => format!("{} panicked with unknown value", label),
+                },
+            };
+            Err(rustler::Error::RaiseTerm(Box::new(msg)))
+        }
+    }
+}
+
 #[rustler::nif(schedule = "DirtyCpu")]
 fn parse_markdown(markdown: String) -> NifResult<Vec<ExContent>> {
-    let arena = typed_arena::Arena::new();
-    let mut options = comrak::Options::default();
-    options.extension.table = true;
-    options.extension.strikethrough = true;
-    options.extension.autolink = true;
-    options.extension.math_dollars = true;
+    catch_nif("parse_markdown", || {
+        let arena = typed_arena::Arena::new();
+        let mut options = comrak::Options::default();
+        options.extension.table = true;
+        options.extension.strikethrough = true;
+        options.extension.autolink = true;
+        options.extension.math_dollars = true;
 
-    let root = comrak::parse_document(&arena, &markdown, &options);
-    let content = mdex_bridge::convert_children(root);
-    Ok(content)
+        let root = comrak::parse_document(&arena, &markdown, &options);
+        Ok(mdex_bridge::convert_children(root))
+    })
 }
 
 #[rustler::nif(schedule = "DirtyCpu")]
@@ -29,20 +53,23 @@ fn compile_pdf(
     content: Vec<ExContent>,
     styles: Vec<ExStyle>,
 ) -> NifResult<rustler::Binary<'_>> {
-    let world = FolioWorld::new(styles);
-    match world.compile_to_pdf(&content) {
-        Ok(bytes) => alloc_binary(env, &bytes),
-        Err(msg) => Err(rustler::Error::RaiseTerm(Box::new(msg))),
-    }
+    catch_nif("compile_pdf", || {
+        let world = FolioWorld::new(styles);
+        let bytes = world
+            .compile_to_pdf(&content)
+            .map_err(|msg| rustler::Error::RaiseTerm(Box::new(msg)))?;
+        alloc_binary(env, &bytes)
+    })
 }
 
 #[rustler::nif(schedule = "DirtyCpu")]
 fn compile_svg(content: Vec<ExContent>, styles: Vec<ExStyle>) -> NifResult<Vec<String>> {
-    let world = FolioWorld::new(styles);
-    match world.compile_to_svg(&content) {
-        Ok(pages) => Ok(pages),
-        Err(msg) => Err(rustler::Error::RaiseTerm(Box::new(msg))),
-    }
+    catch_nif("compile_svg", || {
+        let world = FolioWorld::new(styles);
+        world
+            .compile_to_svg(&content)
+            .map_err(|msg| rustler::Error::RaiseTerm(Box::new(msg)))
+    })
 }
 
 #[rustler::nif(schedule = "DirtyCpu")]
@@ -51,11 +78,13 @@ fn compile_png(
     content: Vec<ExContent>,
     styles: Vec<ExStyle>,
 ) -> NifResult<Vec<rustler::Binary<'_>>> {
-    let world = FolioWorld::new(styles);
-    match world.compile_to_png(&content) {
-        Ok(pages) => pages.iter().map(|b| alloc_binary(env, b)).collect(),
-        Err(msg) => Err(rustler::Error::RaiseTerm(Box::new(msg))),
-    }
+    catch_nif("compile_png", || {
+        let world = FolioWorld::new(styles);
+        let pages = world
+            .compile_to_png(&content)
+            .map_err(|msg| rustler::Error::RaiseTerm(Box::new(msg)))?;
+        pages.iter().map(|b| alloc_binary(env, b)).collect()
+    })
 }
 
 #[rustler::nif]

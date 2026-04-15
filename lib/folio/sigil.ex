@@ -4,14 +4,14 @@ defmodule Folio.Sigil do
 
   ## Modifiers
 
-  - `~MD(...)"p"` — compile to PDF, returns `binary()`
+  - `~MD(...)"p"` — compile to PDF, returns `{:ok, binary()}`
   - `~MD(...)` — returns content nodes `[Folio.Content.t()]`
 
   ## Example
 
       use Folio
 
-      pdf = ~MD("Generated on " <> to_string(Date.utc_today()), :p)
+      {:ok, pdf} = ~MD("Generated on " <> to_string(Date.utc_today()), :p)
   """
 
   @doc false
@@ -28,12 +28,11 @@ defmodule Folio.Sigil do
   end
 
   @doc false
-  def render(markdown, format) when is_binary(markdown) do
-    content = Folio.Native.parse_markdown(markdown)
+  def render(markdown, :document) when is_binary(markdown) do
+    Folio.parse_markdown(markdown)
+  end
 
-    case format do
-      :document -> content
-      :pdf -> Folio.Native.compile_pdf(content, [])
-    end
+  def render(markdown, :pdf) when is_binary(markdown) do
+    Folio.to_pdf(markdown)
   end
 end
