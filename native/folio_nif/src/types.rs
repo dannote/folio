@@ -2,13 +2,10 @@ use rustler::NifStruct;
 use rustler::NifUntaggedEnum;
 
 // --- Content Nodes ---
-// These must match lib/folio/content.ex struct fields exactly.
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Text"]
-pub struct ExText {
-    pub text: String,
-}
+pub struct ExText { pub text: String }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Space"]
@@ -16,34 +13,43 @@ pub struct ExSpace {}
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Heading"]
-pub struct ExHeading {
-    pub body: Vec<ExContent>,
-    pub level: u8,
-}
+pub struct ExHeading { pub body: Vec<ExContent>, pub level: u8 }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Paragraph"]
-pub struct ExParagraph {
-    pub body: Vec<ExContent>,
-}
+pub struct ExParagraph { pub body: Vec<ExContent> }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Strong"]
-pub struct ExStrong {
-    pub body: Vec<ExContent>,
-}
+pub struct ExStrong { pub body: Vec<ExContent> }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Emph"]
-pub struct ExEmph {
-    pub body: Vec<ExContent>,
-}
+pub struct ExEmph { pub body: Vec<ExContent> }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Strike"]
-pub struct ExStrike {
-    pub body: Vec<ExContent>,
-}
+pub struct ExStrike { pub body: Vec<ExContent> }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Underline"]
+pub struct ExUnderline { pub body: Vec<ExContent> }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Highlight"]
+pub struct ExHighlight { pub body: Vec<ExContent>, pub fill: Option<String> }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Super"]
+pub struct ExSuper { pub body: Vec<ExContent> }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Sub"]
+pub struct ExSub { pub body: Vec<ExContent> }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Smallcaps"]
+pub struct ExSmallcaps { pub body: Vec<ExContent> }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Image"]
@@ -78,15 +84,11 @@ pub struct ExTable {
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.TableHeader"]
-pub struct ExTableHeader {
-    pub children: Vec<ExContent>,
-}
+pub struct ExTableHeader { pub children: Vec<ExContent> }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.TableRow"]
-pub struct ExTableRow {
-    pub children: Vec<ExContent>,
-}
+pub struct ExTableRow { pub children: Vec<ExContent> }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.TableCell"]
@@ -99,17 +101,15 @@ pub struct ExTableCell {
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Columns"]
-pub struct ExColumns {
-    pub count: u32,
-    pub body: Vec<ExContent>,
-    pub gutter: Option<String>,
-}
+pub struct ExColumns { pub count: u32, pub body: Vec<ExContent>, pub gutter: Option<String> }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Colbreak"]
+pub struct ExColbreak { pub weak: bool }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Pagebreak"]
-pub struct ExPagebreak {
-    pub weak: bool,
-}
+pub struct ExPagebreak { pub weak: bool }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Parbreak"]
@@ -121,25 +121,15 @@ pub struct ExLinebreak {}
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Math"]
-pub struct ExMath {
-    pub content: String,
-    pub block: bool,
-}
+pub struct ExMath { pub content: String, pub block: bool }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Link"]
-pub struct ExLink {
-    pub url: String,
-    pub body: Vec<ExContent>,
-}
+pub struct ExLink { pub url: String, pub body: Vec<ExContent> }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Raw"]
-pub struct ExRaw {
-    pub text: String,
-    pub lang: Option<String>,
-    pub block: bool,
-}
+pub struct ExRaw { pub text: String, pub lang: Option<String>, pub block: bool }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Quote"]
@@ -151,52 +141,31 @@ pub struct ExQuote {
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.List"]
-pub struct ExList {
-    pub children: Vec<ExContent>,
-    pub tight: bool,
-    pub marker: Option<String>,
-}
+pub struct ExList { pub children: Vec<ExContent>, pub tight: bool, pub marker: Option<String> }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.ListItem"]
-pub struct ExListItem {
-    pub body: Vec<ExContent>,
-}
+pub struct ExListItem { pub body: Vec<ExContent> }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Enum"]
-pub struct ExEnum {
-    pub children: Vec<ExContent>,
-    pub tight: bool,
-    pub start: Option<u32>,
-}
+pub struct ExEnum { pub children: Vec<ExContent>, pub tight: bool, pub start: Option<u32> }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.EnumItem"]
-pub struct ExEnumItem {
-    pub body: Vec<ExContent>,
-    pub number: Option<u32>,
-}
+pub struct ExEnumItem { pub body: Vec<ExContent>, pub number: Option<u32> }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Label"]
-pub struct ExLabel {
-    pub name: String,
-}
+pub struct ExLabel { pub name: String }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Ref"]
-pub struct ExRef {
-    pub target: String,
-    pub supplement: Option<Vec<ExContent>>,
-}
+pub struct ExRef { pub target: String, pub supplement: Option<Vec<ExContent>> }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Align"]
-pub struct ExAlign {
-    pub alignment: String,
-    pub body: Vec<ExContent>,
-}
+pub struct ExAlign { pub alignment: String, pub body: Vec<ExContent> }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Block"]
@@ -209,10 +178,134 @@ pub struct ExBlock {
 }
 
 #[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.Sequence"]
-pub struct ExSequence {
-    pub children: Vec<ExContent>,
+#[module = "Folio.Content.Hide"]
+pub struct ExHide { pub body: Vec<ExContent> }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Repeat"]
+pub struct ExRepeat { pub body: Vec<ExContent> }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Place"]
+pub struct ExPlace { pub alignment: Option<String>, pub body: Vec<ExContent>, pub float: Option<bool> }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.VSpace"]
+pub struct ExVSpace { pub amount: String, pub weak: bool }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.HSpace"]
+pub struct ExHSpace { pub amount: String, pub weak: bool }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Pad"]
+pub struct ExPad {
+    pub body: Vec<ExContent>,
+    pub left: Option<String>,
+    pub right: Option<String>,
+    pub top: Option<String>,
+    pub bottom: Option<String>,
 }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Stack"]
+pub struct ExStack { pub dir: String, pub children: Vec<ExContent>, pub spacing: Option<String> }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Rect"]
+pub struct ExRect {
+    pub body: Vec<ExContent>,
+    pub width: Option<String>,
+    pub height: Option<String>,
+    pub fill: Option<String>,
+    pub stroke: Option<String>,
+    pub inset: Option<String>,
+    pub outset: Option<String>,
+}
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Square"]
+pub struct ExSquare {
+    pub body: Vec<ExContent>,
+    pub size: Option<String>,
+    pub fill: Option<String>,
+    pub stroke: Option<String>,
+    pub inset: Option<String>,
+    pub outset: Option<String>,
+}
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Circle"]
+pub struct ExCircle {
+    pub body: Vec<ExContent>,
+    pub radius: Option<String>,
+    pub fill: Option<String>,
+    pub stroke: Option<String>,
+    pub inset: Option<String>,
+    pub outset: Option<String>,
+}
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Ellipse"]
+pub struct ExEllipse {
+    pub body: Vec<ExContent>,
+    pub width: Option<String>,
+    pub height: Option<String>,
+    pub fill: Option<String>,
+    pub stroke: Option<String>,
+    pub inset: Option<String>,
+    pub outset: Option<String>,
+}
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Line"]
+pub struct ExLine {
+    pub start: Option<String>,
+    pub end: Option<String>,
+    pub length: Option<String>,
+    pub angle: Option<String>,
+    pub stroke: Option<String>,
+}
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Polygon"]
+pub struct ExPolygon {
+    pub vertices: Vec<String>,
+    pub fill: Option<String>,
+    pub stroke: Option<String>,
+}
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Outline"]
+pub struct ExOutline {
+    pub title: Option<String>,
+    pub indent: Option<String>,
+    pub depth: Option<u32>,
+}
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Title"]
+pub struct ExTitle { pub body: Vec<ExContent> }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.TermList"]
+pub struct ExTermList { pub children: Vec<ExContent>, pub tight: bool }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.TermItem"]
+pub struct ExTermItem { pub term: Vec<ExContent>, pub description: Vec<ExContent> }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Footnote"]
+pub struct ExFootnote { pub body: Vec<ExContent> }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Divider"]
+pub struct ExDivider {}
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Sequence"]
+pub struct ExSequence { pub children: Vec<ExContent> }
 
 #[derive(Clone, Debug, NifUntaggedEnum)]
 pub enum ExContent {
@@ -223,6 +316,11 @@ pub enum ExContent {
     Strong(ExStrong),
     Emph(ExEmph),
     Strike(ExStrike),
+    Underline(ExUnderline),
+    Highlight(ExHighlight),
+    Super(ExSuper),
+    Sub(ExSub),
+    Smallcaps(ExSmallcaps),
     Image(ExImage),
     Figure(ExFigure),
     Table(ExTable),
@@ -230,6 +328,7 @@ pub enum ExContent {
     TableRow(ExTableRow),
     TableCell(ExTableCell),
     Columns(ExColumns),
+    Colbreak(ExColbreak),
     Pagebreak(ExPagebreak),
     Parbreak(ExParbreak),
     Linebreak(ExLinebreak),
@@ -245,6 +344,25 @@ pub enum ExContent {
     Ref(ExRef),
     Align(ExAlign),
     Block(ExBlock),
+    Hide(ExHide),
+    Repeat(ExRepeat),
+    Place(ExPlace),
+    VSpace(ExVSpace),
+    HSpace(ExHSpace),
+    Pad(ExPad),
+    Stack(ExStack),
+    Rect(ExRect),
+    Square(ExSquare),
+    Circle(ExCircle),
+    Ellipse(ExEllipse),
+    Line(ExLine),
+    Polygon(ExPolygon),
+    Outline(ExOutline),
+    Title(ExTitle),
+    TermList(ExTermList),
+    TermItem(ExTermItem),
+    Footnote(ExFootnote),
+    Divider(ExDivider),
     Sequence(ExSequence),
 }
 
@@ -252,29 +370,52 @@ pub enum ExContent {
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Styles.PageSize"]
-pub struct ExPageSize {
-    pub width: Option<f64>,
-    pub height: Option<f64>,
-}
+pub struct ExPageSize { pub width: Option<f64>, pub height: Option<f64> }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Styles.PageMargin"]
 pub struct ExPageMargin {
-    pub top: Option<f64>,
-    pub right: Option<f64>,
-    pub bottom: Option<f64>,
-    pub left: Option<f64>,
+    pub top: Option<f64>, pub right: Option<f64>,
+    pub bottom: Option<f64>, pub left: Option<f64>,
 }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Styles.FontSize"]
-pub struct ExFontSize {
-    pub size: f64,
-}
+pub struct ExFontSize { pub size: f64 }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Styles.FontFamily"]
+pub struct ExFontFamily { pub families: Vec<String> }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Styles.FontWeight"]
+pub struct ExFontWeight { pub weight: u16 }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Styles.TextColor"]
+pub struct ExTextColor { pub color: String }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Styles.ParJustify"]
+pub struct ExParJustify { pub justify: bool }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Styles.ParIndent"]
+pub struct ExParIndent { pub indent: f64 }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Styles.PageNumbering"]
+pub struct ExPageNumbering { pub pattern: String }
 
 #[derive(Clone, Debug, NifUntaggedEnum)]
 pub enum ExStyle {
     PageSize(ExPageSize),
     PageMargin(ExPageMargin),
     FontSize(ExFontSize),
+    FontFamily(ExFontFamily),
+    FontWeight(ExFontWeight),
+    TextColor(ExTextColor),
+    ParJustify(ExParJustify),
+    ParIndent(ExParIndent),
+    PageNumbering(ExPageNumbering),
 }

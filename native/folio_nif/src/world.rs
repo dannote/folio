@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::str::FromStr;
 use std::sync::{Arc, LazyLock, Mutex};
 
 use typst::comemo::{Track, TrackedMut};
@@ -192,6 +193,33 @@ fn apply_styles(styles: &mut typst::foundations::Styles, user_styles: &[ExStyle]
             }
             ExStyle::FontSize(fs) => {
                 styles.set(TextElem::size, TextSize(Abs::pt(fs.size).into()));
+            }
+            ExStyle::FontFamily(ff) => {
+                let families: typst::text::FontList = typst::text::FontList(
+                    ff.families.iter()
+                        .map(|s| typst::text::FontFamily::new(s))
+                        .collect());
+                styles.set(TextElem::font, families);
+            }
+            ExStyle::FontWeight(fw) => {
+                styles.set(TextElem::weight, typst::text::FontWeight::from_number(fw.weight));
+            }
+            ExStyle::TextColor(tc) => {
+                if let Some(color) = crate::convert::parse_color(&tc.color) {
+                    styles.set(TextElem::fill, typst::visualize::Paint::Solid(color));
+                }
+            }
+            ExStyle::ParJustify(pj) => {
+                styles.set(typst::model::ParElem::justify, pj.justify);
+            }
+            ExStyle::ParIndent(_pi) => {
+                // ParIndent requires FirstLineIndent which has private fields.
+                // TODO: implement when Typst exposes a constructor.
+            }
+            ExStyle::PageNumbering(pn) => {
+                if let Ok(pat) = typst::model::NumberingPattern::from_str(&pn.pattern) {
+                    styles.set(PageElem::numbering, Some(typst::model::Numbering::Pattern(pat)));
+                }
             }
         }
     }

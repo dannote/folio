@@ -7,49 +7,66 @@ defmodule Folio.Content do
   """
 
   defmodule Text do
-    @moduledoc "Plain text."
     defstruct [:text]
     @type t :: %__MODULE__{text: String.t()}
   end
 
   defmodule Space do
-    @moduledoc "Whitespace."
     defstruct []
     @type t :: %__MODULE__{}
   end
 
   defmodule Heading do
-    @moduledoc "Section heading (h1-h6)."
     defstruct [:body, :level]
     @type t :: %__MODULE__{body: [Folio.Content.t()], level: 1..6}
   end
 
   defmodule Paragraph do
-    @moduledoc "Paragraph."
     defstruct [:body]
     @type t :: %__MODULE__{body: [Folio.Content.t()]}
   end
 
   defmodule Strong do
-    @moduledoc "Bold text."
     defstruct [:body]
     @type t :: %__MODULE__{body: [Folio.Content.t()]}
   end
 
   defmodule Emph do
-    @moduledoc "Italic text."
     defstruct [:body]
     @type t :: %__MODULE__{body: [Folio.Content.t()]}
   end
 
   defmodule Strike do
-    @moduledoc "Strikethrough text."
+    defstruct [:body]
+    @type t :: %__MODULE__{body: [Folio.Content.t()]}
+  end
+
+  defmodule Underline do
+    defstruct [:body]
+    @type t :: %__MODULE__{body: [Folio.Content.t()]}
+  end
+
+  defmodule Highlight do
+    defstruct [:body, :fill]
+    @type t :: %__MODULE__{body: [Folio.Content.t()], fill: String.t() | nil}
+  end
+
+  defmodule Super do
+    defstruct [:body]
+    @type t :: %__MODULE__{body: [Folio.Content.t()]}
+  end
+
+  defmodule Sub do
+    defstruct [:body]
+    @type t :: %__MODULE__{body: [Folio.Content.t()]}
+  end
+
+  defmodule Smallcaps do
     defstruct [:body]
     @type t :: %__MODULE__{body: [Folio.Content.t()]}
   end
 
   defmodule Image do
-    @moduledoc "Image."
     defstruct [:src, :width, :height, :fit]
     @type t :: %__MODULE__{
       src: String.t(),
@@ -60,7 +77,6 @@ defmodule Folio.Content do
   end
 
   defmodule Figure do
-    @moduledoc "Figure with optional caption."
     defstruct [:body, :caption, :placement, :scope, :numbering, :separator]
     @type t :: %__MODULE__{
       body: [Folio.Content.t()],
@@ -73,7 +89,6 @@ defmodule Folio.Content do
   end
 
   defmodule Table do
-    @moduledoc "Table."
     defstruct [:columns, :rows, :children, :stroke, :gutter, :align]
     @type t :: %__MODULE__{
       columns: String.t() | nil,
@@ -86,19 +101,16 @@ defmodule Folio.Content do
   end
 
   defmodule TableHeader do
-    @moduledoc "Table header row."
     defstruct [:children]
     @type t :: %__MODULE__{children: [Folio.Content.t()]}
   end
 
   defmodule TableRow do
-    @moduledoc "Table data row."
     defstruct [:children]
     @type t :: %__MODULE__{children: [Folio.Content.t()]}
   end
 
   defmodule TableCell do
-    @moduledoc "Table cell."
     defstruct [:body, :colspan, :rowspan, :align]
     @type t :: %__MODULE__{
       body: [Folio.Content.t()],
@@ -109,53 +121,46 @@ defmodule Folio.Content do
   end
 
   defmodule Columns do
-    @moduledoc "Multi-column layout."
     defstruct [:count, :body, :gutter]
-    @type t :: %__MODULE__{
-      count: pos_integer(),
-      body: [Folio.Content.t()],
-      gutter: String.t() | nil
-    }
+    @type t :: %__MODULE__{count: pos_integer(), body: [Folio.Content.t()], gutter: String.t() | nil}
+  end
+
+  defmodule Colbreak do
+    defstruct [:weak]
+    @type t :: %__MODULE__{weak: boolean()}
   end
 
   defmodule Pagebreak do
-    @moduledoc "Page break."
     defstruct [:weak]
     @type t :: %__MODULE__{weak: boolean()}
   end
 
   defmodule Parbreak do
-    @moduledoc "Paragraph break."
     defstruct []
     @type t :: %__MODULE__{}
   end
 
   defmodule Linebreak do
-    @moduledoc "Line break."
     defstruct []
     @type t :: %__MODULE__{}
   end
 
   defmodule Math do
-    @moduledoc "Math expression (Typst math syntax)."
     defstruct [:content, :block]
     @type t :: %__MODULE__{content: String.t(), block: boolean()}
   end
 
   defmodule Link do
-    @moduledoc "Hyperlink."
     defstruct [:url, :body]
     @type t :: %__MODULE__{url: String.t(), body: [Folio.Content.t()]}
   end
 
   defmodule Raw do
-    @moduledoc "Raw / code block."
     defstruct [:text, :lang, :block]
     @type t :: %__MODULE__{text: String.t(), lang: String.t() | nil, block: boolean()}
   end
 
   defmodule Quote do
-    @moduledoc "Block or inline quote."
     defstruct [:body, :block, :attribution]
     @type t :: %__MODULE__{
       body: [Folio.Content.t()],
@@ -165,57 +170,41 @@ defmodule Folio.Content do
   end
 
   defmodule List do
-    @moduledoc "Bullet list."
     defstruct [:children, :tight, :marker]
-    @type t :: %__MODULE__{
-      children: [Folio.Content.t()],
-      tight: boolean(),
-      marker: String.t() | nil
-    }
+    @type t :: %__MODULE__{children: [Folio.Content.t()], tight: boolean(), marker: String.t() | nil}
   end
 
   defmodule ListItem do
-    @moduledoc "Bullet list item."
     defstruct [:body]
     @type t :: %__MODULE__{body: [Folio.Content.t()]}
   end
 
   defmodule Enum do
-    @moduledoc "Numbered list."
     defstruct [:children, :tight, :start]
-    @type t :: %__MODULE__{
-      children: [Folio.Content.t()],
-      tight: boolean(),
-      start: pos_integer() | nil
-    }
+    @type t :: %__MODULE__{children: [Folio.Content.t()], tight: boolean(), start: pos_integer() | nil}
   end
 
   defmodule EnumItem do
-    @moduledoc "Numbered list item."
     defstruct [:body, :number]
     @type t :: %__MODULE__{body: [Folio.Content.t()], number: pos_integer() | nil}
   end
 
   defmodule Label do
-    @moduledoc "Label for cross-references."
     defstruct [:name]
     @type t :: %__MODULE__{name: String.t()}
   end
 
   defmodule Ref do
-    @moduledoc "Cross-reference to a label."
     defstruct [:target, :supplement]
     @type t :: %__MODULE__{target: String.t(), supplement: [Folio.Content.t()] | nil}
   end
 
   defmodule Align do
-    @moduledoc "Alignment wrapper."
     defstruct [:alignment, :body]
     @type t :: %__MODULE__{alignment: String.t(), body: [Folio.Content.t()]}
   end
 
   defmodule Block do
-    @moduledoc "Block container."
     defstruct [:body, :width, :height, :above, :below]
     @type t :: %__MODULE__{
       body: [Folio.Content.t()],
@@ -226,8 +215,160 @@ defmodule Folio.Content do
     }
   end
 
+  defmodule Hide do
+    defstruct [:body]
+    @type t :: %__MODULE__{body: [Folio.Content.t()]}
+  end
+
+  defmodule Repeat do
+    defstruct [:body]
+    @type t :: %__MODULE__{body: [Folio.Content.t()]}
+  end
+
+  defmodule Place do
+    defstruct [:alignment, :body, :float]
+    @type t :: %__MODULE__{
+      alignment: String.t() | nil,
+      body: [Folio.Content.t()],
+      float: boolean() | nil
+    }
+  end
+
+  defmodule VSpace do
+    defstruct [:amount, :weak]
+    @type t :: %__MODULE__{amount: String.t(), weak: boolean()}
+  end
+
+  defmodule HSpace do
+    defstruct [:amount, :weak]
+    @type t :: %__MODULE__{amount: String.t(), weak: boolean()}
+  end
+
+  defmodule Pad do
+    defstruct [:body, :left, :right, :top, :bottom]
+    @type t :: %__MODULE__{
+      body: [Folio.Content.t()],
+      left: String.t() | nil,
+      right: String.t() | nil,
+      top: String.t() | nil,
+      bottom: String.t() | nil
+    }
+  end
+
+  defmodule Stack do
+    defstruct [:dir, :children, :spacing]
+    @type t :: %__MODULE__{
+      dir: String.t(),
+      children: [Folio.Content.t()],
+      spacing: String.t() | nil
+    }
+  end
+
+  defmodule Rect do
+    defstruct [:body, :width, :height, :fill, :stroke, :inset, :outset]
+    @type t :: %__MODULE__{
+      body: [Folio.Content.t()],
+      width: String.t() | nil,
+      height: String.t() | nil,
+      fill: String.t() | nil,
+      stroke: String.t() | nil,
+      inset: String.t() | nil,
+      outset: String.t() | nil
+    }
+  end
+
+  defmodule Square do
+    defstruct [:body, :size, :fill, :stroke, :inset, :outset]
+    @type t :: %__MODULE__{
+      body: [Folio.Content.t()],
+      size: String.t() | nil,
+      fill: String.t() | nil,
+      stroke: String.t() | nil,
+      inset: String.t() | nil,
+      outset: String.t() | nil
+    }
+  end
+
+  defmodule Circle do
+    defstruct [:body, :radius, :fill, :stroke, :inset, :outset]
+    @type t :: %__MODULE__{
+      body: [Folio.Content.t()],
+      radius: String.t() | nil,
+      fill: String.t() | nil,
+      stroke: String.t() | nil,
+      inset: String.t() | nil,
+      outset: String.t() | nil
+    }
+  end
+
+  defmodule Ellipse do
+    defstruct [:body, :width, :height, :fill, :stroke, :inset, :outset]
+    @type t :: %__MODULE__{
+      body: [Folio.Content.t()],
+      width: String.t() | nil,
+      height: String.t() | nil,
+      fill: String.t() | nil,
+      stroke: String.t() | nil,
+      inset: String.t() | nil,
+      outset: String.t() | nil
+    }
+  end
+
+  defmodule Line do
+    defstruct [:start, :end, :length, :angle, :stroke]
+    @type t :: %__MODULE__{
+      start: String.t() | nil,
+      end: String.t() | nil,
+      length: String.t() | nil,
+      angle: String.t() | nil,
+      stroke: String.t() | nil
+    }
+  end
+
+  defmodule Polygon do
+    defstruct [:vertices, :fill, :stroke]
+    @type t :: %__MODULE__{
+      vertices: [String.t()],
+      fill: String.t() | nil,
+      stroke: String.t() | nil
+    }
+  end
+
+  defmodule Outline do
+    defstruct [:title, :indent, :depth]
+    @type t :: %__MODULE__{
+      title: String.t() | nil,
+      indent: String.t() | nil,
+      depth: pos_integer() | nil
+    }
+  end
+
+  defmodule Title do
+    defstruct [:body]
+    @type t :: %__MODULE__{body: [Folio.Content.t()]}
+  end
+
+  defmodule TermList do
+    defstruct [:children, :tight]
+    @type t :: %__MODULE__{children: [Folio.Content.t()], tight: boolean()}
+  end
+
+  defmodule TermItem do
+    defstruct [:term, :description]
+    @type t :: %__MODULE__{term: [Folio.Content.t()], description: [Folio.Content.t()]}
+  end
+
+  defmodule Footnote do
+    defstruct [:body]
+    @type t :: %__MODULE__{body: [Folio.Content.t()]}
+  end
+
+  defmodule Divider do
+    defstruct []
+    @type t :: %__MODULE__{}
+  end
+
   defmodule Sequence do
-    @moduledoc "Sequence of content nodes (internal)."
     defstruct [:children]
     @type t :: %__MODULE__{children: [Folio.Content.t()]}
   end
@@ -240,6 +381,11 @@ defmodule Folio.Content do
           | Strong.t()
           | Emph.t()
           | Strike.t()
+          | Underline.t()
+          | Highlight.t()
+          | Super.t()
+          | Sub.t()
+          | Smallcaps.t()
           | Image.t()
           | Figure.t()
           | Table.t()
@@ -247,6 +393,7 @@ defmodule Folio.Content do
           | TableRow.t()
           | TableCell.t()
           | Columns.t()
+          | Colbreak.t()
           | Pagebreak.t()
           | Parbreak.t()
           | Linebreak.t()
@@ -262,6 +409,25 @@ defmodule Folio.Content do
           | Ref.t()
           | Align.t()
           | Block.t()
+          | Hide.t()
+          | Repeat.t()
+          | Place.t()
+          | VSpace.t()
+          | HSpace.t()
+          | Pad.t()
+          | Stack.t()
+          | Rect.t()
+          | Square.t()
+          | Circle.t()
+          | Ellipse.t()
+          | Line.t()
+          | Polygon.t()
+          | Outline.t()
+          | Title.t()
+          | TermList.t()
+          | TermItem.t()
+          | Footnote.t()
+          | Divider.t()
           | Sequence.t()
 
   @doc "Wrap a string as Text."
