@@ -127,30 +127,35 @@ fn convert_node<'a>(node: &'a AstNode<'a>) -> ExContent {
 /// Convert a GFM table.
 fn convert_table<'a>(node: &'a AstNode<'a>) -> ExContent {
     let mut header_cells: Vec<ExContent> = vec![];
-    let body_rows: Vec<ExContent> = vec![];
+    let mut body_rows: Vec<ExContent> = vec![];
     let mut column_count = 1usize;
 
     for row in node.children() {
-        if let NodeValue::TableRow(_header) = &row.data.borrow().value {
-            for cell in row.children() {
-                header_cells.push(ExContent::TableCell(ExTableCell {
-                    body: convert_children(cell),
-                    colspan: None,
-                }));
+        match &row.data.borrow().value {
+            NodeValue::TableRow(is_header) => {
+                let cells: Vec<ExContent> = row.children().map(|cell| {
+                    ExContent::TableCell(ExTableCell {
+                        body: convert_children(cell),
+                        colspan: None,
+                    })
+                }).collect();
+                column_count = column_count.max(cells.len());
+
+                if *is_header {
+                    header_cells = cells;
+                } else {
+                    body_rows.push(ExContent::TableRow(ExTableRow { children: cells }));
+                }
             }
-            column_count = column_count.max(header_cells.len());
+            _ => {}
         }
     }
 
-    let children = if !header_cells.is_empty() {
-        let mut result = vec![
-            ExContent::TableHeader(ExTableHeader { children: header_cells }),
-        ];
-        result.extend(body_rows);
-        result
-    } else {
-        body_rows
-    };
+    let mut children: Vec<ExContent> = vec![];
+    if !header_cells.is_empty() {
+        children.push(ExContent::TableHeader(ExTableHeader { children: header_cells }));
+    }
+    children.extend(body_rows);
 
     ExContent::Table(ExTable {
         num_columns: column_count,

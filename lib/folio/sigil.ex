@@ -4,8 +4,14 @@ defmodule Folio.Sigil do
 
   ## Modifiers
 
-  - `~MD\"\"\"...\"\"\"p` — compile to PDF, returns `binary()`
-  - `~MD\"\"\"...\"\"\"` (no modifier) — returns content nodes
+  - `~MD(...)"p"` — compile to PDF, returns `binary()`
+  - `~MD(...)` — returns content nodes `[Folio.Content.t()]`
+
+  ## Example
+
+      use Folio
+
+      pdf = ~MD("Generated on " <> to_string(Date.utc_today()), :p)
   """
 
   @doc false
