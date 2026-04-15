@@ -2,14 +2,14 @@ defmodule Folio do
   @moduledoc """
   Print-quality PDF from Markdown + Elixir, powered by Typst.
 
-  ## Usage
-
       use Folio
 
       pdf = Folio.to_pdf("# Report\\n\\nSome content here.")
 
       # With custom styles
-      pdf = Folio.to_pdf("# Report", styles: [Folio.Styles.page_size(width: 595, height: 842)])
+      pdf = Folio.to_pdf("# Report", styles: [
+        Folio.Styles.page_size(width: 595, height: 842)
+      ])
 
   ## Image loading
 
@@ -17,7 +17,7 @@ defmodule Folio do
       pdf = Folio.to_pdf("![Logo](logo.png)")
   """
 
-  defmacro __using__(_opts \\ []) do
+  defmacro __using__(_opts) do
     quote do
       import Folio.DSL
       import Folio.Sigil
@@ -31,7 +31,7 @@ defmodule Folio do
     Folio.Native.parse_markdown(markdown)
   end
 
-  @doc "Compile markdown or content to PDF bytes."
+  @doc "Compile markdown or content to PDF bytes. Raises on error."
   @spec to_pdf(String.t() | [Folio.Content.t()], keyword()) :: binary()
   def to_pdf(source, opts \\ [])
 
@@ -44,7 +44,7 @@ defmodule Folio do
     Folio.Native.compile_pdf(content, styles)
   end
 
-  @doc "Compile markdown or content to SVG strings (one per page)."
+  @doc "Compile markdown or content to SVG strings (one per page). Raises on error."
   @spec to_svg(String.t() | [Folio.Content.t()], keyword()) :: [String.t()]
   def to_svg(source, opts \\ [])
 
@@ -57,7 +57,7 @@ defmodule Folio do
     Folio.Native.compile_svg(content, styles)
   end
 
-  @doc "Compile markdown or content to PNG images (one per page)."
+  @doc "Compile markdown or content to PNG images (one per page). Raises on error."
   @spec to_png(String.t() | [Folio.Content.t()], keyword()) :: [binary()]
   def to_png(source, opts \\ [])
 
@@ -78,16 +78,4 @@ defmodule Folio do
       "ok" -> :ok
     end
   end
-end
-
-defmodule Folio.CompileError do
-  defexception [:reason]
-  @impl true
-  def message(%{reason: reason}), do: "Folio compile error: #{inspect(reason)}"
-end
-
-defmodule Folio.ParseError do
-  defexception [:reason]
-  @impl true
-  def message(%{reason: reason}), do: "Folio parse error: #{inspect(reason)}"
 end

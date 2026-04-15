@@ -64,6 +64,9 @@ fn convert_node<'a>(node: &'a AstNode<'a>) -> ExContent {
         NodeValue::Image(img) => {
             ExContent::Image(ExImage {
                 src: img.url.clone(),
+                width: None,
+                height: None,
+                fit: None,
             })
         }
 
@@ -86,6 +89,8 @@ fn convert_node<'a>(node: &'a AstNode<'a>) -> ExContent {
         NodeValue::BlockQuote => {
             ExContent::Quote(ExQuote {
                 body: convert_children(node),
+                block: true,
+                attribution: None,
             })
         }
 
@@ -98,12 +103,13 @@ fn convert_node<'a>(node: &'a AstNode<'a>) -> ExContent {
             ExContent::List(ExList {
                 children: items,
                 tight: true,
+                marker: None,
             })
         }
 
         NodeValue::SoftBreak => ExContent::Space(ExSpace {}),
         NodeValue::LineBreak => ExContent::Linebreak(ExLinebreak {}),
-        NodeValue::ThematicBreak => ExContent::Pagebreak(ExPagebreak {}),
+        NodeValue::ThematicBreak => ExContent::Pagebreak(ExPagebreak { weak: false }),
 
         NodeValue::Math(math) => {
             ExContent::Math(ExMath {
@@ -134,9 +140,11 @@ fn convert_table<'a>(node: &'a AstNode<'a>) -> ExContent {
         match &row.data.borrow().value {
             NodeValue::TableRow(is_header) => {
                 let cells: Vec<ExContent> = row.children().map(|cell| {
-                    ExContent::TableCell(ExTableCell {
+            ExContent::TableCell(ExTableCell {
                         body: convert_children(cell),
                         colspan: None,
+                        rowspan: None,
+                        align: None,
                     })
                 }).collect();
                 column_count = column_count.max(cells.len());
@@ -158,7 +166,11 @@ fn convert_table<'a>(node: &'a AstNode<'a>) -> ExContent {
     children.extend(body_rows);
 
     ExContent::Table(ExTable {
-        num_columns: column_count,
+        columns: None,
+        rows: None,
         children,
+        stroke: None,
+        gutter: None,
+        align: None,
     })
 }

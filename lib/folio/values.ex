@@ -1,7 +1,8 @@
 defmodule Folio.Value do
   @moduledoc """
-  Typed values that cross the NIF boundary.
-  Maps to Typst's value system (units, colors, special values).
+  Measurement unit constructors for layout values.
+
+  All values are represented as tagged tuples that cross the NIF boundary.
   """
 
   @type t ::
@@ -16,12 +17,6 @@ defmodule Folio.Value do
           | {:luma, float()}
           | :auto
           | :none
-          | boolean()
-          | integer()
-          | float()
-          | String.t()
-          | [t()]
-          | [{String.t() | atom(), t()}]
 
   @doc "Points"
   @spec pt(number()) :: {:pt, number()}
@@ -58,32 +53,4 @@ defmodule Folio.Value do
   @doc "Luminance"
   @spec luma(float()) :: {:luma, float()}
   def luma(v), do: {:luma, v}
-end
-
-defprotocol Folio.Encoder do
-  @doc "Convert an Elixir term to a Folio.Value"
-  def encode(term)
-end
-
-defimpl Folio.Encoder, for: Atom do
-  def encode(:auto), do: :auto
-  def encode(:none), do: :none
-  def encode(bool) when bool in [true, false], do: bool
-  def encode(atom), do: Atom.to_string(atom)
-end
-
-defimpl Folio.Encoder, for: Integer do
-  def encode(n), do: n
-end
-
-defimpl Folio.Encoder, for: Float do
-  def encode(n), do: n
-end
-
-defimpl Folio.Encoder, for: BitString do
-  def encode(s), do: s
-end
-
-defimpl Folio.Encoder, for: List do
-  def encode(list), do: Enum.map(list, &Folio.Encoder.encode/1)
 end

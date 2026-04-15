@@ -24,7 +24,11 @@ fn parse_markdown(markdown: String) -> NifResult<Vec<ExContent>> {
 }
 
 #[rustler::nif(schedule = "DirtyCpu")]
-fn compile_pdf(env: Env<'_>, content: Vec<ExContent>, styles: Vec<ExStyle>) -> NifResult<rustler::Binary<'_>> {
+fn compile_pdf(
+    env: Env<'_>,
+    content: Vec<ExContent>,
+    styles: Vec<ExStyle>,
+) -> NifResult<rustler::Binary<'_>> {
     let world = FolioWorld::new(styles);
     match world.compile_to_pdf(&content) {
         Ok(bytes) => alloc_binary(env, &bytes),
@@ -42,7 +46,11 @@ fn compile_svg(content: Vec<ExContent>, styles: Vec<ExStyle>) -> NifResult<Vec<S
 }
 
 #[rustler::nif(schedule = "DirtyCpu")]
-fn compile_png(env: Env<'_>, content: Vec<ExContent>, styles: Vec<ExStyle>) -> NifResult<Vec<rustler::Binary<'_>>> {
+fn compile_png(
+    env: Env<'_>,
+    content: Vec<ExContent>,
+    styles: Vec<ExStyle>,
+) -> NifResult<Vec<rustler::Binary<'_>>> {
     let world = FolioWorld::new(styles);
     match world.compile_to_png(&content) {
         Ok(pages) => pages.iter().map(|b| alloc_binary(env, b)).collect(),

@@ -190,7 +190,6 @@ fn apply_styles(styles: &mut typst::foundations::Styles, user_styles: &[ExStyle]
                     two_sided: None,
                 });
             }
-            ExStyle::PagePaper(_) => {}
             ExStyle::FontSize(fs) => {
                 styles.set(TextElem::size, TextSize(Abs::pt(fs.size).into()));
             }

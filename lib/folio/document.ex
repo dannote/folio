@@ -32,21 +32,18 @@ defmodule Folio.Document do
   @doc "Create a document with page and text setup."
   @spec configure(keyword()) :: t()
   def configure(opts) do
-    styles = []
-
     styles =
-      case Keyword.get(opts, :page) do
-        nil -> styles
-        page_opts when is_list(page_opts) -> styles ++ [Styles.page_size(page_opts)]
-        paper when is_atom(paper) -> styles ++ [Styles.page_paper(to_string(paper))]
-      end
-
-    styles =
-      case Keyword.get(opts, :font_size) do
-        nil -> styles
-        size -> styles ++ [Styles.font_size(size)]
-      end
+      []
+      |> maybe_add_style(opts, :page, &Styles.page_size/1)
+      |> maybe_add_style(opts, :font_size, &Styles.font_size/1)
 
     %__MODULE__{content: [], styles: styles}
+  end
+
+  defp maybe_add_style(styles, opts, key, builder) do
+    case Keyword.get(opts, key) do
+      nil -> styles
+      val -> styles ++ [builder.(val)]
+    end
   end
 end

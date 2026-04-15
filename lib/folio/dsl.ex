@@ -3,8 +3,7 @@ defmodule Folio.DSL do
   Builder functions for Folio content nodes.
 
   Every function returns a `%Folio.Content.*{}` struct.
-  These are used inside `#{}` interpolation in `~MD` sigils,
-  or directly in Elixir code building documents programmatically.
+  Use inside `#{}` interpolation in `~MD` sigils, or in Elixir code.
   """
 
   alias Folio.Content
@@ -14,13 +13,9 @@ defmodule Folio.DSL do
   @doc "Plain text node."
   def text(str) when is_binary(str), do: %Content.Text{text: str}
 
-  @doc "Styled text. Maps to `#text(...)[...]`."
+  @doc "Text with style options (size, weight, etc.)."
   def text(str, opts) when is_binary(str) and is_list(opts) do
-    %Content.Paragraph{
-      body: [
-        %Content.Text{text: str}
-      ]
-    }
+    %Content.Text{text: str}
   end
 
   # --- Headings ---
@@ -38,6 +33,9 @@ defmodule Folio.DSL do
   @doc "Italic/emphasized content."
   def emph(content), do: %Content.Emph{body: Content.to_content(content)}
 
+  @doc "Strikethrough content."
+  def strike(content), do: %Content.Strike{body: Content.to_content(content)}
+
   # --- Images ---
 
   @doc "Insert an image."
@@ -53,21 +51,10 @@ defmodule Folio.DSL do
   # --- Figures ---
 
   @doc "Wrap content in a figure with optional caption."
-  def figure(content_or_opts, opts \\ [])
-
-  def figure(content, opts) when (is_binary(content) or is_struct(content)) and is_list(opts) do
+  def figure(content, opts \\ []) when is_binary(content) or is_struct(content) do
     %Content.Figure{
       body: Content.to_content(content),
-      caption: Keyword.get(opts, :caption) |> then_if_some(&Content.to_content/1),
-      placement: Keyword.get(opts, :placement)
-    }
-  end
-
-  def figure(opts, _body) when is_list(opts) do
-    caption = Keyword.get(opts, :caption)
-    %Content.Figure{
-      body: [],
-      caption: if(caption, do: Content.to_content(caption)),
+      caption: then_if_some(Keyword.get(opts, :caption), &Content.to_content/1),
       placement: Keyword.get(opts, :placement),
       scope: Keyword.get(opts, :scope),
       numbering: Keyword.get(opts, :numbering),
@@ -80,7 +67,7 @@ defmodule Folio.DSL do
   @doc "Create a table with columns and children."
   def table(opts, do: children) when is_list(opts) do
     %Content.Table{
-      columns: Keyword.get(opts, :columns, [:auto]),
+      columns: Keyword.get(opts, :columns),
       rows: Keyword.get(opts, :rows),
       children: Content.flatten(Content.to_content(children)),
       stroke: Keyword.get(opts, :stroke),
@@ -133,9 +120,9 @@ defmodule Folio.DSL do
   @doc "Insert a line break."
   def linebreak, do: %Content.Linebreak{}
 
-  @doc "Align content."
-  def align(alignment, content) when alignment in [:left, :center, :right] do
-    %Content.Align{alignment: alignment, body: Content.to_content(content)}
+  @doc "Align content. Pass alignment as atom or string."
+  def align(alignment, content) when alignment in [:left, :center, :right, "left", "center", "right"] do
+    %Content.Align{alignment: to_string(alignment), body: Content.to_content(content)}
   end
 
   @doc "Block container with spacing."
@@ -146,20 +133,6 @@ defmodule Folio.DSL do
       height: Keyword.get(opts, :height),
       above: Keyword.get(opts, :above),
       below: Keyword.get(opts, :below)
-    }
-  end
-
-  @doc "Pad content."
-  def pad(opts, do: body) when is_list(opts) do
-    %Content.Pad{
-      body: Content.flatten(Content.to_content(body)),
-      left: Keyword.get(opts, :left),
-      right: Keyword.get(opts, :right),
-      top: Keyword.get(opts, :top),
-      bottom: Keyword.get(opts, :bottom),
-      x: Keyword.get(opts, :x),
-      y: Keyword.get(opts, :y),
-      rest: Keyword.get(opts, :rest)
     }
   end
 
@@ -234,36 +207,11 @@ defmodule Folio.DSL do
   # --- Quote ---
 
   @doc "Block or inline quote."
-  def quote(content, opts \\ []) do
+  def blockquote(content, opts \\ []) do
     %Content.Quote{
       body: Content.to_content(content),
       block: Keyword.get(opts, :block, true),
-      attribution: Keyword.get(opts, :attribution) |> then_if_some(&Content.to_content/1)
-    }
-  end
-
-  # --- Bibliography ---
-
-  @doc "Insert bibliography."
-  def bibliography(source, opts \\ []) do
-    %Content.Bibliography{
-      source: source,
-      style: Keyword.get(opts, :style),
-      full: Keyword.get(opts, :full)
-    }
-  end
-
-  # --- Grid ---
-
-  @doc "Grid layout."
-  def grid(opts, do: children) when is_list(opts) do
-    %Content.Grid{
-      columns: Keyword.get(opts, :columns, [:auto]),
-      rows: Keyword.get(opts, :rows),
-      children: Content.flatten(Content.to_content(children)),
-      gutter: Keyword.get(opts, :gutter),
-      stroke: Keyword.get(opts, :stroke),
-      align: Keyword.get(opts, :align)
+      attribution: then_if_some(Keyword.get(opts, :attribution), &Content.to_content/1)
     }
   end
 

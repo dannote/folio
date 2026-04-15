@@ -2,20 +2,12 @@ defmodule Folio.Styles do
   @moduledoc """
   Style rules for customizing document appearance.
 
-  Pass a list of style structs via the `:styles` option:
-
       Folio.to_pdf("# Hello", styles: [
         Folio.Styles.page_size(width: 595, height: 842),
         Folio.Styles.page_margin(top: 40, bottom: 40, left: 50, right: 50),
         Folio.Styles.font_size(11)
       ])
   """
-
-  defmodule PagePaper do
-    @moduledoc "Set paper size by name (a4, letter, etc.)."
-    defstruct [:paper]
-    @type t :: %__MODULE__{paper: String.t()}
-  end
 
   defmodule PageSize do
     @moduledoc "Set page dimensions in points."
@@ -40,7 +32,7 @@ defmodule Folio.Styles do
     @type t :: %__MODULE__{size: float()}
   end
 
-  @type rule :: PagePaper.t() | PageSize.t() | PageMargin.t() | FontSize.t()
+  @type rule :: PageSize.t() | PageMargin.t() | FontSize.t()
 
   @doc "Set page dimensions in points."
   @spec page_size(keyword()) :: PageSize.t()
@@ -62,8 +54,4 @@ defmodule Folio.Styles do
   @doc "Set base font size in points."
   @spec font_size(number()) :: FontSize.t()
   def font_size(size) when is_number(size), do: %FontSize{size: size * 1.0}
-
-  @doc "Set paper by name."
-  @spec page_paper(String.t()) :: PagePaper.t()
-  def page_paper(paper) when is_binary(paper), do: %PagePaper{paper: paper}
 end

@@ -42,7 +42,7 @@ defmodule Folio.MixProject do
       maintainers: ["dannote"],
       licenses: ["MIT"],
       links: %{"GitHub" => @source_url},
-      files: ~w(lib native/folio_nif src/*.erl mix.exs README.md LICENSE.md)
+      files: ~w(lib native/folio_nif/Cargo.toml native/folio_nif/src mix.exs README.md LICENSE.md .rustler.toml)
     ]
   end
 

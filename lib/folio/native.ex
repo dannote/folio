@@ -1,4 +1,6 @@
 defmodule Folio.Native do
+  @moduledoc false
+
   use Rustler,
     otp_app: :folio,
     crate: :folio_nif

@@ -2,6 +2,7 @@ use rustler::NifStruct;
 use rustler::NifUntaggedEnum;
 
 // --- Content Nodes ---
+// These must match lib/folio/content.ex struct fields exactly.
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Text"]
@@ -48,6 +49,9 @@ pub struct ExStrike {
 #[module = "Folio.Content.Image"]
 pub struct ExImage {
     pub src: String,
+    pub width: Option<String>,
+    pub height: Option<String>,
+    pub fit: Option<String>,
 }
 
 #[derive(Clone, Debug, NifStruct)]
@@ -55,13 +59,21 @@ pub struct ExImage {
 pub struct ExFigure {
     pub body: Vec<ExContent>,
     pub caption: Option<Vec<ExContent>>,
+    pub placement: Option<String>,
+    pub scope: Option<String>,
+    pub numbering: Option<String>,
+    pub separator: Option<String>,
 }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Table"]
 pub struct ExTable {
-    pub num_columns: usize,
+    pub columns: Option<String>,
+    pub rows: Option<String>,
     pub children: Vec<ExContent>,
+    pub stroke: Option<String>,
+    pub gutter: Option<String>,
+    pub align: Option<String>,
 }
 
 #[derive(Clone, Debug, NifStruct)]
@@ -81,6 +93,8 @@ pub struct ExTableRow {
 pub struct ExTableCell {
     pub body: Vec<ExContent>,
     pub colspan: Option<u32>,
+    pub rowspan: Option<u32>,
+    pub align: Option<String>,
 }
 
 #[derive(Clone, Debug, NifStruct)]
@@ -88,11 +102,14 @@ pub struct ExTableCell {
 pub struct ExColumns {
     pub count: u32,
     pub body: Vec<ExContent>,
+    pub gutter: Option<String>,
 }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Pagebreak"]
-pub struct ExPagebreak {}
+pub struct ExPagebreak {
+    pub weak: bool,
+}
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Parbreak"]
@@ -128,6 +145,8 @@ pub struct ExRaw {
 #[module = "Folio.Content.Quote"]
 pub struct ExQuote {
     pub body: Vec<ExContent>,
+    pub block: bool,
+    pub attribution: Option<Vec<ExContent>>,
 }
 
 #[derive(Clone, Debug, NifStruct)]
@@ -135,6 +154,7 @@ pub struct ExQuote {
 pub struct ExList {
     pub children: Vec<ExContent>,
     pub tight: bool,
+    pub marker: Option<String>,
 }
 
 #[derive(Clone, Debug, NifStruct)]
@@ -147,6 +167,7 @@ pub struct ExListItem {
 #[module = "Folio.Content.Enum"]
 pub struct ExEnum {
     pub children: Vec<ExContent>,
+    pub tight: bool,
     pub start: Option<u32>,
 }
 
@@ -167,6 +188,7 @@ pub struct ExLabel {
 #[module = "Folio.Content.Ref"]
 pub struct ExRef {
     pub target: String,
+    pub supplement: Option<Vec<ExContent>>,
 }
 
 #[derive(Clone, Debug, NifStruct)]
@@ -180,6 +202,10 @@ pub struct ExAlign {
 #[module = "Folio.Content.Block"]
 pub struct ExBlock {
     pub body: Vec<ExContent>,
+    pub width: Option<String>,
+    pub height: Option<String>,
+    pub above: Option<String>,
+    pub below: Option<String>,
 }
 
 #[derive(Clone, Debug, NifStruct)]
@@ -222,13 +248,7 @@ pub enum ExContent {
     Sequence(ExSequence),
 }
 
-// --- Style Rules ---
-
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Styles.PagePaper"]
-pub struct ExPagePaper {
-    pub paper: String,
-}
+// --- Styles ---
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Styles.PageSize"]
@@ -254,7 +274,6 @@ pub struct ExFontSize {
 
 #[derive(Clone, Debug, NifUntaggedEnum)]
 pub enum ExStyle {
-    PagePaper(ExPagePaper),
     PageSize(ExPageSize),
     PageMargin(ExPageMargin),
     FontSize(ExFontSize),

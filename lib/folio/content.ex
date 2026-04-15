@@ -2,12 +2,12 @@ defmodule Folio.Content do
   @moduledoc """
   Typed content nodes that map 1:1 to Typst elements.
 
-  Every struct here has a corresponding Rust type in the NIF
-  that constructs the native `typst::Content` tree.
+  Every struct has matching fields in `native/folio_nif/src/types.rs`.
+  The Rust NifStruct `#[module = "Folio.Content.*"]` must match exactly.
   """
 
   defmodule Text do
-    @moduledoc "Plain text. Maps to `TextElem`."
+    @moduledoc "Plain text."
     defstruct [:text]
     @type t :: %__MODULE__{text: String.t()}
   end
@@ -19,101 +19,107 @@ defmodule Folio.Content do
   end
 
   defmodule Heading do
-    @moduledoc "Section heading. Maps to `HeadingElem`."
+    @moduledoc "Section heading (h1-h6)."
     defstruct [:body, :level]
-    @type t :: %__MODULE__{body: [t()], level: pos_integer()}
+    @type t :: %__MODULE__{body: [Folio.Content.t()], level: 1..6}
   end
 
   defmodule Paragraph do
-    @moduledoc "Paragraph. Maps to implicit paragraph grouping."
+    @moduledoc "Paragraph."
     defstruct [:body]
-    @type t :: %__MODULE__{body: [t()]}
+    @type t :: %__MODULE__{body: [Folio.Content.t()]}
   end
 
   defmodule Strong do
-    @moduledoc "Bold text. Maps to `StrongElem`."
+    @moduledoc "Bold text."
     defstruct [:body]
-    @type t :: %__MODULE__{body: [t()]}
+    @type t :: %__MODULE__{body: [Folio.Content.t()]}
   end
 
   defmodule Emph do
-    @moduledoc "Italic text. Maps to `EmphElem`."
+    @moduledoc "Italic text."
     defstruct [:body]
-    @type t :: %__MODULE__{body: [t()]}
+    @type t :: %__MODULE__{body: [Folio.Content.t()]}
+  end
+
+  defmodule Strike do
+    @moduledoc "Strikethrough text."
+    defstruct [:body]
+    @type t :: %__MODULE__{body: [Folio.Content.t()]}
   end
 
   defmodule Image do
-    @moduledoc "Image. Maps to `ImageElem`."
+    @moduledoc "Image."
     defstruct [:src, :width, :height, :fit]
     @type t :: %__MODULE__{
       src: String.t(),
-      width: Folio.Value.t() | nil,
-      height: Folio.Value.t() | nil,
-      fit: :cover | :contain | :stretch | nil
+      width: String.t() | nil,
+      height: String.t() | nil,
+      fit: String.t() | nil
     }
   end
 
   defmodule Figure do
-    @moduledoc "Figure with optional caption. Maps to `FigureElem`."
+    @moduledoc "Figure with optional caption."
     defstruct [:body, :caption, :placement, :scope, :numbering, :separator]
     @type t :: %__MODULE__{
       body: [Folio.Content.t()],
       caption: [Folio.Content.t()] | nil,
-      placement: :top | :bottom | :auto | nil,
-      scope: :parent | :children | nil,
-      numbering: String.t() | :none | nil,
+      placement: String.t() | nil,
+      scope: String.t() | nil,
+      numbering: String.t() | nil,
       separator: String.t() | nil
     }
   end
 
   defmodule Table do
-    @moduledoc "Table. Maps to `TableElem`."
+    @moduledoc "Table."
     defstruct [:columns, :rows, :children, :stroke, :gutter, :align]
     @type t :: %__MODULE__{
-      columns: [Folio.Value.t()],
-      rows: [Folio.Value.t()],
+      columns: String.t() | nil,
+      rows: String.t() | nil,
       children: [Folio.Content.t()],
-      stroke: Folio.Value.t() | nil,
-      gutter: Folio.Value.t() | nil,
-      align: :left | :center | :right | nil
+      stroke: String.t() | nil,
+      gutter: String.t() | nil,
+      align: String.t() | nil
     }
   end
 
   defmodule TableHeader do
-    @moduledoc "Table header row. Maps to `TableHeader`."
+    @moduledoc "Table header row."
     defstruct [:children]
     @type t :: %__MODULE__{children: [Folio.Content.t()]}
   end
 
   defmodule TableRow do
-    @moduledoc "Table row (implicit in Typst)."
+    @moduledoc "Table data row."
     defstruct [:children]
     @type t :: %__MODULE__{children: [Folio.Content.t()]}
   end
 
   defmodule TableCell do
-    @moduledoc "Table cell. Maps to `TableCell`."
+    @moduledoc "Table cell."
     defstruct [:body, :colspan, :rowspan, :align]
     @type t :: %__MODULE__{
       body: [Folio.Content.t()],
       colspan: pos_integer() | nil,
       rowspan: pos_integer() | nil,
-      align: :left | :center | :right | nil
+      align: String.t() | nil
     }
   end
 
   defmodule Columns do
-    @moduledoc "Multi-column layout. Maps to `ColumnsElem`."
+    @moduledoc "Multi-column layout."
     defstruct [:count, :body, :gutter]
     @type t :: %__MODULE__{
       count: pos_integer(),
       body: [Folio.Content.t()],
-      gutter: Folio.Value.t() | nil
+      gutter: String.t() | nil
     }
   end
 
   defmodule Pagebreak do
-    @moduledoc "Page break. Maps to `PagebreakElem`."
+    @moduledoc "Page break."
     defstruct [:weak]
     @type t :: %__MODULE__{weak: boolean()}
   end
@@ -125,41 +131,31 @@ defmodule Folio.Content do
   end
 
   defmodule Linebreak do
-    @moduledoc "Line break. Maps to `LinebreakElem`."
+    @moduledoc "Line break."
     defstruct []
     @type t :: %__MODULE__{}
   end
 
   defmodule Math do
-    @moduledoc "Math expression. Parsed by Typst's math parser in Rust."
+    @moduledoc "Math expression (Typst math syntax)."
     defstruct [:content, :block]
     @type t :: %__MODULE__{content: String.t(), block: boolean()}
   end
 
-  defmodule Bibliography do
-    @moduledoc "Bibliography. Maps to `Bibliography`."
-    defstruct [:source, :style, :full]
-    @type t :: %__MODULE__{
-      source: String.t(),
-      style: String.t() | nil,
-      full: boolean() | nil
-    }
-  end
-
   defmodule Link do
-    @moduledoc "Hyperlink. Maps to `LinkElem`."
+    @moduledoc "Hyperlink."
     defstruct [:url, :body]
-    @type t :: %__MODULE__{url: String.t(), body: [Folio.Content.t()] | []}
+    @type t :: %__MODULE__{url: String.t(), body: [Folio.Content.t()]}
   end
 
   defmodule Raw do
-    @moduledoc "Raw/code text. Maps to `RawElem`."
+    @moduledoc "Raw / code block."
     defstruct [:text, :lang, :block]
     @type t :: %__MODULE__{text: String.t(), lang: String.t() | nil, block: boolean()}
   end
 
   defmodule Quote do
-    @moduledoc "Block quote. Maps to `QuoteElem`."
+    @moduledoc "Block or inline quote."
     defstruct [:body, :block, :attribution]
     @type t :: %__MODULE__{
       body: [Folio.Content.t()],
@@ -169,7 +165,7 @@ defmodule Folio.Content do
   end
 
   defmodule List do
-    @moduledoc "Bullet list. Maps to `ListItem` sequence."
+    @moduledoc "Bullet list."
     defstruct [:children, :tight, :marker]
     @type t :: %__MODULE__{
       children: [Folio.Content.t()],
@@ -179,13 +175,13 @@ defmodule Folio.Content do
   end
 
   defmodule ListItem do
-    @moduledoc "Bullet list item. Maps to `ListItem`."
+    @moduledoc "Bullet list item."
     defstruct [:body]
     @type t :: %__MODULE__{body: [Folio.Content.t()]}
   end
 
   defmodule Enum do
-    @moduledoc "Numbered list. Maps to `EnumItem` sequence."
+    @moduledoc "Numbered list."
     defstruct [:children, :tight, :start]
     @type t :: %__MODULE__{
       children: [Folio.Content.t()],
@@ -195,85 +191,43 @@ defmodule Folio.Content do
   end
 
   defmodule EnumItem do
-    @moduledoc "Numbered list item. Maps to `EnumItem`."
+    @moduledoc "Numbered list item."
     defstruct [:body, :number]
     @type t :: %__MODULE__{body: [Folio.Content.t()], number: pos_integer() | nil}
   end
 
   defmodule Label do
-    @moduledoc "Label for references. Maps to `<name>`."
+    @moduledoc "Label for cross-references."
     defstruct [:name]
     @type t :: %__MODULE__{name: String.t()}
   end
 
   defmodule Ref do
-    @moduledoc "Reference. Maps to `@target`."
+    @moduledoc "Cross-reference to a label."
     defstruct [:target, :supplement]
     @type t :: %__MODULE__{target: String.t(), supplement: [Folio.Content.t()] | nil}
   end
 
   defmodule Align do
-    @moduledoc "Alignment wrapper. Maps to `align()`."
+    @moduledoc "Alignment wrapper."
     defstruct [:alignment, :body]
-    @type t :: %__MODULE__{
-      alignment: :left | :center | :right,
-      body: [Folio.Content.t()]
-    }
+    @type t :: %__MODULE__{alignment: String.t(), body: [Folio.Content.t()]}
   end
 
   defmodule Block do
-    @moduledoc "Block-level container. Maps to `block()`."
+    @moduledoc "Block container."
     defstruct [:body, :width, :height, :above, :below]
     @type t :: %__MODULE__{
       body: [Folio.Content.t()],
-      width: Folio.Value.t() | nil,
-      height: Folio.Value.t() | nil,
-      above: Folio.Value.t() | nil,
-      below: Folio.Value.t() | nil
-    }
-  end
-
-  defmodule Pad do
-    @moduledoc "Padding. Maps to `pad()`."
-    defstruct [:body, :left, :right, :top, :bottom, :x, :y, :rest]
-    @type t :: %__MODULE__{
-      body: [Folio.Content.t()],
-      left: Folio.Value.t() | nil,
-      right: Folio.Value.t() | nil,
-      top: Folio.Value.t() | nil,
-      bottom: Folio.Value.t() | nil,
-      x: Folio.Value.t() | nil,
-      y: Folio.Value.t() | nil,
-      rest: Folio.Value.t() | nil
-    }
-  end
-
-  defmodule Grid do
-    @moduledoc "Grid layout. Maps to `GridElem`."
-    defstruct [:columns, :rows, :children, :gutter, :stroke, :align]
-    @type t :: %__MODULE__{
-      columns: [Folio.Value.t()],
-      rows: [Folio.Value.t()],
-      children: [Folio.Content.t()],
-      gutter: Folio.Value.t() | nil,
-      stroke: Folio.Value.t() | nil,
-      align: :left | :center | :right | nil
-    }
-  end
-
-  defmodule Stack do
-    @moduledoc "Stack layout. Maps to `StackElem`."
-    defstruct [:dir, :children, :gutter, :spacing]
-    @type t :: %__MODULE__{
-      dir: :ltr | :rtl | :ttb | :btt,
-      children: [Folio.Content.t()],
-      gutter: Folio.Value.t() | nil,
-      spacing: Folio.Value.t() | nil
+      width: String.t() | nil,
+      height: String.t() | nil,
+      above: String.t() | nil,
+      below: String.t() | nil
     }
   end
 
   defmodule Sequence do
-    @moduledoc "Sequence of content nodes."
+    @moduledoc "Sequence of content nodes (internal)."
     defstruct [:children]
     @type t :: %__MODULE__{children: [Folio.Content.t()]}
   end
@@ -285,6 +239,7 @@ defmodule Folio.Content do
           | Paragraph.t()
           | Strong.t()
           | Emph.t()
+          | Strike.t()
           | Image.t()
           | Figure.t()
           | Table.t()
@@ -296,7 +251,6 @@ defmodule Folio.Content do
           | Parbreak.t()
           | Linebreak.t()
           | Math.t()
-          | Bibliography.t()
           | Link.t()
           | Raw.t()
           | Quote.t()
@@ -308,20 +262,13 @@ defmodule Folio.Content do
           | Ref.t()
           | Align.t()
           | Block.t()
-          | Pad.t()
-          | Grid.t()
-          | Stack.t()
           | Sequence.t()
 
-  @doc "Wrap a string as Text content."
+  @doc "Wrap a string as Text."
   @spec text(String.t()) :: Text.t()
   def text(str), do: %Text{text: str}
 
-  @doc "Wrap a list of content nodes."
-  @spec sequence([t()]) :: Sequence.t()
-  def sequence(children), do: %Sequence{children: children}
-
-  @doc "Flatten nested sequences."
+  @doc "Flatten nested Sequences."
   @spec flatten([t()]) :: [t()]
   def flatten(nodes) do
     Elixir.Enum.flat_map(nodes, fn
@@ -330,9 +277,10 @@ defmodule Folio.Content do
     end)
   end
 
-  @doc "Convert a string or content to content list."
-  @spec to_content(t() | String.t() | [t()]) :: [t()]
-  def to_content(%_mod{} = node), do: [node]
+  @doc "Convert a value to a content list."
+  @spec to_content(t() | String.t() | [t()] | nil) :: [t()]
+  def to_content(nil), do: []
+  def to_content(%_{} = node), do: [node]
   def to_content(str) when is_binary(str), do: [%Text{text: str}]
   def to_content(list) when is_list(list), do: Elixir.Enum.flat_map(list, &to_content/1)
 end
