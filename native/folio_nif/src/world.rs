@@ -17,7 +17,6 @@ use typst::math::EquationElem;
 use typst::syntax::{FileId, RootedPath, Source, Span, Spanned, SyntaxMode, VirtualPath, VirtualRoot};
 use typst::text::{Font, FontBook, TextElem, TextSize};
 use typst::utils::LazyHash;
-use typst::visualize::ImageElem;
 use typst::{Features, Library, LibraryExt, World};
 use typst_layout::layout_document;
 use typst_pdf::{PdfOptions, pdf};
@@ -147,24 +146,14 @@ impl FolioWorld {
         }
     }
 
-    pub fn make_image(_engine: &mut Engine, src: &str) -> Content {
-        let bytes = {
-            let store = FILE_STORE.lock().unwrap();
-            store.get(src).cloned()
-        };
-
-        match bytes {
-            Some(data) => {
-                let bytes = Bytes::new(data);
-                let loaded = Loaded::new(
-                    Spanned::new(LoadSource::Bytes, Span::detached()),
-                    bytes.clone(),
-                );
-                let source = Derived::new(DataSource::Bytes(bytes), loaded);
-                ImageElem::new(source).pack()
-            }
-            None => TextElem::packed(eco_format!("[image: {}]", src)),
-        }
+    pub fn get_image_source(src: &str) -> Option<Derived<DataSource, Loaded>> {
+        let data = FILE_STORE.lock().unwrap().get(src).cloned()?;
+        let bytes = Bytes::new(data);
+        let loaded = Loaded::new(
+            Spanned::new(LoadSource::Bytes, Span::detached()),
+            bytes.clone(),
+        );
+        Some(Derived::new(DataSource::Bytes(bytes), loaded))
     }
 }
 

@@ -22,6 +22,7 @@ typst-assets = { git = "https://github.com/typst/typst-assets", rev = "57a38ca",
 comrak = { version = "0.52", default-features = false }
 ecow = "0.2"
 parking_lot = "0.12"
+smallvec = { version = "1.11", features = ["union", "const_generics", "const_new"] }
 typed-arena = "2.0"
 
 [features]

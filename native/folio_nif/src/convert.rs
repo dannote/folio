@@ -1,6 +1,7 @@
 use std::num::NonZeroUsize;
+use std::str::FromStr;
 
-use ecow::EcoString;
+use ecow::{eco_format, EcoString};
 use typst::engine::Engine;
 use typst::foundations::{Content, NativeElement, Smart};
 use typst::layout::{
@@ -21,7 +22,7 @@ use typst::text::{
     StrikeElem, SubElem, SuperElem, TextElem, UnderlineElem,
 };
 use typst::utils::PicoStr;
-use typst::visualize::{CircleElem, EllipseElem, LineElem, Paint, PolygonElem, RectElem, SquareElem};
+use typst::visualize::{CircleElem, EllipseElem, ImageElem, LineElem, Paint, PolygonElem, RectElem, SquareElem};
 
 use crate::types::ExContent;
 use crate::world::FolioWorld;
@@ -184,11 +185,46 @@ fn convert_node(engine: &mut Engine, node: &ExContent) -> Content {
         ExContent::Smallcaps(s) => SmallcapsElem::new(cc(engine, &s.body)).pack(),
 
         // Images & figures
-        ExContent::Image(img) => FolioWorld::make_image(engine, &img.src),
+        ExContent::Image(img) => {
+            let mut elem = match FolioWorld::get_image_source(&img.src) {
+                Some(source) => ImageElem::new(source),
+                None => return TextElem::packed(eco_format!("[image: {}]", img.src)),
+            };
+            elem = elem
+                .with_width(smart_rel(img.width.as_deref()))
+                .with_height(smart_sizing(img.height.as_deref()));
+            if let Some(fit) = &img.fit {
+                elem = elem.with_fit(match fit.as_str() {
+                    "contain" => typst::visualize::ImageFit::Contain,
+                    "stretch" => typst::visualize::ImageFit::Stretch,
+                    _ => typst::visualize::ImageFit::Cover,
+                });
+            }
+            elem.pack()
+        }
         ExContent::Figure(fig) => {
             let mut e = FigureElem::new(cc(engine, &fig.body));
             if let Some(cap) = &fig.caption {
                 e = e.with_caption(Some(typst::foundations::Packed::new(FigureCaption::new(cc(engine, cap)))));
+            }
+            if let Some(pl) = &fig.placement {
+                let va = match pl.as_str() {
+                    "bottom" => typst::layout::VAlignment::Bottom,
+                    "horizon" | "center" => typst::layout::VAlignment::Horizon,
+                    _ => typst::layout::VAlignment::Top,
+                };
+                e = e.with_placement(Some(Smart::Custom(va)));
+            }
+            if let Some(scope) = &fig.scope {
+                e = e.with_scope(match scope.as_str() {
+                    "parent" => typst::layout::PlacementScope::Parent,
+                    _ => typst::layout::PlacementScope::Column,
+                });
+            }
+            if let Some(num) = &fig.numbering {
+                if let Ok(pat) = typst::model::NumberingPattern::from_str(num) {
+                    e = e.with_numbering(Some(typst::model::Numbering::Pattern(pat)));
+                }
             }
             e.pack()
         }
@@ -374,12 +410,19 @@ fn convert_table(engine: &mut Engine, tbl: &crate::types::ExTable) -> Content {
     let cols = TrackSizings(std::iter::repeat_with(|| Sizing::Auto).take(ncols).collect());
     let mut children: Vec<TableChild> = Vec::new();
 
+    let mut make_cell = |tc: &crate::types::ExTableCell| {
+        let mut cell = TableCell::new(cc(engine, &tc.body));
+        if let Some(rs) = tc.rowspan { cell = cell.with_rowspan(NonZeroUsize::new(rs as _).unwrap_or(NonZeroUsize::MIN)); }
+        if let Some(cs) = tc.colspan { cell = cell.with_colspan(NonZeroUsize::new(cs as _).unwrap_or(NonZeroUsize::MIN)); }
+        if let Some(al) = &tc.align { cell = cell.with_align(Smart::Custom(parse_align(al))); }
+        TableItem::Cell(typst::foundations::Packed::new(cell))
+    };
+
     for child in &tbl.children {
         match child {
             ExContent::TableHeader(th) => {
                 let cells: Vec<TableItem> = th.children.iter().filter_map(|c| match c {
-                    ExContent::TableCell(tc) => Some(TableItem::Cell(typst::foundations::Packed::new(
-                        TableCell::new(cc(engine, &tc.body))))),
+                    ExContent::TableCell(tc) => Some(make_cell(tc)),
                     _ => None,
                 }).collect();
                 children.push(TableChild::Header(typst::foundations::Packed::new(TableHeader::new(cells))));
@@ -387,20 +430,25 @@ fn convert_table(engine: &mut Engine, tbl: &crate::types::ExTable) -> Content {
             ExContent::TableRow(tr) => {
                 for cn in &tr.children {
                     if let ExContent::TableCell(tc) = cn {
-                        children.push(TableChild::Item(TableItem::Cell(typst::foundations::Packed::new(
-                            TableCell::new(cc(engine, &tc.body))))));
+                        children.push(TableChild::Item(make_cell(tc)));
                     }
                 }
             }
             ExContent::TableCell(tc) => {
-                children.push(TableChild::Item(TableItem::Cell(typst::foundations::Packed::new(
-                    TableCell::new(cc(engine, &tc.body))))));
+                children.push(TableChild::Item(make_cell(tc)));
             }
             _ => {}
         }
     }
 
-    TableElem::new(children).with_columns(cols).pack()
+    let mut elem = TableElem::new(children).with_columns(cols);
+    if let Some(g) = &tbl.gutter {
+        if let Some(r) = parse_rel(g) {
+            elem = elem.with_row_gutter(TrackSizings(smallvec::smallvec![Sizing::Rel(r)]));
+            elem = elem.with_column_gutter(TrackSizings(smallvec::smallvec![Sizing::Rel(r)]));
+        }
+    }
+    elem.pack()
 }
 
 fn count_columns(tbl: &crate::types::ExTable) -> usize {
