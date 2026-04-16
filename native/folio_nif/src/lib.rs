@@ -7,6 +7,8 @@ use std::panic::AssertUnwindSafe;
 
 use rustler::{Env, NifResult, OwnedBinary};
 
+rustler::atoms!(ok);
+
 use world::FolioWorld;
 use world as world_mod;
 use types::{ExContent, ExStyle};
@@ -88,9 +90,9 @@ fn compile_png(
 }
 
 #[rustler::nif]
-fn register_file(path: String, data: Vec<u8>) -> NifResult<String> {
-    world_mod::register_file(path, data);
-    Ok("ok".to_string())
+fn register_file(path: String, data: rustler::Binary) -> rustler::Atom {
+    world_mod::register_file(path, data.as_slice().to_vec());
+    ok()
 }
 
 fn alloc_binary<'a>(env: Env<'a>, bytes: &[u8]) -> NifResult<rustler::Binary<'a>> {

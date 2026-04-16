@@ -85,10 +85,8 @@ defmodule Folio do
   @doc "Register a file for use in documents (images, etc)."
   @spec register_file(String.t(), binary()) :: :ok
   def register_file(path, data) when is_binary(path) and is_binary(data) do
-    case Folio.Native.register_file(path, data) do
-      :ok -> :ok
-      "ok" -> :ok
-    end
+    Folio.Native.register_file(path, data)
+    :ok
   end
 
   @spec wrap_call((() -> result), module()) :: {:ok, result} | {:error, struct()}
