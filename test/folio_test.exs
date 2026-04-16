@@ -13,52 +13,65 @@ defmodule FolioTest do
     end
 
     test "parses strong and emph" do
-      assert [%Folio.Content.Paragraph{
-               body: [%Folio.Content.Strong{body: [%Folio.Content.Text{text: "bold"}]}]
-             }] = Folio.parse_markdown("**bold**")
+      assert [
+               %Folio.Content.Paragraph{
+                 body: [%Folio.Content.Strong{body: [%Folio.Content.Text{text: "bold"}]}]
+               }
+             ] = Folio.parse_markdown("**bold**")
 
-      assert [%Folio.Content.Paragraph{
-               body: [%Folio.Content.Emph{body: [%Folio.Content.Text{text: "it"}]}]
-             }] = Folio.parse_markdown("*it*")
+      assert [
+               %Folio.Content.Paragraph{
+                 body: [%Folio.Content.Emph{body: [%Folio.Content.Text{text: "it"}]}]
+               }
+             ] = Folio.parse_markdown("*it*")
     end
 
     test "parses link" do
-      assert [%Folio.Content.Paragraph{
-               body: [%Folio.Content.Link{url: "https://example.com", body: body}]
-             }] = Folio.parse_markdown("[click](https://example.com)")
+      assert [
+               %Folio.Content.Paragraph{
+                 body: [%Folio.Content.Link{url: "https://example.com", body: body}]
+               }
+             ] = Folio.parse_markdown("[click](https://example.com)")
 
       assert [%Folio.Content.Text{text: "click"}] = body
     end
 
     test "parses image" do
-      assert [%Folio.Content.Paragraph{
-               body: [%Folio.Content.Image{src: "photo.png"}]
-             }] = Folio.parse_markdown("![photo](photo.png)")
+      assert [
+               %Folio.Content.Paragraph{
+                 body: [%Folio.Content.Image{src: "photo.png"}]
+               }
+             ] = Folio.parse_markdown("![photo](photo.png)")
     end
 
     test "parses table" do
       md = "| A | B |\n|---|---|\n| 1 | 2 |"
 
-      assert [%Folio.Content.Table{children: children}] = Folio.parse_markdown(md)
-      assert length(children) == 2
+      assert [%Folio.Content.Table{children: [_header, _row]}] = Folio.parse_markdown(md)
     end
 
     test "parses block math" do
-      assert [%Folio.Content.Paragraph{
-               body: [%Folio.Content.Math{content: "E = m c ^2", block: true}]
-             }] = Folio.parse_markdown("$$E = m c ^2$$")
+      assert [
+               %Folio.Content.Paragraph{
+                 body: [%Folio.Content.Math{content: "E = m c ^2", block: true}]
+               }
+             ] = Folio.parse_markdown("$$E = m c ^2$$")
     end
 
     test "parses inline math" do
-      assert [%Folio.Content.Paragraph{
-               body: [%Folio.Content.Math{content: "x", block: false}]
-             }] = Folio.parse_markdown("$x$")
+      assert [
+               %Folio.Content.Paragraph{
+                 body: [%Folio.Content.Math{content: "x", block: false}]
+               }
+             ] = Folio.parse_markdown("$x$")
     end
 
     test "parses strikethrough" do
-      assert [%Folio.Content.Paragraph{
-               body: [%Folio.Content.Strike{body: [%Folio.Content.Text{text: "gone"}]}]
-             }] = Folio.parse_markdown("~~gone~~")
+      assert [
+               %Folio.Content.Paragraph{
+                 body: [%Folio.Content.Strike{body: [%Folio.Content.Text{text: "gone"}]}]
+               }
+             ] = Folio.parse_markdown("~~gone~~")
     end
 
     test "parses code block" do
@@ -72,9 +85,11 @@ defmodule FolioTest do
     end
 
     test "parses code span" do
-      assert [%Folio.Content.Paragraph{
-               body: [%Folio.Content.Raw{text: "ok", lang: nil, block: false}]
-             }] = Folio.parse_markdown("`ok`")
+      assert [
+               %Folio.Content.Paragraph{
+                 body: [%Folio.Content.Raw{text: "ok", lang: nil, block: false}]
+               }
+             ] = Folio.parse_markdown("`ok`")
     end
 
     test "returns empty list for empty input" do
@@ -117,20 +132,17 @@ defmodule FolioTest do
 
   describe "to_svg/2" do
     test "generates SVG strings" do
-      assert {:ok, svgs} = Folio.to_svg("# SVG\n\nTest")
-      assert is_list(svgs)
-      assert length(svgs) >= 1
-      assert String.starts_with?(hd(svgs), "<svg")
+      assert {:ok, [svg | _]} = Folio.to_svg("# SVG\n\nTest")
+      assert is_binary(svg)
+      assert String.starts_with?(svg, "<svg")
     end
   end
 
   describe "to_png/2" do
     test "generates PNG binaries" do
-      assert {:ok, pngs} = Folio.to_png("PNG test")
-      assert is_list(pngs)
-      assert length(pngs) >= 1
+      assert {:ok, [png | _]} = Folio.to_png("PNG test")
 
-      <<137, 80, 78, 71, 13, 10, 26, 10, _::binary>> = hd(pngs)
+      <<137, 80, 78, 71, 13, 10, 26, 10, _::binary>> = png
     end
   end
 
@@ -210,13 +222,14 @@ defmodule FolioTest do
       import Folio.DSL
 
       tbl =
-        table([gutter: "6pt"], do: [
-          table_header([table_cell("H1"), table_cell("H2")]),
-          table_row([table_cell("A"), table_cell("B")])
-        ])
+        table([gutter: "6pt"],
+          do: [
+            table_header([table_cell("H1"), table_cell("H2")]),
+            table_row([table_cell("A"), table_cell("B")])
+          ]
+        )
 
-      assert %Folio.Content.Table{gutter: "6pt", children: children} = tbl
-      assert length(children) == 2
+      assert %Folio.Content.Table{gutter: "6pt", children: [_header, _row]} = tbl
     end
   end
 
@@ -257,12 +270,15 @@ defmodule FolioTest do
 
     test "multi-page document produces multiple SVGs" do
       use Folio
-      {:ok, svgs} = Folio.to_svg([
-        heading(1, "Page 1"),
-        pagebreak(),
-        heading(1, "Page 2"),
-      ])
-      assert length(svgs) == 2
+
+      {:ok, svgs} =
+        Folio.to_svg([
+          heading(1, "Page 1"),
+          pagebreak(),
+          heading(1, "Page 2")
+        ])
+
+      assert [_page1, _page2] = svgs
     end
   end
 

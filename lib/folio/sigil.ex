@@ -15,16 +15,12 @@ defmodule Folio.Sigil do
     end
   end
 
-  @doc false
-  def render(markdown, :content) when is_binary(markdown) do
-    Folio.parse_markdown(markdown)
-  end
+  @spec render(String.t(), :content) :: [Folio.Content.t()]
+  def render(markdown, :content) when is_binary(markdown), do: Folio.parse_markdown(markdown)
 
-  def render(markdown, :pdf) when is_binary(markdown) do
-    Folio.to_pdf(markdown)
-  end
+  @spec render(String.t(), :pdf) :: {:ok, binary()} | {:error, Folio.CompileError.t()}
+  def render(markdown, :pdf) when is_binary(markdown), do: Folio.to_pdf(markdown, [])
 
-  def render(markdown, :svg) when is_binary(markdown) do
-    Folio.to_svg(markdown)
-  end
+  @spec render(String.t(), :svg) :: {:ok, [String.t()]} | {:error, Folio.CompileError.t()}
+  def render(markdown, :svg) when is_binary(markdown), do: Folio.to_svg(markdown, [])
 end

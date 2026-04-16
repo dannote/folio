@@ -13,8 +13,11 @@ defmodule Folio.MixProject do
       deps: deps(),
       aliases: aliases(),
       elixirc_paths: elixirc_paths(Mix.env()),
+      dialyzer: [
+        plt_file: {:no_warn, "_build/dev/dialyxir_plt.plt"}
+      ],
 
-      # Docs
+      # Hex
       name: "Folio",
       description: "Print-quality PDF from Markdown + Elixir, powered by Typst",
       source_url: @source_url,
@@ -30,23 +33,41 @@ defmodule Folio.MixProject do
 
   defp deps do
     [
-      {:rustler, "~> 0.37"}
+      {:rustler, "~> 0.37"},
+      {:ex_doc, "~> 0.34", only: :dev, runtime: false},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:ex_dna, "~> 1.3", only: [:dev, :test], runtime: false}
     ]
   end
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
 
+  def cli do
+    [preferred_envs: [ci: :test]]
+  end
+
   defp package do
     [
-      maintainers: ["dannote"],
+      maintainers: ["Danila Poyarkov"],
       licenses: ["MIT"],
       links: %{"GitHub" => @source_url},
-      files: ~w(lib native/folio_nif/Cargo.toml native/folio_nif/src mix.exs README.md LICENSE.md .rustler.toml)
+      files:
+        ~w(lib native/folio_nif/Cargo.toml native/folio_nif/src mix.exs README.md LICENSE.md .rustler.toml)
     ]
   end
 
   defp aliases do
-    []
+    [
+      ci: [
+        "compile --warnings-as-errors",
+        "format --check-formatted",
+        "credo --strict",
+        "dialyzer",
+        "test",
+        "ex_dna"
+      ]
+    ]
   end
 end

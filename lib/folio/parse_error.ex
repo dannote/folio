@@ -1,6 +1,8 @@
 defmodule Folio.ParseError do
   @moduledoc "Error returned when Markdown parsing fails."
 
+  @type t :: %__MODULE__{message: String.t(), reason: String.t()}
+
   defexception [:message, :reason]
 
   @impl true

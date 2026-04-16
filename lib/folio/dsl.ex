@@ -24,9 +24,11 @@ defmodule Folio.DSL do
   def emph(content), do: %Content.Emph{body: Content.to_content(content)}
   def strike(content), do: %Content.Strike{body: Content.to_content(content)}
   def underline(content), do: %Content.Underline{body: Content.to_content(content)}
+
   def highlight(content, opts \\ []) do
     %Content.Highlight{body: Content.to_content(content), fill: Keyword.get(opts, :fill)}
   end
+
   def superscript(content), do: %Content.Super{body: Content.to_content(content)}
   def subscript(content), do: %Content.Sub{body: Content.to_content(content)}
   def smallcaps(content), do: %Content.Smallcaps{body: Content.to_content(content)}
@@ -38,20 +40,21 @@ defmodule Folio.DSL do
       src: src,
       width: Keyword.get(opts, :width),
       height: Keyword.get(opts, :height),
-      fit: Keyword.get(opts, :fit),
+      fit: Keyword.get(opts, :fit)
     }
   end
 
   # ── Figures ──
 
-  def figure(content, opts \\ []) when is_binary(content) or is_struct(content) or is_list(content) do
+  def figure(content, opts \\ [])
+      when is_binary(content) or is_struct(content) or is_list(content) do
     %Content.Figure{
       body: Content.to_content(content),
       caption: then_if_some(Keyword.get(opts, :caption), &Content.to_content/1),
       placement: Keyword.get(opts, :placement),
       scope: Keyword.get(opts, :scope),
       numbering: Keyword.get(opts, :numbering),
-      separator: Keyword.get(opts, :separator),
+      separator: Keyword.get(opts, :separator)
     }
   end
 
@@ -64,7 +67,7 @@ defmodule Folio.DSL do
       children: Content.flatten(Content.to_content(children)),
       stroke: Keyword.get(opts, :stroke),
       gutter: Keyword.get(opts, :gutter),
-      align: Keyword.get(opts, :align),
+      align: Keyword.get(opts, :align)
     }
   end
 
@@ -81,7 +84,7 @@ defmodule Folio.DSL do
       body: Content.to_content(content),
       colspan: Keyword.get(opts, :colspan),
       rowspan: Keyword.get(opts, :rowspan),
-      align: Keyword.get(opts, :align),
+      align: Keyword.get(opts, :align)
     }
   end
 
@@ -91,7 +94,7 @@ defmodule Folio.DSL do
     %Content.Columns{
       count: count,
       body: Content.flatten(Content.to_content(body)),
-      gutter: Keyword.get(opts, :gutter),
+      gutter: Keyword.get(opts, :gutter)
     }
   end
 
@@ -100,7 +103,8 @@ defmodule Folio.DSL do
   def parbreak, do: %Content.Parbreak{}
   def linebreak, do: %Content.Linebreak{}
 
-  def align(alignment, content) when alignment in [:left, :center, :right, "left", "center", "right"] do
+  def align(alignment, content)
+      when alignment in [:left, :center, :right, "left", "center", "right"] do
     %Content.Align{alignment: to_string(alignment), body: Content.to_content(content)}
   end
 
@@ -110,7 +114,7 @@ defmodule Folio.DSL do
       width: Keyword.get(opts, :width),
       height: Keyword.get(opts, :height),
       above: Keyword.get(opts, :above),
-      below: Keyword.get(opts, :below),
+      below: Keyword.get(opts, :below)
     }
   end
 
@@ -122,7 +126,7 @@ defmodule Folio.DSL do
     %Content.Place{
       alignment: Keyword.get(opts, :alignment),
       body: Content.to_content(content),
-      float: Keyword.get(opts, :float),
+      float: Keyword.get(opts, :float)
     }
   end
 
@@ -140,7 +144,7 @@ defmodule Folio.DSL do
       left: Keyword.get(opts, :left),
       right: Keyword.get(opts, :right),
       top: Keyword.get(opts, :top),
-      bottom: Keyword.get(opts, :bottom),
+      bottom: Keyword.get(opts, :bottom)
     }
   end
 
@@ -148,59 +152,59 @@ defmodule Folio.DSL do
     %Content.Stack{
       dir: Keyword.get(opts, :dir, "ttb"),
       children: Content.flatten(Content.to_content(children)),
-      spacing: Keyword.get(opts, :spacing),
+      spacing: Keyword.get(opts, :spacing)
     }
   end
 
   # ── Shapes ──
 
   def rect(opts \\ []) do
-    body = Keyword.get(opts, :body)
+    {fill, stroke, inset, outset} = shape_paint_opts(opts)
+
     %Content.Rect{
-      body: if(body, do: Content.to_content(body), else: []),
+      body: shape_body(opts),
       width: Keyword.get(opts, :width),
       height: Keyword.get(opts, :height),
-      fill: Keyword.get(opts, :fill),
-      stroke: Keyword.get(opts, :stroke),
-      inset: Keyword.get(opts, :inset),
-      outset: Keyword.get(opts, :outset),
+      fill: fill,
+      stroke: stroke,
+      inset: inset,
+      outset: outset
     }
   end
 
   def square(opts \\ []) do
-    body = Keyword.get(opts, :body)
     %Content.Square{
-      body: if(body, do: Content.to_content(body), else: []),
+      body: shape_body(opts),
       size: Keyword.get(opts, :size),
       fill: Keyword.get(opts, :fill),
       stroke: Keyword.get(opts, :stroke),
       inset: Keyword.get(opts, :inset),
-      outset: Keyword.get(opts, :outset),
+      outset: Keyword.get(opts, :outset)
     }
   end
 
   def circle(opts \\ []) do
-    body = Keyword.get(opts, :body)
     %Content.Circle{
-      body: if(body, do: Content.to_content(body), else: []),
+      body: shape_body(opts),
       radius: Keyword.get(opts, :radius),
       fill: Keyword.get(opts, :fill),
       stroke: Keyword.get(opts, :stroke),
       inset: Keyword.get(opts, :inset),
-      outset: Keyword.get(opts, :outset),
+      outset: Keyword.get(opts, :outset)
     }
   end
 
   def ellipse(opts \\ []) do
-    body = Keyword.get(opts, :body)
+    {fill, stroke, inset, outset} = shape_paint_opts(opts)
+
     %Content.Ellipse{
-      body: if(body, do: Content.to_content(body), else: []),
+      body: shape_body(opts),
       width: Keyword.get(opts, :width),
       height: Keyword.get(opts, :height),
-      fill: Keyword.get(opts, :fill),
-      stroke: Keyword.get(opts, :stroke),
-      inset: Keyword.get(opts, :inset),
-      outset: Keyword.get(opts, :outset),
+      fill: fill,
+      stroke: stroke,
+      inset: inset,
+      outset: outset
     }
   end
 
@@ -210,7 +214,7 @@ defmodule Folio.DSL do
       end: Keyword.get(opts, :end),
       length: Keyword.get(opts, :length),
       angle: Keyword.get(opts, :angle),
-      stroke: Keyword.get(opts, :stroke),
+      stroke: Keyword.get(opts, :stroke)
     }
   end
 
@@ -218,7 +222,7 @@ defmodule Folio.DSL do
     %Content.Polygon{
       vertices: Enum.map(vertices, &to_string/1),
       fill: Keyword.get(opts, :fill),
-      stroke: Keyword.get(opts, :stroke),
+      stroke: Keyword.get(opts, :stroke)
     }
   end
 
@@ -228,7 +232,7 @@ defmodule Folio.DSL do
     %Content.Outline{
       title: Keyword.get(opts, :title),
       indent: Keyword.get(opts, :indent),
-      depth: Keyword.get(opts, :depth),
+      depth: Keyword.get(opts, :depth)
     }
   end
 
@@ -239,14 +243,19 @@ defmodule Folio.DSL do
   # ── Term lists ──
 
   def term_list(items, opts \\ []) when is_list(items) do
-    children = Enum.map(items, fn {term, desc} ->
-      %Content.TermItem{term: Content.to_content(term), description: Content.to_content(desc)}
-    end)
+    children =
+      Enum.map(items, fn {term, desc} ->
+        %Content.TermItem{term: Content.to_content(term), description: Content.to_content(desc)}
+      end)
+
     %Content.TermList{children: children, tight: Keyword.get(opts, :tight, true)}
   end
 
   def term_item(term, description) do
-    %Content.TermItem{term: Content.to_content(term), description: Content.to_content(description)}
+    %Content.TermItem{
+      term: Content.to_content(term),
+      description: Content.to_content(description)
+    }
   end
 
   # ── Footnotes ──
@@ -259,18 +268,19 @@ defmodule Folio.DSL do
     %Content.List{
       children: Enum.map(items, &%Content.ListItem{body: Content.to_content(&1)}),
       tight: Keyword.get(opts, :tight, true),
-      marker: Keyword.get(opts, :marker),
+      marker: Keyword.get(opts, :marker)
     }
   end
 
   def enum(items, opts \\ []) when is_list(items) do
     %Content.Enum{
-      children: Enum.map(items, fn
-        {num, content} -> %Content.EnumItem{body: Content.to_content(content), number: num}
-        content -> %Content.EnumItem{body: Content.to_content(content), number: nil}
-      end),
+      children:
+        Enum.map(items, fn
+          {num, content} -> %Content.EnumItem{body: Content.to_content(content), number: num}
+          content -> %Content.EnumItem{body: Content.to_content(content), number: nil}
+        end),
       tight: Keyword.get(opts, :tight, true),
-      start: Keyword.get(opts, :start),
+      start: Keyword.get(opts, :start)
     }
   end
 
@@ -297,7 +307,11 @@ defmodule Folio.DSL do
   # ── Raw / Code ──
 
   def raw(text, opts \\ []) do
-    %Content.Raw{text: text, lang: Keyword.get(opts, :lang), block: Keyword.get(opts, :block, true)}
+    %Content.Raw{
+      text: text,
+      lang: Keyword.get(opts, :lang),
+      block: Keyword.get(opts, :block, true)
+    }
   end
 
   # ── Quote ──
@@ -306,7 +320,7 @@ defmodule Folio.DSL do
     %Content.Quote{
       body: Content.to_content(content),
       block: Keyword.get(opts, :block, true),
-      attribution: then_if_some(Keyword.get(opts, :attribution), &Content.to_content/1),
+      attribution: then_if_some(Keyword.get(opts, :attribution), &Content.to_content/1)
     }
   end
 
@@ -314,4 +328,20 @@ defmodule Folio.DSL do
 
   defp then_if_some(nil, _fun), do: nil
   defp then_if_some(val, fun), do: fun.(val)
+
+  defp shape_body(opts) do
+    case Keyword.get(opts, :body) do
+      nil -> []
+      body -> Content.to_content(body)
+    end
+  end
+
+  defp shape_paint_opts(opts) do
+    {
+      Keyword.get(opts, :fill),
+      Keyword.get(opts, :stroke),
+      Keyword.get(opts, :inset),
+      Keyword.get(opts, :outset)
+    }
+  end
 end

@@ -54,8 +54,11 @@ defmodule Folio do
     Folio.Native.parse_markdown(markdown)
   rescue
     e in ErlangError ->
-      raise Folio.ParseError, Exception.message(e)
+      reraise Folio.ParseError.new(Exception.message(e)), __STACKTRACE__
   end
+
+  @type source :: String.t() | [Folio.Content.t()] | Folio.Document.t()
+  @type compile_result(result) :: {:ok, result} | {:error, Folio.CompileError.t()}
 
   @doc """
   Compile to PDF bytes.
@@ -66,22 +69,12 @@ defmodule Folio do
       {:ok, pdf} = Folio.to_pdf([heading(1, "Hello")], styles: [...])
       {:ok, pdf} = Folio.to_pdf(doc)
   """
-  @spec to_pdf(String.t() | [Folio.Content.t()] | Folio.Document.t(), keyword()) ::
-          {:ok, binary()} | {:error, Folio.CompileError.t()}
+  @spec to_pdf(source(), keyword()) :: compile_result(binary())
   def to_pdf(source, opts \\ [])
 
-  def to_pdf(%Folio.Document{content: content, styles: doc_styles}, opts) do
-    opts_styles = Keyword.get(opts, :styles, [])
-    to_pdf(content, Keyword.put(opts, :styles, opts_styles ++ doc_styles))
-  end
-
-  def to_pdf(markdown, opts) when is_binary(markdown) do
-    to_pdf(parse_markdown(markdown), opts)
-  end
-
-  def to_pdf(content, opts) when is_list(content) do
-    styles = Keyword.get(opts, :styles, [])
-    wrap_call(fn -> Folio.Native.compile_pdf(content, styles) end, Folio.CompileError)
+  def to_pdf(source, opts) do
+    {content, styles} = normalize_source(source, opts)
+    wrap_call(fn -> Folio.Native.compile_pdf(content, styles) end, &Folio.CompileError.new/1)
   end
 
   @doc """
@@ -89,22 +82,12 @@ defmodule Folio do
 
       {:ok, [page1_svg, page2_svg]} = Folio.to_svg("# Hello")
   """
-  @spec to_svg(String.t() | [Folio.Content.t()] | Folio.Document.t(), keyword()) ::
-          {:ok, [String.t()]} | {:error, Folio.CompileError.t()}
+  @spec to_svg(source(), keyword()) :: compile_result([String.t()])
   def to_svg(source, opts \\ [])
 
-  def to_svg(%Folio.Document{content: content, styles: doc_styles}, opts) do
-    opts_styles = Keyword.get(opts, :styles, [])
-    to_svg(content, Keyword.put(opts, :styles, opts_styles ++ doc_styles))
-  end
-
-  def to_svg(markdown, opts) when is_binary(markdown) do
-    to_svg(parse_markdown(markdown), opts)
-  end
-
-  def to_svg(content, opts) when is_list(content) do
-    styles = Keyword.get(opts, :styles, [])
-    wrap_call(fn -> Folio.Native.compile_svg(content, styles) end, Folio.CompileError)
+  def to_svg(source, opts) do
+    {content, styles} = normalize_source(source, opts)
+    wrap_call(fn -> Folio.Native.compile_svg(content, styles) end, &Folio.CompileError.new/1)
   end
 
   @doc """
@@ -112,22 +95,12 @@ defmodule Folio do
 
       {:ok, [page1_png, page2_png]} = Folio.to_png("# Hello")
   """
-  @spec to_png(String.t() | [Folio.Content.t()] | Folio.Document.t(), keyword()) ::
-          {:ok, [binary()]} | {:error, Folio.CompileError.t()}
+  @spec to_png(source(), keyword()) :: compile_result([binary()])
   def to_png(source, opts \\ [])
 
-  def to_png(%Folio.Document{content: content, styles: doc_styles}, opts) do
-    opts_styles = Keyword.get(opts, :styles, [])
-    to_png(content, Keyword.put(opts, :styles, opts_styles ++ doc_styles))
-  end
-
-  def to_png(markdown, opts) when is_binary(markdown) do
-    to_png(parse_markdown(markdown), opts)
-  end
-
-  def to_png(content, opts) when is_list(content) do
-    styles = Keyword.get(opts, :styles, [])
-    wrap_call(fn -> Folio.Native.compile_png(content, styles) end, Folio.CompileError)
+  def to_png(source, opts) do
+    {content, styles} = normalize_source(source, opts)
+    wrap_call(fn -> Folio.Native.compile_png(content, styles) end, &Folio.CompileError.new/1)
   end
 
   @doc """
@@ -142,14 +115,26 @@ defmodule Folio do
     :ok
   end
 
-  @spec wrap_call((() -> result), module()) :: {:ok, result} | {:error, struct()}
-        when result: var
-  defp wrap_call(fun, error_mod) do
+  @spec normalize_source(source(), keyword()) :: {[Folio.Content.t()], [Folio.Styles.rule()]}
+  defp normalize_source(%Folio.Document{content: content, styles: doc_styles}, opts) do
+    opts_styles = Keyword.get(opts, :styles, [])
+    {content, opts_styles ++ doc_styles}
+  end
+
+  defp normalize_source(markdown, opts) when is_binary(markdown) do
+    {parse_markdown(markdown), Keyword.get(opts, :styles, [])}
+  end
+
+  defp normalize_source(content, opts) when is_list(content) do
+    {content, Keyword.get(opts, :styles, [])}
+  end
+
+  @spec wrap_call((-> result), (String.t() -> exception)) :: {:ok, result} | {:error, exception}
+        when result: var, exception: Exception.t()
+  defp wrap_call(fun, error_builder) do
     {:ok, fun.()}
   rescue
     e in ErlangError ->
-      {:error, error_mod.new(Exception.message(e))}
+      {:error, error_builder.(Exception.message(e))}
   end
-
-
 end

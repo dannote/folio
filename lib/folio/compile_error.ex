@@ -1,6 +1,8 @@
 defmodule Folio.CompileError do
   @moduledoc "Error returned when Folio compilation fails."
 
+  @type t :: %__MODULE__{message: String.t(), reason: String.t()}
+
   defexception [:message, :reason]
 
   @impl true

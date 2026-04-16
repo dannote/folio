@@ -278,9 +278,13 @@ defmodule Folio.PortfolioTest do
                Folio.to_pdf([
                  text("Two numbered figures:"),
                  figure(rect(width: "100pt", height: "20pt", fill: "#3498DB"),
-                   caption: "First.", numbering: "1"),
+                   caption: "First.",
+                   numbering: "1"
+                 ),
                  figure(rect(width: "100pt", height: "20pt", fill: "#E74C3C"),
-                   caption: "Second.", numbering: "1"),
+                   caption: "Second.",
+                   numbering: "1"
+                 )
                ])
 
       assert pdf_size_above?(pdf, 100)
@@ -295,10 +299,12 @@ defmodule Folio.PortfolioTest do
     test "simple 3x3 table" do
       assert {:ok, pdf} =
                Folio.to_pdf([
-                 table([], do: [
-                   table_row([table_cell("A"), table_cell("B"), table_cell("C")]),
-                   table_row([table_cell("1"), table_cell("2"), table_cell("3")]),
-                 ])
+                 table([],
+                   do: [
+                     table_row([table_cell("A"), table_cell("B"), table_cell("C")]),
+                     table_row([table_cell("1"), table_cell("2"), table_cell("3")])
+                   ]
+                 )
                ])
 
       assert pdf_size_above?(pdf, 100)
@@ -307,14 +313,16 @@ defmodule Folio.PortfolioTest do
     test "table with header" do
       assert {:ok, pdf} =
                Folio.to_pdf([
-                 table([], do: [
-                   table_header([
-                     table_cell(strong("Name")),
-                     table_cell(strong("Age")),
-                   ]),
-                   table_row([table_cell("Alice"), table_cell("30")]),
-                   table_row([table_cell("Bob"), table_cell("25")]),
-                 ])
+                 table([],
+                   do: [
+                     table_header([
+                       table_cell(strong("Name")),
+                       table_cell(strong("Age"))
+                     ]),
+                     table_row([table_cell("Alice"), table_cell("30")]),
+                     table_row([table_cell("Bob"), table_cell("25")])
+                   ]
+                 )
                ])
 
       assert pdf_size_above?(pdf, 100)
@@ -323,11 +331,13 @@ defmodule Folio.PortfolioTest do
     test "table-gutters: gutter spacing" do
       assert {:ok, pdf} =
                Folio.to_pdf([
-                 table([gutter: "8pt"], do: [
-                   table_header([table_cell("A"), table_cell("B")]),
-                   table_row([table_cell("1"), table_cell("2")]),
-                   table_row([table_cell("3"), table_cell("4")]),
-                 ])
+                 table([gutter: "8pt"],
+                   do: [
+                     table_header([table_cell("A"), table_cell("B")]),
+                     table_row([table_cell("1"), table_cell("2")]),
+                     table_row([table_cell("3"), table_cell("4")])
+                   ]
+                 )
                ])
 
       assert pdf_size_above?(pdf, 100)
@@ -352,10 +362,13 @@ defmodule Folio.PortfolioTest do
                  rect(
                    width: "300pt",
                    height: "100pt",
-                   body: columns(2, do: [
-                     text("Column one text that flows into the second column."),
-                     text("Column two text."),
-                   ])
+                   body:
+                     columns(2,
+                       do: [
+                         text("Column one text that flows into the second column."),
+                         text("Column two text.")
+                       ]
+                     )
                  )
                ])
 
@@ -365,11 +378,13 @@ defmodule Folio.PortfolioTest do
     test "columns-set-page: multi-column page" do
       assert {:ok, pdf} =
                Folio.to_pdf([
-                 columns(2, do: [
-                   text("First column content with enough text to demonstrate column layout."),
-                   text("More content flowing."),
-                   text("And even more text."),
-                 ])
+                 columns(2,
+                   do: [
+                     text("First column content with enough text to demonstrate column layout."),
+                     text("More content flowing."),
+                     text("And even more text.")
+                   ]
+                 )
                ])
 
       assert pdf_size_above?(pdf, 100)
@@ -378,11 +393,13 @@ defmodule Folio.PortfolioTest do
     test "three columns with colored rects" do
       assert {:ok, pdf} =
                Folio.to_pdf([
-                 columns(3, do: [
-                   rect(fill: "#E74C3C", width: "100%", height: "40pt"),
-                   rect(fill: "#3498DB", width: "100%", height: "40pt"),
-                   rect(fill: "#2ECC71", width: "100%", height: "40pt"),
-                 ])
+                 columns(3,
+                   do: [
+                     rect(fill: "#E74C3C", width: "100%", height: "40pt"),
+                     rect(fill: "#3498DB", width: "100%", height: "40pt"),
+                     rect(fill: "#2ECC71", width: "100%", height: "40pt")
+                   ]
+                 )
                ])
 
       assert pdf_size_above?(pdf, 100)
@@ -502,7 +519,7 @@ defmodule Folio.PortfolioTest do
                  heading(2, "Background"),
                  text("Background text."),
                  heading(1, "Methods"),
-                 text("Methods text."),
+                 text("Methods text.")
                ])
 
       assert pdf_size_above?(pdf, 500)
@@ -615,11 +632,13 @@ defmodule Folio.PortfolioTest do
     test "stack-basic: LTR stack with colored rects" do
       assert {:ok, pdf} =
                Folio.to_pdf([
-                 stack([dir: "ltr"], do: [
-                   rect(width: "30pt", height: "10pt", fill: "#333333"),
-                   rect(width: "20pt", height: "10pt", fill: "#555555"),
-                   rect(width: "40pt", height: "10pt", fill: "#777777"),
-                 ])
+                 stack([dir: "ltr"],
+                   do: [
+                     rect(width: "30pt", height: "10pt", fill: "#333333"),
+                     rect(width: "20pt", height: "10pt", fill: "#555555"),
+                     rect(width: "40pt", height: "10pt", fill: "#777777")
+                   ]
+                 )
                ])
 
       assert pdf_size_above?(pdf, 100)
@@ -669,7 +688,7 @@ defmodule Folio.PortfolioTest do
                  rect(width: "100pt", height: "50pt", fill: "#3498DB")
                ])
 
-      assert length(svgs) >= 1
+      assert svgs != []
       svg = hd(svgs)
       assert String.starts_with?(svg, "<svg")
       assert String.contains?(svg, "</svg>")
@@ -682,7 +701,7 @@ defmodule Folio.PortfolioTest do
                  circle(fill: "#E74C3C", radius: "30pt")
                ])
 
-      assert length(pngs) >= 1
+      assert pngs != []
       # PNG magic bytes
       <<137, 80, 78, 71, 13, 10, 26, 10, _::binary>> = hd(pngs)
     end

@@ -8,9 +8,9 @@ defmodule Folio.Document do
   defstruct [:content, :styles]
 
   @type t :: %__MODULE__{
-    content: [Content.t()],
-    styles: [Styles.rule()]
-  }
+          content: [Content.t()],
+          styles: [Styles.rule()]
+        }
 
   @doc "Create an empty document."
   @spec new() :: t()

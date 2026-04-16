@@ -12,46 +12,61 @@ defmodule Folio.Styles do
   """
 
   defmodule PageSize do
+    @moduledoc false
     defstruct [:width, :height]
     @type t :: %__MODULE__{width: float() | nil, height: float() | nil}
   end
 
   defmodule PageMargin do
+    @moduledoc false
     defstruct [:top, :right, :bottom, :left]
-    @type t :: %__MODULE__{top: float() | nil, right: float() | nil, bottom: float() | nil, left: float() | nil}
+
+    @type t :: %__MODULE__{
+            top: float() | nil,
+            right: float() | nil,
+            bottom: float() | nil,
+            left: float() | nil
+          }
   end
 
   defmodule FontSize do
+    @moduledoc false
     defstruct [:size]
     @type t :: %__MODULE__{size: float()}
   end
 
   defmodule FontFamily do
+    @moduledoc false
     defstruct [:families]
     @type t :: %__MODULE__{families: [String.t()]}
   end
 
   defmodule FontWeight do
+    @moduledoc false
     defstruct [:weight]
     @type t :: %__MODULE__{weight: 100..900}
   end
 
   defmodule TextColor do
+    @moduledoc false
     defstruct [:color]
     @type t :: %__MODULE__{color: String.t()}
   end
 
   defmodule ParJustify do
+    @moduledoc false
     defstruct [:justify]
     @type t :: %__MODULE__{justify: boolean()}
   end
 
   defmodule ParIndent do
+    @moduledoc false
     defstruct [:indent]
     @type t :: %__MODULE__{indent: float()}
   end
 
   defmodule PageNumbering do
+    @moduledoc false
     defstruct [:pattern]
     @type t :: %__MODULE__{pattern: String.t()}
   end
@@ -75,8 +90,10 @@ defmodule Folio.Styles do
   @spec page_margin(keyword()) :: PageMargin.t()
   def page_margin(opts) when is_list(opts) do
     %PageMargin{
-      top: Keyword.get(opts, :top), right: Keyword.get(opts, :right),
-      bottom: Keyword.get(opts, :bottom), left: Keyword.get(opts, :left),
+      top: Keyword.get(opts, :top),
+      right: Keyword.get(opts, :right),
+      bottom: Keyword.get(opts, :bottom),
+      left: Keyword.get(opts, :left)
     }
   end
 
@@ -87,7 +104,8 @@ defmodule Folio.Styles do
   def font_family(families) when is_list(families), do: %FontFamily{families: families}
 
   @spec font_weight(100..900) :: FontWeight.t()
-  def font_weight(weight) when is_integer(weight) and weight >= 100 and weight <= 900, do: %FontWeight{weight: weight}
+  def font_weight(weight) when is_integer(weight) and weight >= 100 and weight <= 900,
+    do: %FontWeight{weight: weight}
 
   @spec text_color(String.t()) :: TextColor.t()
   def text_color(color) when is_binary(color), do: %TextColor{color: color}
