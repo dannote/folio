@@ -13,8 +13,8 @@ use typst::layout::{
 use typst::text::SpaceElem as TextSpace;
 use typst::model::{
     Attribution, Bibliography, BibliographyElem, CitationForm, CiteElem, DividerElem,
-    EmphElem, EnumItem, FigureCaption, FigureElem, FootnoteBody, FootnoteElem,
-    HeadingElem, LinkElem, LinkTarget, ListItem, OutlineElem, ParbreakElem,
+    EmphElem, EnumElem, EnumItem, FigureCaption, FigureElem, FootnoteBody, FootnoteElem,
+    HeadingElem, LinkElem, LinkTarget, ListElem, ListItem, OutlineElem, ParbreakElem,
     QuoteElem, StrongElem, TableCell, TableChild, TableElem, TableHeader,
     TableItem, TermItem, TermsElem, TitleElem,
 };
@@ -23,7 +23,8 @@ use typst::text::{
     StrikeElem, SubElem, SuperElem, TextElem, UnderlineElem,
 };
 use typst::utils::PicoStr;
-use typst::visualize::{CircleElem, EllipseElem, ImageElem, LineElem, Paint, PolygonElem, RectElem, SquareElem};
+use typst::layout::Angle;
+use typst::visualize::{CircleElem, EllipseElem, ImageElem, LineElem, Paint, PolygonElem, RectElem, SquareElem, Stroke};
 
 use crate::types::ExContent;
 use crate::world::FolioWorld;
@@ -98,6 +99,32 @@ fn parse_align(s: &str) -> Alignment {
     match s { "left" | "start" => Alignment::START, "center" => Alignment::CENTER,
         "right" | "end" => Alignment::END, "top" => Alignment::TOP,
         "bottom" => Alignment::BOTTOM, _ => Alignment::START }
+}
+
+fn parse_angle(s: &str) -> Option<Angle> {
+    let s = s.trim();
+    if let Some(r) = s.strip_suffix("deg") { r.trim().parse::<f64>().ok().map(Angle::deg) }
+    else if let Some(r) = s.strip_suffix("rad") { r.trim().parse::<f64>().ok().map(Angle::rad) }
+    else { s.parse::<f64>().ok().map(Angle::deg) }
+}
+
+fn parse_stroke(s: &str) -> Option<Stroke> {
+    let s = s.trim();
+    // Try "thickness+color" format (e.g. "2pt + red", "1pt+#ff0000")
+    if let Some((lhs, rhs)) = s.split_once('+') {
+        let thickness = parse_abs(lhs.trim())?;
+        let paint = parse_paint(rhs.trim())?;
+        return Some(Stroke::from_pair(paint, thickness.into()));
+    }
+    // Color-only stroke (default thickness)
+    if let Some(paint) = parse_paint(s) {
+        return Some(Stroke { paint: Smart::Custom(paint), ..Default::default() });
+    }
+    // Thickness-only stroke (default color)
+    if let Some(thickness) = parse_abs(s) {
+        return Some(Stroke { thickness: Smart::Custom(thickness.into()), ..Default::default() });
+    }
+    None
 }
 
 fn parse_axes(s: &str) -> Option<Axes<Rel<Length>>> {
@@ -344,12 +371,21 @@ fn convert_node(engine: &mut Engine, node: &ExContent) -> Content {
             let start = l.start.as_deref().and_then(parse_axes).unwrap_or(Axes::splat(Rel::zero()));
             let mut el = LineElem::new().with_start(start);
             if let Some(end) = &l.end { if let Some(e) = parse_axes(end) { el = el.with_end(Some(e)); } }
+            if let Some(len) = &l.length { if let Some(r) = parse_rel(len) { el = el.with_length(r); } }
+            if let Some(ang) = &l.angle { if let Some(a) = parse_angle(ang) { el = el.with_angle(a); } }
+            if let Some(st) = &l.stroke { if let Some(s) = parse_stroke(st) { el = el.with_stroke(s); } }
             el.pack()
         }
 
         ExContent::Polygon(pg) => {
             let verts: Vec<Axes<Rel<Length>>> = pg.vertices.iter().filter_map(|v| parse_axes(v)).collect();
-            PolygonElem::new(verts).with_fill(opt_paint(pg.fill.as_deref())).pack()
+            let mut el = PolygonElem::new(verts).with_fill(opt_paint(pg.fill.as_deref()));
+            if let Some(st) = &pg.stroke {
+                if let Some(s) = parse_stroke(st) {
+                    el = el.with_stroke(Smart::Custom(Some(s)));
+                }
+            }
+            el.pack()
         }
 
         // Document structure
@@ -404,10 +440,31 @@ fn convert_node(engine: &mut Engine, node: &ExContent) -> Content {
             e.pack()
         }
 
-        ExContent::List(list) => Content::sequence(list.children.iter().map(|c| convert_node(engine, c)).collect::<Vec<_>>()),
+        ExContent::List(list) => {
+            let items: Vec<typst::foundations::Packed<ListItem>> = list.children.iter().filter_map(|c| match c {
+                ExContent::ListItem(li) => Some(typst::foundations::Packed::new(ListItem::new(cc(engine, &li.body)))),
+                _ => None,
+            }).collect();
+            let mut elem = ListElem::new(items);
+            elem.tight.set(list.tight);
+            elem.pack()
+        }
         ExContent::ListItem(li) => ListItem::new(cc(engine, &li.body)).pack(),
 
-        ExContent::Enum(en) => Content::sequence(en.children.iter().map(|c| convert_node(engine, c)).collect::<Vec<_>>()),
+        ExContent::Enum(en) => {
+            let items: Vec<typst::foundations::Packed<EnumItem>> = en.children.iter().filter_map(|c| match c {
+                ExContent::EnumItem(ei) => {
+                    let mut e = EnumItem::new(cc(engine, &ei.body));
+                    if let Some(n) = ei.number { e.number.set(Smart::Custom(n as u64)); }
+                    Some(typst::foundations::Packed::new(e))
+                }
+                _ => None,
+            }).collect();
+            let mut elem = EnumElem::new(items);
+            elem.tight.set(en.tight);
+            if let Some(start) = en.start { elem.start.set(Smart::Custom(start as u64)); }
+            elem.pack()
+        }
         ExContent::EnumItem(ei) => {
             let mut e = EnumItem::new(cc(engine, &ei.body));
             if let Some(n) = ei.number { e.number.set(Smart::Custom(n as u64)); }
@@ -422,7 +479,11 @@ fn convert_node(engine: &mut Engine, node: &ExContent) -> Content {
         }
         ExContent::Ref(r) => {
             if let Some(lbl) = typst::foundations::Label::new(PicoStr::intern(&r.target)) {
-                typst::model::RefElem::new(lbl).pack()
+                let mut elem = typst::model::RefElem::new(lbl);
+                if let Some(sup) = &r.supplement {
+                    elem.supplement.set(Smart::Custom(Some(typst::model::Supplement::Content(cc(engine, sup)))));
+                }
+                elem.pack()
             } else { TextElem::packed(&r.target) }
         }
 

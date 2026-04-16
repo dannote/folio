@@ -776,10 +776,105 @@ defmodule Folio.DslTest do
     end
   end
 
+  describe "line with extended options" do
+    test "line with length and angle" do
+      assert {:ok, pdf} =
+               Folio.to_pdf([
+                 line(length: "100pt", angle: "45deg")
+               ])
+
+      assert pdf_size_above?(pdf, 100)
+    end
+
+    test "line with stroke" do
+      assert {:ok, pdf} =
+               Folio.to_pdf([
+                 line(stroke: "2pt + #ff0000")
+               ])
+
+      assert pdf_size_above?(pdf, 100)
+    end
+
+    test "line with color-only stroke" do
+      assert {:ok, pdf} =
+               Folio.to_pdf([
+                 line(stroke: "red")
+               ])
+
+      assert pdf_size_above?(pdf, 100)
+    end
+
+    test "line with start and end" do
+      assert {:ok, pdf} =
+               Folio.to_pdf([
+                 line(start: "0pt,0pt", end: "100pt,50pt")
+               ])
+
+      assert pdf_size_above?(pdf, 100)
+    end
+  end
+
+  describe "polygon (from polygon typ)" do
+    test "polygon with stroke" do
+      assert {:ok, pdf} =
+               Folio.to_pdf([
+                 polygon(
+                   ["0pt,0pt", "100pt,0pt", "50pt,80pt"],
+                   stroke: "1pt + blue"
+                 )
+               ])
+
+      assert pdf_size_above?(pdf, 100)
+    end
+  end
+
+  describe "enum start numbering" do
+    test "enum with custom start" do
+      assert {:ok, pdf} =
+               Folio.to_pdf([
+                 enum(["Alpha", "Beta", "Gamma"], start: 3)
+               ])
+
+      assert pdf_size_above?(pdf, 100)
+    end
+
+    test "enum with explicit item numbers" do
+      assert {:ok, pdf} =
+               Folio.to_pdf([
+                 enum([{10, "Tenth"}, {20, "Twentieth"}])
+               ])
+
+      assert pdf_size_above?(pdf, 100)
+    end
+  end
+
+  describe "ref with supplement" do
+    test "ref with supplement content" do
+      Folio.register_file("test.png", create_test_png())
+
+      assert {:ok, pdf} =
+               Folio.to_pdf([
+                 figure([image("test.png")], caption: [text("A figure")]),
+                 label("fig1"),
+                 ref("fig1", [text("see")])
+               ])
+
+      assert pdf_size_above?(pdf, 100)
+    after
+      Folio.unregister_file("test.png")
+    end
+  end
+
   # ═══════════════════════════════════════════════════════════════════════════════
   # Helpers
   # ═══════════════════════════════════════════════════════════════════════════════
 
   defp pdf_size_above?(pdf, min) when is_binary(pdf), do: byte_size(pdf) > min
   defp pdf_size_above?(_, _), do: false
+
+  defp create_test_png do
+    <<137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 1, 0, 0, 0, 1, 8, 2,
+      0, 0, 0, 144, 119, 83, 222, 0, 0, 0, 12, 73, 68, 65, 84, 120, 156, 99, 96, 96, 96, 0, 0, 0,
+      4, 0, 1, 246, 23, 56, 85, 0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130>>
+  end
 end
