@@ -71,8 +71,8 @@ defmodule Folio do
   def to_pdf(source, opts \\ [])
 
   def to_pdf(%Folio.Document{content: content, styles: doc_styles}, opts) do
-    merged = if Keyword.has_key?(opts, :styles), do: opts, else: Keyword.put(opts, :styles, doc_styles)
-    to_pdf(content, merged)
+    opts_styles = Keyword.get(opts, :styles, [])
+    to_pdf(content, Keyword.put(opts, :styles, opts_styles ++ doc_styles))
   end
 
   def to_pdf(markdown, opts) when is_binary(markdown) do
@@ -94,8 +94,8 @@ defmodule Folio do
   def to_svg(source, opts \\ [])
 
   def to_svg(%Folio.Document{content: content, styles: doc_styles}, opts) do
-    merged = if Keyword.has_key?(opts, :styles), do: opts, else: Keyword.put(opts, :styles, doc_styles)
-    to_svg(content, merged)
+    opts_styles = Keyword.get(opts, :styles, [])
+    to_svg(content, Keyword.put(opts, :styles, opts_styles ++ doc_styles))
   end
 
   def to_svg(markdown, opts) when is_binary(markdown) do
@@ -117,8 +117,8 @@ defmodule Folio do
   def to_png(source, opts \\ [])
 
   def to_png(%Folio.Document{content: content, styles: doc_styles}, opts) do
-    merged = if Keyword.has_key?(opts, :styles), do: opts, else: Keyword.put(opts, :styles, doc_styles)
-    to_png(content, merged)
+    opts_styles = Keyword.get(opts, :styles, [])
+    to_png(content, Keyword.put(opts, :styles, opts_styles ++ doc_styles))
   end
 
   def to_png(markdown, opts) when is_binary(markdown) do
@@ -150,4 +150,6 @@ defmodule Folio do
     e in ErlangError ->
       {:error, error_mod.new(Exception.message(e))}
   end
+
+
 end

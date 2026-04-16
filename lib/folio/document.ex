@@ -28,22 +28,4 @@ defmodule Folio.Document do
   def add_style(%__MODULE__{styles: styles} = doc, rule) do
     %{doc | styles: styles ++ [rule]}
   end
-
-  @doc "Create a document with page and text setup."
-  @spec configure(keyword()) :: t()
-  def configure(opts) do
-    styles =
-      []
-      |> maybe_add_style(opts, :page, &Styles.page_size/1)
-      |> maybe_add_style(opts, :font_size, &Styles.font_size/1)
-
-    %__MODULE__{content: [], styles: styles}
-  end
-
-  defp maybe_add_style(styles, opts, key, builder) do
-    case Keyword.get(opts, key) do
-      nil -> styles
-      val -> styles ++ [builder.(val)]
-    end
-  end
 end

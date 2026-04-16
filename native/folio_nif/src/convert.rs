@@ -304,7 +304,12 @@ fn convert_node(engine: &mut Engine, node: &ExContent) -> Content {
 
         ExContent::Circle(c) => CircleElem::new()
             .with_body(Some(cc(engine, &c.body)))
-            .with_width(smart_rel(c.radius.as_deref()))
+            .with_width(c.radius.as_deref().map(|r| {
+                // Typst internally doubles radius → width, we must too
+                parse_rel(r)
+                    .map(|rel| Smart::Custom(rel * 2.0))
+                    .unwrap_or(Smart::Auto)
+            }).unwrap_or(Smart::Auto))
             .with_fill(opt_paint(c.fill.as_deref())).pack(),
 
         ExContent::Ellipse(e) => EllipseElem::new()
@@ -452,12 +457,14 @@ fn convert_table(engine: &mut Engine, tbl: &crate::types::ExTable) -> Content {
 }
 
 fn count_columns(tbl: &crate::types::ExTable) -> usize {
+    let mut max_cols: usize = 0;
     for child in &tbl.children {
         match child {
-            ExContent::TableHeader(th) => return th.children.len().max(1),
-            ExContent::TableRow(tr) => return tr.children.len().max(1),
+            ExContent::TableHeader(th) => max_cols = max_cols.max(th.children.len()),
+            ExContent::TableRow(tr) => max_cols = max_cols.max(tr.children.len()),
+            ExContent::TableCell(_) => max_cols = max_cols.max(1),
             _ => {}
         }
     }
-    1
+    max_cols.max(1)
 }

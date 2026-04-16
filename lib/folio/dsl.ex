@@ -44,7 +44,7 @@ defmodule Folio.DSL do
 
   # ── Figures ──
 
-  def figure(content, opts \\ []) when is_binary(content) or is_struct(content) do
+  def figure(content, opts \\ []) when is_binary(content) or is_struct(content) or is_list(content) do
     %Content.Figure{
       body: Content.to_content(content),
       caption: then_if_some(Keyword.get(opts, :caption), &Content.to_content/1),

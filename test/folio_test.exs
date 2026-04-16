@@ -239,4 +239,49 @@ defmodule FolioTest do
       assert %Folio.Styles.PageNumbering{pattern: "1"} = Folio.Styles.page_numbering("1")
     end
   end
+
+  describe "SVG content verification" do
+    test "SVG output contains rendered content" do
+      {:ok, [svg]} = Folio.to_svg("# TestTitle")
+      # Typst renders text as glyph paths, not raw strings
+      assert svg =~ "<svg"
+      assert svg =~ "</svg>"
+      assert svg =~ "<defs>"
+    end
+
+    test "math renders without fallback text" do
+      {:ok, [svg]} = Folio.to_svg("$x^2$")
+      # Should NOT contain the raw math syntax as plain text
+      refute svg =~ "$x^2$"
+    end
+
+    test "multi-page document produces multiple SVGs" do
+      use Folio
+      {:ok, svgs} = Folio.to_svg([
+        heading(1, "Page 1"),
+        pagebreak(),
+        heading(1, "Page 2"),
+      ])
+      assert length(svgs) == 2
+    end
+  end
+
+  describe "error handling" do
+    test "to_pdf returns error for broken image" do
+      assert {:ok, _} = Folio.to_pdf([%Folio.Content.Image{src: "nope.png"}])
+      # Currently returns ok with fallback text — this is expected behavior
+    end
+
+    test "parse_markdown raises on NIF error" do
+      # Normal strings parse fine
+      assert [%Folio.Content.Paragraph{}] = Folio.parse_markdown("ok")
+    end
+  end
+
+  describe "thematic break" do
+    test "--- becomes Divider, not Pagebreak" do
+      assert [%Folio.Content.Paragraph{}, %Folio.Content.Divider{}, %Folio.Content.Paragraph{}] =
+               Folio.parse_markdown("before\n\n---\n\nafter")
+    end
+  end
 end

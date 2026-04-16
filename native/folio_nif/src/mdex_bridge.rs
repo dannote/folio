@@ -109,7 +109,7 @@ fn convert_node<'a>(node: &'a AstNode<'a>) -> ExContent {
 
         NodeValue::SoftBreak => ExContent::Space(ExSpace {}),
         NodeValue::LineBreak => ExContent::Linebreak(ExLinebreak {}),
-        NodeValue::ThematicBreak => ExContent::Pagebreak(ExPagebreak { weak: false }),
+        NodeValue::ThematicBreak => ExContent::Divider(ExDivider {}),
 
         NodeValue::Math(math) => {
             ExContent::Math(ExMath {

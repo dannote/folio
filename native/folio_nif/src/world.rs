@@ -106,19 +106,14 @@ impl FolioWorld {
 
         let body = build_content(&mut engine, content);
 
-        // Clone the library and apply user styles
-        let lib_styles = {
-            let base_styles = &GLOBAL.library.styles;
-            let mut s = base_styles.clone();
-            apply_styles(&mut s, &self.styles);
-            s
-        };
-        let base_lib: &Library = &GLOBAL.library;
-        let lib = Library { styles: lib_styles, ..base_lib.clone() };
-        let lib = LazyHash::new(lib);
+        // Apply user styles on top of the library's base styles
+        let lib = &GLOBAL.library;
         let base = StyleChain::new(&lib.styles);
+        let mut user_styles = typst::foundations::Styles::new();
+        apply_styles(&mut user_styles, &self.styles);
         let target_style: Styles = TargetElem::target.set(Target::Paged).wrap().into();
-        let styles = base.chain(&target_style);
+        let chained = base.chain(&target_style);
+        let styles = chained.chain(&user_styles);
 
         layout_document(&mut engine, &body, styles)
             .map_err(|e| format!("Layout error: {:?}", e))
@@ -169,16 +164,22 @@ fn apply_styles(styles: &mut typst::foundations::Styles, user_styles: &[ExStyle]
                 }
             }
             ExStyle::PageMargin(m) => {
-                let pt = |v: f64| Some(Smart::Custom(Abs::pt(v).into()));
-                styles.set(PageElem::margin, Margin {
-                    sides: Sides {
-                        top: m.top.map_or_else(|| pt(70.866), pt),
-                        right: m.right.map_or_else(|| pt(70.866), pt),
-                        bottom: m.bottom.map_or_else(|| pt(70.866), pt),
-                        left: m.left.map_or_else(|| pt(70.866), pt),
-                    },
-                    two_sided: None,
-                });
+                // Only set sides the user explicitly provided.
+                // None lets Typst use its own default margin.
+                let side = |v: Option<f64>| v.map(|x| Smart::Custom(Abs::pt(x).into()));
+                if m.top.is_none() && m.right.is_none() && m.bottom.is_none() && m.left.is_none() {
+                    // User didn't set any margin — skip entirely
+                } else {
+                    styles.set(PageElem::margin, Margin {
+                        sides: Sides {
+                            top: side(m.top),
+                            right: side(m.right),
+                            bottom: side(m.bottom),
+                            left: side(m.left),
+                        },
+                        two_sided: None,
+                    });
+                }
             }
             ExStyle::FontSize(fs) => {
                 styles.set(TextElem::size, TextSize(Abs::pt(fs.size).into()));
