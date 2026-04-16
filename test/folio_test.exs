@@ -251,6 +251,97 @@ defmodule FolioTest do
     test "page_numbering wraps string" do
       assert %Folio.Styles.PageNumbering{pattern: "1"} = Folio.Styles.page_numbering("1")
     end
+
+    test "page header and footer wrap content" do
+      assert %Folio.Styles.PageHeader{content: [%Folio.Content.Text{text: "Header"}]} =
+               Folio.Styles.page_header("Header")
+
+      assert %Folio.Styles.PageFooter{content: [%Folio.Content.Text{text: "Footer"}]} =
+               Folio.Styles.page_footer("Footer")
+    end
+
+    test "heading styles wrap values" do
+      assert %Folio.Styles.HeadingNumbering{pattern: "1.1"} =
+               Folio.Styles.heading_numbering("1.1")
+
+      assert %Folio.Styles.HeadingSupplement{content: [%Folio.Content.Text{text: "Chapter"}]} =
+               Folio.Styles.heading_supplement("Chapter")
+
+      assert %Folio.Styles.HeadingOutlined{outlined: false} =
+               Folio.Styles.heading_outlined(false)
+
+      assert %Folio.Styles.HeadingBookmarked{bookmarked: true} =
+               Folio.Styles.heading_bookmarked(true)
+    end
+  end
+
+  describe "page chrome and heading styling" do
+    test "compiles document with page header and footer" do
+      assert {:ok, pdf} =
+               Folio.to_pdf("# Hello\n\nWorld",
+                 styles: [
+                   Folio.Styles.page_header("Header"),
+                   Folio.Styles.page_footer("Footer"),
+                   Folio.Styles.page_numbering("1")
+                 ]
+               )
+
+      assert is_binary(pdf)
+      assert byte_size(pdf) > 100
+    end
+
+    test "compiles document with heading numbering and supplement" do
+      assert {:ok, pdf} =
+               Folio.to_pdf("# Intro\n\n## Details",
+                 styles: [
+                   Folio.Styles.heading_numbering("1."),
+                   Folio.Styles.heading_supplement("Chapter"),
+                   Folio.Styles.heading_bookmarked(true),
+                   Folio.Styles.heading_outlined(true)
+                 ]
+               )
+
+      assert is_binary(pdf)
+      assert byte_size(pdf) > 100
+    end
+
+    test "par indent compiles" do
+      assert {:ok, pdf} =
+               Folio.to_pdf("Hello\n\nWorld",
+                 styles: [
+                   Folio.Styles.par_indent(18)
+                 ]
+               )
+
+      assert is_binary(pdf)
+      assert byte_size(pdf) > 100
+    end
+  end
+
+  describe "bibliography and citations" do
+    @sample_bib ~S"""
+    @book{knuth1984,
+      author = {Donald E. Knuth},
+      title = {The TeXbook},
+      year = {1984},
+      publisher = {Addison-Wesley}
+    }
+    """
+
+    test "compiles explicit cite and bibliography" do
+      Folio.register_file("works.bib", @sample_bib)
+
+      assert {:ok, pdf} =
+               Folio.to_pdf([
+                 Folio.DSL.text("See "),
+                 Folio.DSL.cite("knuth1984"),
+                 Folio.DSL.text(" for details."),
+                 Folio.DSL.bibliography("works.bib")
+               ])
+
+      assert is_binary(pdf)
+      assert byte_size(pdf) > 100
+    end
   end
 
   describe "SVG content verification" do

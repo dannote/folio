@@ -18,6 +18,30 @@ defmodule Folio.DSL do
     %Content.Heading{level: level, body: Content.to_content(content)}
   end
 
+  def cite(key, opts \\ []) when is_binary(key) do
+    %Content.Cite{
+      key: key,
+      supplement: then_if_some(Keyword.get(opts, :supplement), &Content.to_content/1),
+      form: Keyword.get(opts, :form),
+      style: Keyword.get(opts, :style)
+    }
+  end
+
+  def bibliography(sources, opts \\ []) do
+    normalized_sources =
+      case sources do
+        source when is_binary(source) -> [source]
+        source_list when is_list(source_list) -> source_list
+      end
+
+    %Content.Bibliography{
+      sources: normalized_sources,
+      title: then_if_some(Keyword.get(opts, :title), &Content.to_content/1),
+      full: Keyword.get(opts, :full, false),
+      style: Keyword.get(opts, :style)
+    }
+  end
+
   # ── Inline formatting ──
 
   def strong(content), do: %Content.Strong{body: Content.to_content(content)}

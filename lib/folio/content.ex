@@ -24,6 +24,30 @@ defmodule Folio.Content do
     @type t :: %__MODULE__{body: [Folio.Content.t()], level: 1..6}
   end
 
+  defmodule Cite do
+    @moduledoc false
+    defstruct [:key, :supplement, :form, :style]
+
+    @type t :: %__MODULE__{
+            key: String.t(),
+            supplement: [Folio.Content.t()] | nil,
+            form: String.t() | nil,
+            style: String.t() | nil
+          }
+  end
+
+  defmodule Bibliography do
+    @moduledoc false
+    defstruct [:sources, :title, :full, :style]
+
+    @type t :: %__MODULE__{
+            sources: [String.t()],
+            title: [Folio.Content.t()] | nil,
+            full: boolean(),
+            style: String.t() | nil
+          }
+  end
+
   defmodule Paragraph do
     @moduledoc false
     defstruct [:body]
@@ -463,6 +487,8 @@ defmodule Folio.Content do
           Text.t()
           | Space.t()
           | Heading.t()
+          | Cite.t()
+          | Bibliography.t()
           | Paragraph.t()
           | Strong.t()
           | Emph.t()

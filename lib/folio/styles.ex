@@ -71,6 +71,42 @@ defmodule Folio.Styles do
     @type t :: %__MODULE__{pattern: String.t()}
   end
 
+  defmodule PageHeader do
+    @moduledoc false
+    defstruct [:content]
+    @type t :: %__MODULE__{content: [Folio.Content.t()]}
+  end
+
+  defmodule PageFooter do
+    @moduledoc false
+    defstruct [:content]
+    @type t :: %__MODULE__{content: [Folio.Content.t()]}
+  end
+
+  defmodule HeadingNumbering do
+    @moduledoc false
+    defstruct [:pattern]
+    @type t :: %__MODULE__{pattern: String.t()}
+  end
+
+  defmodule HeadingSupplement do
+    @moduledoc false
+    defstruct [:content]
+    @type t :: %__MODULE__{content: [Folio.Content.t()]}
+  end
+
+  defmodule HeadingOutlined do
+    @moduledoc false
+    defstruct [:outlined]
+    @type t :: %__MODULE__{outlined: boolean()}
+  end
+
+  defmodule HeadingBookmarked do
+    @moduledoc false
+    defstruct [:bookmarked]
+    @type t :: %__MODULE__{bookmarked: boolean()}
+  end
+
   @type rule ::
           PageSize.t()
           | PageMargin.t()
@@ -81,6 +117,12 @@ defmodule Folio.Styles do
           | ParJustify.t()
           | ParIndent.t()
           | PageNumbering.t()
+          | PageHeader.t()
+          | PageFooter.t()
+          | HeadingNumbering.t()
+          | HeadingSupplement.t()
+          | HeadingOutlined.t()
+          | HeadingBookmarked.t()
 
   @spec page_size(keyword()) :: PageSize.t()
   def page_size(opts) when is_list(opts) do
@@ -118,4 +160,26 @@ defmodule Folio.Styles do
 
   @spec page_numbering(String.t()) :: PageNumbering.t()
   def page_numbering(pattern) when is_binary(pattern), do: %PageNumbering{pattern: pattern}
+
+  @spec page_header(Folio.Content.t() | [Folio.Content.t()] | String.t()) :: PageHeader.t()
+  def page_header(content), do: %PageHeader{content: Folio.Content.to_content(content)}
+
+  @spec page_footer(Folio.Content.t() | [Folio.Content.t()] | String.t()) :: PageFooter.t()
+  def page_footer(content), do: %PageFooter{content: Folio.Content.to_content(content)}
+
+  @spec heading_numbering(String.t()) :: HeadingNumbering.t()
+  def heading_numbering(pattern) when is_binary(pattern), do: %HeadingNumbering{pattern: pattern}
+
+  @spec heading_supplement(Folio.Content.t() | [Folio.Content.t()] | String.t()) ::
+          HeadingSupplement.t()
+  def heading_supplement(content),
+    do: %HeadingSupplement{content: Folio.Content.to_content(content)}
+
+  @spec heading_outlined(boolean()) :: HeadingOutlined.t()
+  def heading_outlined(outlined) when is_boolean(outlined),
+    do: %HeadingOutlined{outlined: outlined}
+
+  @spec heading_bookmarked(boolean()) :: HeadingBookmarked.t()
+  def heading_bookmarked(bookmarked) when is_boolean(bookmarked),
+    do: %HeadingBookmarked{bookmarked: bookmarked}
 end

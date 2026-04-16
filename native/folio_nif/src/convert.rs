@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use ecow::{eco_format, EcoString};
 use typst::engine::Engine;
-use typst::foundations::{Content, NativeElement, Smart};
+use typst::foundations::{Bytes, Content, NativeElement, OneOrMultiple, Smart};
 use typst::layout::{
     Abs, AlignElem, Alignment, Axes, BlockBody, BlockElem, ColbreakElem,
     ColumnsElem, Dir, HElem, HideElem, Length, PadElem,
@@ -12,10 +12,11 @@ use typst::layout::{
 };
 use typst::text::SpaceElem as TextSpace;
 use typst::model::{
-    Attribution, DividerElem, EmphElem, EnumItem, FigureCaption, FigureElem,
-    FootnoteBody, FootnoteElem, HeadingElem, LinkElem, LinkTarget, ListItem,
-    OutlineElem, ParbreakElem, QuoteElem, StrongElem,
-    TableChild, TableElem, TableHeader, TableItem, TableCell, TermItem, TermsElem, TitleElem,
+    Attribution, Bibliography, BibliographyElem, CitationForm, CiteElem, DividerElem,
+    EmphElem, EnumItem, FigureCaption, FigureElem, FootnoteBody, FootnoteElem,
+    HeadingElem, LinkElem, LinkTarget, ListItem, OutlineElem, ParbreakElem,
+    QuoteElem, StrongElem, TableCell, TableChild, TableElem, TableHeader,
+    TableItem, TermItem, TermsElem, TitleElem,
 };
 use typst::text::{
     HighlightElem, LinebreakElem, RawContent, RawElem, SmallcapsElem,
@@ -26,6 +27,8 @@ use typst::visualize::{CircleElem, EllipseElem, ImageElem, LineElem, Paint, Poly
 
 use crate::types::ExContent;
 use crate::world::FolioWorld;
+use typst::loading::DataSource;
+use typst::syntax::{Span, Spanned};
 
 // ── Value parsing ────────────────────────────────────────────────────────────
 
@@ -128,6 +131,15 @@ fn parse_axes(s: &str) -> Option<Axes<Rel<Length>>> {
     if p.len() == 2 { Some(Axes::new(parse_rel(p[0])?, parse_rel(p[1])?)) } else { None }
 }
 
+fn bibliography_sources(paths: &[String]) -> Option<OneOrMultiple<DataSource>> {
+    let sources = paths
+        .iter()
+        .map(|path| FolioWorld::get_file_bytes(path).map(|bytes| DataSource::Bytes(Bytes::new(bytes))))
+        .collect::<Option<Vec<_>>>()?;
+
+    Some(OneOrMultiple(sources))
+}
+
 // ── Content tree building ────────────────────────────────────────────────────
 
 pub fn build_content(engine: &mut Engine, nodes: &[ExContent]) -> Content {
@@ -168,6 +180,43 @@ fn convert_node(engine: &mut Engine, node: &ExContent) -> Content {
         ExContent::Space(_) => TextSpace::shared().clone(),
         ExContent::Heading(h) => HeadingElem::new(cc(engine, &h.body))
             .with_depth(NonZeroUsize::new(h.level as usize).unwrap_or(NonZeroUsize::MIN)).pack(),
+        ExContent::Cite(cite) => {
+            let Some(label) = typst::foundations::Label::new(PicoStr::intern(&cite.key)) else {
+                return TextElem::packed(&cite.key);
+            };
+
+            let mut elem = CiteElem::new(label);
+            if let Some(supplement) = &cite.supplement {
+                elem = elem.with_supplement(Some(cc(engine, supplement)));
+            }
+            if let Some(form) = &cite.form {
+                elem = elem.with_form(match form.as_str() {
+                    "prose" => Some(CitationForm::Prose),
+                    "full" => Some(CitationForm::Full),
+                    "author" => Some(CitationForm::Author),
+                    "year" => Some(CitationForm::Year),
+                    "none" => None,
+                    _ => Some(CitationForm::Normal),
+                });
+            }
+            elem.pack()
+        }
+        ExContent::Bibliography(bib) => {
+            let Some(sources) = bibliography_sources(&bib.sources) else {
+                return TextElem::packed("[bibliography: missing source]");
+            };
+
+            let derived = match Bibliography::load(engine.world, Spanned::new(sources, Span::detached())) {
+                Ok(derived) => derived,
+                Err(_) => return TextElem::packed("[bibliography: load failed]"),
+            };
+
+            let mut elem = BibliographyElem::new(derived).with_full(bib.full);
+            if let Some(title) = &bib.title {
+                elem = elem.with_title(Smart::Custom(Some(cc(engine, title))));
+            }
+            elem.pack()
+        }
         ExContent::Paragraph(p) => cc(engine, &p.body),
 
         // Inline formatting

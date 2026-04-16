@@ -16,6 +16,24 @@ pub struct ExSpace {}
 pub struct ExHeading { pub body: Vec<ExContent>, pub level: u8 }
 
 #[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Cite"]
+pub struct ExCite {
+    pub key: String,
+    pub supplement: Option<Vec<ExContent>>,
+    pub form: Option<String>,
+    pub style: Option<String>,
+}
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Bibliography"]
+pub struct ExBibliography {
+    pub sources: Vec<String>,
+    pub title: Option<Vec<ExContent>>,
+    pub full: bool,
+    pub style: Option<String>,
+}
+
+#[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Paragraph"]
 pub struct ExParagraph { pub body: Vec<ExContent> }
 
@@ -312,6 +330,8 @@ pub enum ExContent {
     Text(ExText),
     Space(ExSpace),
     Heading(ExHeading),
+    Cite(ExCite),
+    Bibliography(ExBibliography),
     Paragraph(ExParagraph),
     Strong(ExStrong),
     Emph(ExEmph),
@@ -407,6 +427,30 @@ pub struct ExParIndent { pub indent: f64 }
 #[module = "Folio.Styles.PageNumbering"]
 pub struct ExPageNumbering { pub pattern: String }
 
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Styles.PageHeader"]
+pub struct ExPageHeader { pub content: Vec<ExContent> }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Styles.PageFooter"]
+pub struct ExPageFooter { pub content: Vec<ExContent> }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Styles.HeadingNumbering"]
+pub struct ExHeadingNumbering { pub pattern: String }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Styles.HeadingSupplement"]
+pub struct ExHeadingSupplement { pub content: Vec<ExContent> }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Styles.HeadingOutlined"]
+pub struct ExHeadingOutlined { pub outlined: bool }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Styles.HeadingBookmarked"]
+pub struct ExHeadingBookmarked { pub bookmarked: bool }
+
 #[derive(Clone, Debug, NifUntaggedEnum)]
 pub enum ExStyle {
     PageSize(ExPageSize),
@@ -418,4 +462,10 @@ pub enum ExStyle {
     ParJustify(ExParJustify),
     ParIndent(ExParIndent),
     PageNumbering(ExPageNumbering),
+    PageHeader(ExPageHeader),
+    PageFooter(ExPageFooter),
+    HeadingNumbering(ExHeadingNumbering),
+    HeadingSupplement(ExHeadingSupplement),
+    HeadingOutlined(ExHeadingOutlined),
+    HeadingBookmarked(ExHeadingBookmarked),
 }

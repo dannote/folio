@@ -24,8 +24,9 @@ use typst_svg::svg;
 use typst_render::render;
 use ecow::eco_format;
 
-use crate::types::{ExContent, ExStyle};
 use crate::convert::build_content;
+use crate::types::{ExContent, ExStyle};
+use typst::model::{HeadingElem, Numbering, NumberingPattern, Supplement};
 
 struct GlobalState {
     library: LazyHash<Library>,
@@ -110,7 +111,7 @@ impl FolioWorld {
         let lib = &GLOBAL.library;
         let base = StyleChain::new(&lib.styles);
         let mut user_styles = typst::foundations::Styles::new();
-        apply_styles(&mut user_styles, &self.styles);
+        apply_styles(&mut user_styles, &self.styles, self);
         let target_style: Styles = TargetElem::target.set(Target::Paged).wrap().into();
         let chained = base.chain(&target_style);
         let styles = chained.chain(&user_styles);
@@ -150,9 +151,30 @@ impl FolioWorld {
         );
         Some(Derived::new(DataSource::Bytes(bytes), loaded))
     }
+
+    pub fn get_file_bytes(src: &str) -> Option<Vec<u8>> {
+        FILE_STORE.lock().unwrap().get(src).cloned()
+    }
 }
 
-fn apply_styles(styles: &mut typst::foundations::Styles, user_styles: &[ExStyle]) {
+fn style_content(world: &FolioWorld, nodes: &[ExContent]) -> Content {
+    let mut sink = Sink::new();
+    let introspector = EmptyIntrospector;
+    let traced = Traced::default();
+
+    let mut engine = Engine {
+        routines: &typst::ROUTINES,
+        world: Track::track(world),
+        introspector: typst::utils::Protected::new(introspector.track()),
+        traced: traced.track(),
+        sink: sink.track_mut(),
+        route: Route::root(),
+    };
+
+    build_content(&mut engine, nodes)
+}
+
+fn apply_styles(styles: &mut typst::foundations::Styles, user_styles: &[ExStyle], world: &FolioWorld) {
     for s in user_styles {
         match s {
             ExStyle::PageSize(sz) => {
@@ -202,14 +224,39 @@ fn apply_styles(styles: &mut typst::foundations::Styles, user_styles: &[ExStyle]
             ExStyle::ParJustify(pj) => {
                 styles.set(typst::model::ParElem::justify, pj.justify);
             }
-            ExStyle::ParIndent(_pi) => {
-                // ParIndent requires FirstLineIndent which has private fields.
-                // TODO: implement when Typst exposes a constructor.
+            ExStyle::ParIndent(pi) => {
+                styles.set(
+                    typst::model::ParElem::first_line_indent,
+                    typst::model::FirstLineIndent::new(Some(Abs::pt(pi.indent).into()), None),
+                );
             }
             ExStyle::PageNumbering(pn) => {
-                if let Ok(pat) = typst::model::NumberingPattern::from_str(&pn.pattern) {
-                    styles.set(PageElem::numbering, Some(typst::model::Numbering::Pattern(pat)));
+                if let Ok(pat) = NumberingPattern::from_str(&pn.pattern) {
+                    styles.set(PageElem::numbering, Some(Numbering::Pattern(pat)));
                 }
+            }
+            ExStyle::PageHeader(ph) => {
+                styles.set(PageElem::header, Smart::Custom(Some(style_content(world, &ph.content))));
+            }
+            ExStyle::PageFooter(pf) => {
+                styles.set(PageElem::footer, Smart::Custom(Some(style_content(world, &pf.content))));
+            }
+            ExStyle::HeadingNumbering(hn) => {
+                if let Ok(pat) = NumberingPattern::from_str(&hn.pattern) {
+                    styles.set(HeadingElem::numbering, Some(Numbering::Pattern(pat)));
+                }
+            }
+            ExStyle::HeadingSupplement(hs) => {
+                styles.set(
+                    HeadingElem::supplement,
+                    Smart::Custom(Some(Supplement::Content(style_content(world, &hs.content)))),
+                );
+            }
+            ExStyle::HeadingOutlined(ho) => {
+                styles.set(HeadingElem::outlined, ho.outlined);
+            }
+            ExStyle::HeadingBookmarked(hb) => {
+                styles.set(HeadingElem::bookmarked, Smart::Custom(hb.bookmarked));
             }
         }
     }
