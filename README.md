@@ -129,6 +129,7 @@ Some **bold** content with inline $E = m c^2$ math.
 {:ok, pdf} = Folio.to_pdf("# Hello")       # PDF binary
 {:ok, svgs} = Folio.to_svg("# Hello")      # [String.t()] — one SVG per page
 {:ok, pngs} = Folio.to_png("# Hello")      # [binary()] — one PNG per page
+{:ok, pngs} = Folio.to_png("# Hello", dpi: 3.0)  # higher resolution
 ```
 
 ## Styles
@@ -179,22 +180,34 @@ doc =
   |> Folio.Document.add_style(Folio.Styles.page_numbering("1"))
   |> Folio.Document.add_style(Folio.Styles.font_family(["Helvetica"]))
   |> Folio.Document.add_content("# Invoice\n\n...")
-  |> Folio.Document.add_content(Folio.parse_markdown("Terms and conditions."))
+  |> Folio.Document.add_content(Folio.parse_markdown!("Terms and conditions."))
 
 {:ok, pdf} = Folio.to_pdf(doc)
 ```
 
 ## Images
 
-Register file bytes before referencing them:
+Attach files to a document for session-scoped isolation, or register them globally:
 
 ```elixir
-Folio.register_file("chart.png", File.read!("chart.png"))
+# Session-scoped (preferred)
+doc =
+  Folio.Document.new()
+  |> Folio.Document.attach_file("chart.png", File.read!("chart.png"))
+  |> Folio.Document.add_content("![Chart](chart.png)")
+{:ok, pdf} = Folio.to_pdf(doc)
 
-# From Markdown
+# Global (shared across all compilations)
+Folio.register_file("chart.png", File.read!("chart.png"))
 {:ok, pdf} = Folio.to_pdf("![Chart](chart.png)")
 
-# From DSL
+# Free global file memory when no longer needed
+Folio.unregister_file("chart.png")
+```
+
+From DSL:
+
+```elixir
 {:ok, pdf} = Folio.to_pdf([image("chart.png", width: "200pt", fit: "contain")])
 ```
 
@@ -280,7 +293,7 @@ Supported bibliography sources are `.bib`, `.yaml`, and `.yml` files provided th
 | `line/1` | `line()` |
 | `polygon/2` | `polygon(["0pt,0pt", "100pt,0pt", "50pt,50pt"], fill: "red")` |
 
-All shapes accept `body`, `stroke`, `inset`, `outset` via keyword list.
+All shapes accept a `body` option for inner content.
 
 ### Tables
 

@@ -53,8 +53,10 @@ defmodule Folio.MixProject do
       maintainers: ["Danila Poyarkov"],
       licenses: ["MIT"],
       links: %{"GitHub" => @source_url},
-      files:
-        ~w(lib native/folio_nif/Cargo.toml native/folio_nif/src mix.exs README.md LICENSE.md .rustler.toml)
+      files: ~w(lib native/folio_nif/Cargo.toml native/folio_nif/Cargo.lock native/folio_nif/src
+           vendor/typst/Cargo.toml vendor/typst/Cargo.lock vendor/typst/crates
+           mix.exs README.md LICENSE.md CHANGELOG.md .rustler.toml),
+      exclude_patterns: [~r{vendor/typst/crates/typst-cli}, ~r{vendor/typst/crates/typst-ide}]
     ]
   end
 
