@@ -15,6 +15,13 @@ use types::{ExContent, ExStyle};
 
 /// Wrap a NIF body in `catch_unwind` so Rust panics become structured
 /// Rustler errors instead of crashing the BEAM.
+///
+/// # Safety
+///
+/// Typst's internal caches (comemo, etc.) are not unwind-safe. A panic
+/// during compilation may leave the global file store or comemo caches
+/// in an inconsistent state, potentially corrupting subsequent compilations.
+/// If a panic occurs, restarting the BEAM VM is the only fully safe recovery.
 fn catch_nif<F, T>(label: &str, f: F) -> NifResult<T>
 where
     F: FnOnce() -> NifResult<T>,
@@ -50,41 +57,60 @@ fn parse_markdown(markdown: String) -> NifResult<Vec<ExContent>> {
 }
 
 #[rustler::nif(schedule = "DirtyCpu")]
-fn compile_pdf(
-    env: Env<'_>,
+fn compile_pdf<'a>(
+    env: Env<'a>,
     content: Vec<ExContent>,
     styles: Vec<ExStyle>,
-) -> NifResult<rustler::Binary<'_>> {
+    files: std::collections::HashMap<String, rustler::Binary<'a>>,
+) -> NifResult<rustler::Binary<'a>> {
     catch_nif("compile_pdf", || {
-        let world = FolioWorld::new(styles);
-        let bytes = world
+        let session_files = decode_file_map(files);
+        let world = FolioWorld::new(styles, session_files);
+        let result = world
             .compile_to_pdf(&content)
-            .map_err(|msg| rustler::Error::RaiseTerm(Box::new(msg)))?;
+            .map_err(|msg| rustler::Error::RaiseTerm(Box::new(msg)));
+        world_mod::clear_session_files();
+        let bytes = result?;
         alloc_binary(env, &bytes)
     })
 }
 
 #[rustler::nif(schedule = "DirtyCpu")]
-fn compile_svg(content: Vec<ExContent>, styles: Vec<ExStyle>) -> NifResult<Vec<String>> {
+fn compile_svg<'a>(
+    content: Vec<ExContent>,
+    styles: Vec<ExStyle>,
+    files: std::collections::HashMap<String, rustler::Binary<'a>>,
+) -> NifResult<Vec<String>> {
     catch_nif("compile_svg", || {
-        let world = FolioWorld::new(styles);
-        world
+        let session_files = decode_file_map(files);
+        let world = FolioWorld::new(styles, session_files);
+        let result = world
             .compile_to_svg(&content)
-            .map_err(|msg| rustler::Error::RaiseTerm(Box::new(msg)))
+            .map_err(|msg| rustler::Error::RaiseTerm(Box::new(msg)));
+        world_mod::clear_session_files();
+        result
     })
 }
 
+/// Compile to PNG. Each page is rendered and encoded independently so peak
+/// memory is proportional to the largest page, not the total document.
+/// `dpi` is the render scale factor (1.0 = 72 DPI, 2.0 = 144 DPI, etc.).
 #[rustler::nif(schedule = "DirtyCpu")]
-fn compile_png(
-    env: Env<'_>,
+fn compile_png<'a>(
+    env: Env<'a>,
     content: Vec<ExContent>,
     styles: Vec<ExStyle>,
-) -> NifResult<Vec<rustler::Binary<'_>>> {
+    files: std::collections::HashMap<String, rustler::Binary<'a>>,
+    dpi: f64,
+) -> NifResult<Vec<rustler::Binary<'a>>> {
     catch_nif("compile_png", || {
-        let world = FolioWorld::new(styles);
-        let pages = world
-            .compile_to_png(&content)
-            .map_err(|msg| rustler::Error::RaiseTerm(Box::new(msg)))?;
+        let session_files = decode_file_map(files);
+        let world = FolioWorld::new(styles, session_files);
+        let result = world
+            .compile_to_png(&content, dpi)
+            .map_err(|msg| rustler::Error::RaiseTerm(Box::new(msg)));
+        world_mod::clear_session_files();
+        let pages = result?;
         pages.iter().map(|b| alloc_binary(env, b)).collect()
     })
 }
@@ -93,6 +119,16 @@ fn compile_png(
 fn register_file(path: String, data: rustler::Binary) -> rustler::Atom {
     world_mod::register_file(path, data.as_slice().to_vec());
     ok()
+}
+
+#[rustler::nif]
+fn unregister_file(path: String) -> rustler::Atom {
+    world_mod::unregister_file(path);
+    ok()
+}
+
+fn decode_file_map(files: std::collections::HashMap<String, rustler::Binary<'_>>) -> std::collections::HashMap<String, Vec<u8>> {
+    files.into_iter().map(|(k, v)| (k, v.as_slice().to_vec())).collect()
 }
 
 fn alloc_binary<'a>(env: Env<'a>, bytes: &[u8]) -> NifResult<rustler::Binary<'a>> {

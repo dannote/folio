@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::str::FromStr;
 use std::sync::{Arc, LazyLock, Mutex};
@@ -53,11 +54,40 @@ static GLOBAL: LazyLock<GlobalState> = LazyLock::new(|| {
     GlobalState { library, fonts, book, main_id }
 });
 
-static FILE_STORE: LazyLock<Arc<Mutex<HashMap<String, Vec<u8>>>>> =
+type FileStore = Arc<Mutex<HashMap<String, Vec<u8>>>>;
+
+/// Global fallback file store for `register_file`/`unregister_file`.
+static GLOBAL_FILE_STORE: LazyLock<FileStore> =
     LazyLock::new(|| Arc::new(Mutex::new(HashMap::new())));
 
 pub fn register_file(path: String, data: Vec<u8>) {
-    FILE_STORE.lock().unwrap().insert(path, data);
+    GLOBAL_FILE_STORE.lock().unwrap().insert(path, data);
+}
+
+pub fn unregister_file(path: String) {
+    GLOBAL_FILE_STORE.lock().unwrap().remove(&path);
+}
+
+thread_local! {
+    static SESSION_FILES: RefCell<HashMap<String, Vec<u8>>> = RefCell::new(HashMap::new());
+}
+
+pub fn set_session_files(files: HashMap<String, Vec<u8>>) {
+    SESSION_FILES.with(|cell| *cell.borrow_mut() = files);
+}
+
+pub fn clear_session_files() {
+    SESSION_FILES.with(|cell| cell.borrow_mut().clear());
+}
+
+/// Look up file data: session files first, then global store.
+pub fn get_file_data(src: &str) -> Option<Vec<u8>> {
+    SESSION_FILES.with(|cell| {
+        if let Some(data) = cell.borrow().get(src) {
+            return Some(data.clone());
+        }
+        None
+    }).or_else(|| GLOBAL_FILE_STORE.lock().unwrap().get(src).cloned())
 }
 
 pub struct FolioWorld {
@@ -65,7 +95,8 @@ pub struct FolioWorld {
 }
 
 impl FolioWorld {
-    pub fn new(styles: Vec<ExStyle>) -> Self {
+    pub fn new(styles: Vec<ExStyle>, session_files: HashMap<String, Vec<u8>>) -> Self {
+        set_session_files(session_files);
         Self { styles }
     }
 
@@ -83,12 +114,17 @@ impl FolioWorld {
 
     pub fn compile_to_svg(&self, content: &[ExContent]) -> Result<Vec<String>, String> {
         let doc = self.layout(content)?;
-        Ok(doc.pages().iter().map(|p| svg(p)).collect())
+        Ok(doc.pages().iter().map(svg).collect())
     }
 
-    pub fn compile_to_png(&self, content: &[ExContent]) -> Result<Vec<Vec<u8>>, String> {
+    /// Render each page to PNG at the given DPI scale.
+    /// Peak memory is proportional to the largest page, not the total document.
+    pub fn compile_to_png(&self, content: &[ExContent], dpi: f64) -> Result<Vec<Vec<u8>>, String> {
+        let scale = if dpi <= 0.0 { 2.0 } else { dpi };
         let doc = self.layout(content)?;
-        Ok(doc.pages().iter().map(|p| render(p, 2.0).encode_png().unwrap_or_default()).collect())
+        doc.pages().iter().map(|p| {
+            render(p, scale as f32).encode_png().map_err(|e| format!("PNG encode error: {:?}", e))
+        }).collect()
     }
 
     fn layout(&self, content: &[ExContent]) -> Result<typst_layout::PagedDocument, String> {
@@ -107,11 +143,10 @@ impl FolioWorld {
 
         let body = build_content(&mut engine, content);
 
-        // Apply user styles on top of the library's base styles
         let lib = &GLOBAL.library;
         let base = StyleChain::new(&lib.styles);
         let mut user_styles = typst::foundations::Styles::new();
-        apply_styles(&mut user_styles, &self.styles, self);
+        apply_styles(&mut user_styles, &self.styles, &mut engine);
         let target_style: Styles = TargetElem::target.set(Target::Paged).wrap().into();
         let chained = base.chain(&target_style);
         let styles = chained.chain(&user_styles);
@@ -143,7 +178,7 @@ impl FolioWorld {
     }
 
     pub fn get_image_source(src: &str) -> Option<Derived<DataSource, Loaded>> {
-        let data = FILE_STORE.lock().unwrap().get(src).cloned()?;
+        let data = get_file_data(src)?;
         let bytes = Bytes::new(data);
         let loaded = Loaded::new(
             Spanned::new(LoadSource::Bytes, Span::detached()),
@@ -153,28 +188,15 @@ impl FolioWorld {
     }
 
     pub fn get_file_bytes(src: &str) -> Option<Vec<u8>> {
-        FILE_STORE.lock().unwrap().get(src).cloned()
+        get_file_data(src)
     }
 }
 
-fn style_content(world: &FolioWorld, nodes: &[ExContent]) -> Content {
-    let mut sink = Sink::new();
-    let introspector = EmptyIntrospector;
-    let traced = Traced::default();
-
-    let mut engine = Engine {
-        routines: &typst::ROUTINES,
-        world: Track::track(world),
-        introspector: typst::utils::Protected::new(introspector.track()),
-        traced: traced.track(),
-        sink: sink.track_mut(),
-        route: Route::root(),
-    };
-
-    build_content(&mut engine, nodes)
+fn style_content(engine: &mut Engine, nodes: &[ExContent]) -> Content {
+    build_content(engine, nodes)
 }
 
-fn apply_styles(styles: &mut typst::foundations::Styles, user_styles: &[ExStyle], world: &FolioWorld) {
+fn apply_styles(styles: &mut typst::foundations::Styles, user_styles: &[ExStyle], engine: &mut Engine) {
     for s in user_styles {
         match s {
             ExStyle::PageSize(sz) => {
@@ -186,11 +208,8 @@ fn apply_styles(styles: &mut typst::foundations::Styles, user_styles: &[ExStyle]
                 }
             }
             ExStyle::PageMargin(m) => {
-                // Only set sides the user explicitly provided.
-                // None lets Typst use its own default margin.
                 let side = |v: Option<f64>| v.map(|x| Smart::Custom(Abs::pt(x).into()));
                 if m.top.is_none() && m.right.is_none() && m.bottom.is_none() && m.left.is_none() {
-                    // User didn't set any margin — skip entirely
                 } else {
                     styles.set(PageElem::margin, Margin {
                         sides: Sides {
@@ -236,10 +255,10 @@ fn apply_styles(styles: &mut typst::foundations::Styles, user_styles: &[ExStyle]
                 }
             }
             ExStyle::PageHeader(ph) => {
-                styles.set(PageElem::header, Smart::Custom(Some(style_content(world, &ph.content))));
+                styles.set(PageElem::header, Smart::Custom(Some(style_content(engine, &ph.content))));
             }
             ExStyle::PageFooter(pf) => {
-                styles.set(PageElem::footer, Smart::Custom(Some(style_content(world, &pf.content))));
+                styles.set(PageElem::footer, Smart::Custom(Some(style_content(engine, &pf.content))));
             }
             ExStyle::HeadingNumbering(hn) => {
                 if let Ok(pat) = NumberingPattern::from_str(&hn.pattern) {
@@ -249,7 +268,7 @@ fn apply_styles(styles: &mut typst::foundations::Styles, user_styles: &[ExStyle]
             ExStyle::HeadingSupplement(hs) => {
                 styles.set(
                     HeadingElem::supplement,
-                    Smart::Custom(Some(Supplement::Content(style_content(world, &hs.content)))),
+                    Smart::Custom(Some(Supplement::Content(style_content(engine, &hs.content)))),
                 );
             }
             ExStyle::HeadingOutlined(ho) => {
@@ -277,9 +296,8 @@ impl World for FolioWorld {
 
     fn file(&self, id: FileId) -> FileResult<Bytes> {
         let path = id.vpath().get_without_slash();
-        let store = FILE_STORE.lock().unwrap();
-        match store.get(path) {
-            Some(data) => Ok(Bytes::new(data.clone())),
+        match get_file_data(path) {
+            Some(data) => Ok(Bytes::new(data)),
             None => Err(FileError::NotFound(path.into())),
         }
     }

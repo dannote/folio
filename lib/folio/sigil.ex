@@ -16,7 +16,7 @@ defmodule Folio.Sigil do
   end
 
   @spec render(String.t(), :content) :: [Folio.Content.t()]
-  def render(markdown, :content) when is_binary(markdown), do: Folio.parse_markdown(markdown)
+  def render(markdown, :content) when is_binary(markdown), do: Folio.parse_markdown!(markdown)
 
   @spec render(String.t(), :pdf) :: {:ok, binary()} | {:error, Folio.CompileError.t()}
   def render(markdown, :pdf) when is_binary(markdown), do: Folio.to_pdf(markdown, [])

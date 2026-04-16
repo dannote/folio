@@ -4,12 +4,12 @@ defmodule FolioTest do
   describe "parse_markdown/1" do
     test "parses plain text paragraph" do
       assert [%Folio.Content.Paragraph{body: [%Folio.Content.Text{text: "hello"}]}] =
-               Folio.parse_markdown("hello")
+               Folio.parse_markdown!("hello")
     end
 
     test "parses heading with level" do
       assert [%Folio.Content.Heading{level: 1, body: [%Folio.Content.Text{text: "Title"}]}] =
-               Folio.parse_markdown("# Title")
+               Folio.parse_markdown!("# Title")
     end
 
     test "parses strong and emph" do
@@ -17,13 +17,13 @@ defmodule FolioTest do
                %Folio.Content.Paragraph{
                  body: [%Folio.Content.Strong{body: [%Folio.Content.Text{text: "bold"}]}]
                }
-             ] = Folio.parse_markdown("**bold**")
+             ] = Folio.parse_markdown!("**bold**")
 
       assert [
                %Folio.Content.Paragraph{
                  body: [%Folio.Content.Emph{body: [%Folio.Content.Text{text: "it"}]}]
                }
-             ] = Folio.parse_markdown("*it*")
+             ] = Folio.parse_markdown!("*it*")
     end
 
     test "parses link" do
@@ -31,7 +31,7 @@ defmodule FolioTest do
                %Folio.Content.Paragraph{
                  body: [%Folio.Content.Link{url: "https://example.com", body: body}]
                }
-             ] = Folio.parse_markdown("[click](https://example.com)")
+             ] = Folio.parse_markdown!("[click](https://example.com)")
 
       assert [%Folio.Content.Text{text: "click"}] = body
     end
@@ -41,13 +41,13 @@ defmodule FolioTest do
                %Folio.Content.Paragraph{
                  body: [%Folio.Content.Image{src: "photo.png"}]
                }
-             ] = Folio.parse_markdown("![photo](photo.png)")
+             ] = Folio.parse_markdown!("![photo](photo.png)")
     end
 
     test "parses table" do
       md = "| A | B |\n|---|---|\n| 1 | 2 |"
 
-      assert [%Folio.Content.Table{children: [_header, _row]}] = Folio.parse_markdown(md)
+      assert [%Folio.Content.Table{children: [_header, _row]}] = Folio.parse_markdown!(md)
     end
 
     test "parses block math" do
@@ -55,7 +55,7 @@ defmodule FolioTest do
                %Folio.Content.Paragraph{
                  body: [%Folio.Content.Math{content: "E = m c ^2", block: true}]
                }
-             ] = Folio.parse_markdown("$$E = m c ^2$$")
+             ] = Folio.parse_markdown!("$$E = m c ^2$$")
     end
 
     test "parses inline math" do
@@ -63,7 +63,7 @@ defmodule FolioTest do
                %Folio.Content.Paragraph{
                  body: [%Folio.Content.Math{content: "x", block: false}]
                }
-             ] = Folio.parse_markdown("$x$")
+             ] = Folio.parse_markdown!("$x$")
     end
 
     test "parses strikethrough" do
@@ -71,16 +71,16 @@ defmodule FolioTest do
                %Folio.Content.Paragraph{
                  body: [%Folio.Content.Strike{body: [%Folio.Content.Text{text: "gone"}]}]
                }
-             ] = Folio.parse_markdown("~~gone~~")
+             ] = Folio.parse_markdown!("~~gone~~")
     end
 
     test "parses code block" do
       assert [%Folio.Content.Raw{text: "x = 1\n", lang: "elixir", block: true}] =
-               Folio.parse_markdown("```elixir\nx = 1\n```")
+               Folio.parse_markdown!("```elixir\nx = 1\n```")
     end
 
     test "parses blockquote" do
-      assert [%Folio.Content.Quote{body: body}] = Folio.parse_markdown("> wisdom")
+      assert [%Folio.Content.Quote{body: body}] = Folio.parse_markdown!("> wisdom")
       assert [%Folio.Content.Paragraph{body: [%Folio.Content.Text{text: "wisdom"}]}] = body
     end
 
@@ -89,11 +89,11 @@ defmodule FolioTest do
                %Folio.Content.Paragraph{
                  body: [%Folio.Content.Raw{text: "ok", lang: nil, block: false}]
                }
-             ] = Folio.parse_markdown("`ok`")
+             ] = Folio.parse_markdown!("`ok`")
     end
 
     test "returns empty list for empty input" do
-      assert [] = Folio.parse_markdown("")
+      assert [] = Folio.parse_markdown!("")
     end
   end
 
@@ -184,8 +184,9 @@ defmodule FolioTest do
   end
 
   describe "~MD sigil" do
+    import Folio.Sigil
+
     test "~MD returns content nodes" do
-      use Folio
       nodes = ~MD"# Hello"
       assert is_list(nodes)
       assert [%Folio.Content.Heading{level: 1}] = nodes
@@ -360,7 +361,7 @@ defmodule FolioTest do
     end
 
     test "multi-page document produces multiple SVGs" do
-      use Folio
+      import Folio.DSL
 
       {:ok, svgs} =
         Folio.to_svg([
@@ -381,14 +382,14 @@ defmodule FolioTest do
 
     test "parse_markdown raises on NIF error" do
       # Normal strings parse fine
-      assert [%Folio.Content.Paragraph{}] = Folio.parse_markdown("ok")
+      assert [%Folio.Content.Paragraph{}] = Folio.parse_markdown!("ok")
     end
   end
 
   describe "thematic break" do
     test "--- becomes Divider, not Pagebreak" do
       assert [%Folio.Content.Paragraph{}, %Folio.Content.Divider{}, %Folio.Content.Paragraph{}] =
-               Folio.parse_markdown("before\n\n---\n\nafter")
+               Folio.parse_markdown!("before\n\n---\n\nafter")
     end
   end
 end

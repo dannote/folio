@@ -7,7 +7,7 @@ defmodule Folio.Content do
   """
 
   defmodule Text do
-    @moduledoc false
+    @moduledoc "A plain text run. Field: `text`."
     defstruct [:text]
     @type t :: %__MODULE__{text: String.t()}
   end
@@ -19,13 +19,13 @@ defmodule Folio.Content do
   end
 
   defmodule Heading do
-    @moduledoc false
+    @moduledoc "A section heading. Fields: `body`, `level` (1-6)."
     defstruct [:body, :level]
     @type t :: %__MODULE__{body: [Folio.Content.t()], level: 1..6}
   end
 
   defmodule Cite do
-    @moduledoc false
+    @moduledoc "A citation from a bibliography. Fields: `key`, `supplement`, `form`, `style`."
     defstruct [:key, :supplement, :form, :style]
 
     @type t :: %__MODULE__{
@@ -37,7 +37,7 @@ defmodule Folio.Content do
   end
 
   defmodule Bibliography do
-    @moduledoc false
+    @moduledoc "A bibliography listing. Fields: `sources`, `title`, `full`, `style`."
     defstruct [:sources, :title, :full, :style]
 
     @type t :: %__MODULE__{
@@ -49,7 +49,7 @@ defmodule Folio.Content do
   end
 
   defmodule Paragraph do
-    @moduledoc false
+    @moduledoc "A body paragraph. Field: `body`."
     defstruct [:body]
     @type t :: %__MODULE__{body: [Folio.Content.t()]}
   end
@@ -103,7 +103,7 @@ defmodule Folio.Content do
   end
 
   defmodule Image do
-    @moduledoc false
+    @moduledoc "An image. Fields: `src`, `width`, `height`, `fit`."
     defstruct [:src, :width, :height, :fit]
 
     @type t :: %__MODULE__{
@@ -115,7 +115,7 @@ defmodule Folio.Content do
   end
 
   defmodule Figure do
-    @moduledoc false
+    @moduledoc "A figure with optional caption. Fields: `body`, `caption`, `placement`, `numbering`."
     defstruct [:body, :caption, :placement, :scope, :numbering, :separator]
 
     @type t :: %__MODULE__{
@@ -129,7 +129,7 @@ defmodule Folio.Content do
   end
 
   defmodule Table do
-    @moduledoc false
+    @moduledoc "A table grid. Fields: `children`, `gutter`, `stroke`, `align`."
     defstruct [:columns, :rows, :children, :stroke, :gutter, :align]
 
     @type t :: %__MODULE__{
@@ -247,7 +247,7 @@ defmodule Folio.Content do
     @type t :: %__MODULE__{body: [Folio.Content.t()]}
   end
 
-  defmodule Enum do
+  defmodule EnumList do
     @moduledoc false
     defstruct [:children, :tight, :start]
 
@@ -356,59 +356,47 @@ defmodule Folio.Content do
 
   defmodule Rect do
     @moduledoc false
-    defstruct [:body, :width, :height, :fill, :stroke, :inset, :outset]
+    defstruct [:body, :width, :height, :fill]
 
     @type t :: %__MODULE__{
             body: [Folio.Content.t()],
             width: String.t() | nil,
             height: String.t() | nil,
-            fill: String.t() | nil,
-            stroke: String.t() | nil,
-            inset: String.t() | nil,
-            outset: String.t() | nil
+            fill: String.t() | nil
           }
   end
 
   defmodule Square do
     @moduledoc false
-    defstruct [:body, :size, :fill, :stroke, :inset, :outset]
+    defstruct [:body, :size, :fill]
 
     @type t :: %__MODULE__{
             body: [Folio.Content.t()],
             size: String.t() | nil,
-            fill: String.t() | nil,
-            stroke: String.t() | nil,
-            inset: String.t() | nil,
-            outset: String.t() | nil
+            fill: String.t() | nil
           }
   end
 
   defmodule Circle do
     @moduledoc false
-    defstruct [:body, :radius, :fill, :stroke, :inset, :outset]
+    defstruct [:body, :radius, :fill]
 
     @type t :: %__MODULE__{
             body: [Folio.Content.t()],
             radius: String.t() | nil,
-            fill: String.t() | nil,
-            stroke: String.t() | nil,
-            inset: String.t() | nil,
-            outset: String.t() | nil
+            fill: String.t() | nil
           }
   end
 
   defmodule Ellipse do
     @moduledoc false
-    defstruct [:body, :width, :height, :fill, :stroke, :inset, :outset]
+    defstruct [:body, :width, :height, :fill]
 
     @type t :: %__MODULE__{
             body: [Folio.Content.t()],
             width: String.t() | nil,
             height: String.t() | nil,
-            fill: String.t() | nil,
-            stroke: String.t() | nil,
-            inset: String.t() | nil,
-            outset: String.t() | nil
+            fill: String.t() | nil
           }
   end
 
@@ -515,7 +503,7 @@ defmodule Folio.Content do
           | Quote.t()
           | List.t()
           | ListItem.t()
-          | Enum.t()
+          | EnumList.t()
           | EnumItem.t()
           | Label.t()
           | Ref.t()
@@ -542,14 +530,10 @@ defmodule Folio.Content do
           | Divider.t()
           | Sequence.t()
 
-  @doc "Wrap a string as Text."
-  @spec text(String.t()) :: Text.t()
-  def text(str), do: %Text{text: str}
-
   @doc "Flatten nested Sequences."
   @spec flatten([t()]) :: [t()]
   def flatten(nodes) do
-    Elixir.Enum.flat_map(nodes, fn
+    Enum.flat_map(nodes, fn
       %Sequence{children: children} -> flatten(children)
       node -> [node]
     end)
@@ -560,5 +544,5 @@ defmodule Folio.Content do
   def to_content(nil), do: []
   def to_content(%_{} = node), do: [node]
   def to_content(str) when is_binary(str), do: [%Text{text: str}]
-  def to_content(list) when is_list(list), do: Elixir.Enum.flat_map(list, &to_content/1)
+  def to_content(list) when is_list(list), do: Enum.flat_map(list, &to_content/1)
 end

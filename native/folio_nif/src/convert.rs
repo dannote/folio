@@ -57,60 +57,34 @@ fn parse_sizing(s: &str) -> Sizing {
 
 fn smart_rel(opt: Option<&str>) -> Smart<Rel<Length>> {
     match opt {
-        None => Smart::Auto,
-        Some(v) if v == "auto" => Smart::Auto,
+        None | Some("auto") => Smart::Auto,
         Some(v) => Smart::Custom(parse_rel(v).unwrap_or(Rel::one())),
     }
 }
 
 fn smart_sizing(opt: Option<&str>) -> Sizing {
     match opt {
-        None => Sizing::Auto,
-        Some(v) if v == "auto" => Sizing::Auto,
+        None | Some("auto") => Sizing::Auto,
         Some(v) => parse_sizing(v),
     }
 }
 
 pub fn parse_color(s: &str) -> Option<typst::visualize::Color> {
+    use std::str::FromStr;
     let s = s.trim();
-    if let Some(hex) = s.strip_prefix('#') {
-        match hex.len() {
-            6 => Some(typst::visualize::Color::from_u8(
-                u8::from_str_radix(&hex[0..2], 16).ok()?,
-                u8::from_str_radix(&hex[2..4], 16).ok()?,
-                u8::from_str_radix(&hex[4..6], 16).ok()?, 0xFF)),
-            3 => Some(typst::visualize::Color::from_u8(
-                u8::from_str_radix(&hex[0..1].repeat(2), 16).ok()?,
-                u8::from_str_radix(&hex[1..2].repeat(2), 16).ok()?,
-                u8::from_str_radix(&hex[2..3].repeat(2), 16).ok()?, 0xFF)),
-            _ => None,
-        }
-    } else if s.starts_with("rgb(") && s.ends_with(')') {
+
+    // Handle rgb() function syntax (Typst doesn't parse this)
+    if s.starts_with("rgb(") && s.ends_with(')') {
         let inner = &s[4..s.len()-1];
         let p: Vec<&str> = inner.split(',').map(|x| x.trim()).collect();
         if p.len() >= 3 {
             Some(typst::visualize::Color::from_u8(
                 p[0].parse().ok()?, p[1].parse().ok()?, p[2].parse().ok()?, 0xFF))
         } else { None }
-    } else { named_color(s) }
-}
-
-fn named_color(s: &str) -> Option<typst::visualize::Color> {
-    use typst::visualize::Color;
-    Some(match s {
-        "black" => Color::from_u8(0,0,0,0xFF), "white" => Color::from_u8(0xFF,0xFF,0xFF,0xFF),
-        "red" => Color::from_u8(0xFF,0,0,0xFF), "green" => Color::from_u8(0,0x80,0,0xFF),
-        "blue" => Color::from_u8(0,0,0xFF,0xFF), "yellow" => Color::from_u8(0xFF,0xFF,0,0xFF),
-        "gray" | "grey" => Color::from_u8(0x80,0x80,0x80,0xFF),
-        "silver" => Color::from_u8(0xC0,0xC0,0xC0,0xFF),
-        "aqua" | "cyan" => Color::from_u8(0,0xFF,0xFF,0xFF),
-        "magenta" | "fuchsia" => Color::from_u8(0xFF,0,0xFF,0xFF),
-        "orange" => Color::from_u8(0xFF,0xA5,0,0xFF), "purple" => Color::from_u8(0x80,0,0x80,0xFF),
-        "lime" => Color::from_u8(0,0xFF,0,0xFF), "teal" => Color::from_u8(0,0x80,0x80,0xFF),
-        "navy" => Color::from_u8(0,0,0x80,0xFF), "maroon" => Color::from_u8(0x80,0,0,0xFF),
-        "olive" => Color::from_u8(0x80,0x80,0,0xFF),
-        _ => return None,
-    })
+    } else {
+        // Delegate everything else (hex, named colors) to Typst
+        typst::visualize::Color::from_str(s).ok()
+    }
 }
 
 fn parse_paint(s: &str) -> Option<Paint> { parse_color(s).map(Paint::Solid) }
@@ -354,18 +328,17 @@ fn convert_node(engine: &mut Engine, node: &ExContent) -> Content {
         ExContent::Circle(c) => CircleElem::new()
             .with_body(Some(cc(engine, &c.body)))
             .with_width(c.radius.as_deref().map(|r| {
-                // Typst internally doubles radius → width, we must too
                 parse_rel(r)
                     .map(|rel| Smart::Custom(rel * 2.0))
                     .unwrap_or(Smart::Auto)
             }).unwrap_or(Smart::Auto))
             .with_fill(opt_paint(c.fill.as_deref())).pack(),
 
-        ExContent::Ellipse(e) => EllipseElem::new()
-            .with_body(Some(cc(engine, &e.body)))
-            .with_width(smart_rel(e.width.as_deref()))
-            .with_height(smart_sizing(e.height.as_deref()))
-            .with_fill(opt_paint(e.fill.as_deref())).pack(),
+        ExContent::Ellipse(el) => EllipseElem::new()
+            .with_body(Some(cc(engine, &el.body)))
+            .with_width(smart_rel(el.width.as_deref()))
+            .with_height(smart_sizing(el.height.as_deref()))
+            .with_fill(opt_paint(el.fill.as_deref())).pack(),
 
         ExContent::Line(l) => {
             let start = l.start.as_deref().and_then(parse_axes).unwrap_or(Axes::splat(Rel::zero()));

@@ -21,7 +21,7 @@ fn convert_node<'a>(node: &'a AstNode<'a>) -> ExContent {
 
         NodeValue::Heading(h) => {
             ExContent::Heading(ExHeading {
-                level: h.level as u8,
+                level: h.level,
                 body: convert_children(node),
             })
         }
@@ -94,17 +94,30 @@ fn convert_node<'a>(node: &'a AstNode<'a>) -> ExContent {
             })
         }
 
-        NodeValue::List(_list) => {
+        NodeValue::List(list) => {
             let items: Vec<ExContent> = node.children().map(|child| {
-                ExContent::ListItem(ExListItem {
-                    body: convert_children(child),
-                })
+                convert_children(child).into_iter().next()
+                    .unwrap_or(ExContent::Space(ExSpace {}))
             }).collect();
-            ExContent::List(ExList {
-                children: items,
-                tight: true,
-                marker: None,
-            })
+
+            match list.list_type {
+                comrak::nodes::ListType::Ordered => ExContent::Enum(ExEnum {
+                    children: items.into_iter().map(|item| match item {
+                        ExContent::Paragraph(p) => ExContent::EnumItem(ExEnumItem { body: p.body, number: None }),
+                        other => ExContent::EnumItem(ExEnumItem { body: vec![other], number: None }),
+                    }).collect(),
+                    tight: list.tight,
+                    start: if list.start > 1 { Some(list.start as u32) } else { None },
+                }),
+                _ => ExContent::List(ExList {
+                    children: items.into_iter().map(|item| match item {
+                        ExContent::Paragraph(p) => ExContent::ListItem(ExListItem { body: p.body }),
+                        other => ExContent::ListItem(ExListItem { body: vec![other] }),
+                    }).collect(),
+                    tight: list.tight,
+                    marker: None,
+                }),
+            }
         }
 
         NodeValue::SoftBreak => ExContent::Space(ExSpace {}),
@@ -137,25 +150,22 @@ fn convert_table<'a>(node: &'a AstNode<'a>) -> ExContent {
     let mut column_count = 1usize;
 
     for row in node.children() {
-        match &row.data.borrow().value {
-            NodeValue::TableRow(is_header) => {
-                let cells: Vec<ExContent> = row.children().map(|cell| {
-            ExContent::TableCell(ExTableCell {
-                        body: convert_children(cell),
-                        colspan: None,
-                        rowspan: None,
-                        align: None,
-                    })
-                }).collect();
-                column_count = column_count.max(cells.len());
+        if let NodeValue::TableRow(is_header) = &row.data.borrow().value {
+            let cells: Vec<ExContent> = row.children().map(|cell| {
+        ExContent::TableCell(ExTableCell {
+                    body: convert_children(cell),
+                    colspan: None,
+                    rowspan: None,
+                    align: None,
+                })
+            }).collect();
+            column_count = column_count.max(cells.len());
 
-                if *is_header {
-                    header_cells = cells;
-                } else {
-                    body_rows.push(ExContent::TableRow(ExTableRow { children: cells }));
-                }
+            if *is_header {
+                header_cells = cells;
+            } else {
+                body_rows.push(ExContent::TableRow(ExTableRow { children: cells }));
             }
-            _ => {}
         }
     }
 

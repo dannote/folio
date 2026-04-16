@@ -12,13 +12,13 @@ defmodule Folio.Styles do
   """
 
   defmodule PageSize do
-    @moduledoc false
+    @moduledoc "Page dimensions in points. Fields: `width`, `height`."
     defstruct [:width, :height]
     @type t :: %__MODULE__{width: float() | nil, height: float() | nil}
   end
 
   defmodule PageMargin do
-    @moduledoc false
+    @moduledoc "Page margins in points. Fields: `top`, `right`, `bottom`, `left`."
     defstruct [:top, :right, :bottom, :left]
 
     @type t :: %__MODULE__{
@@ -30,79 +30,85 @@ defmodule Folio.Styles do
   end
 
   defmodule FontSize do
-    @moduledoc false
+    @moduledoc "Base font size in points. Field: `size`."
     defstruct [:size]
     @type t :: %__MODULE__{size: float()}
   end
 
   defmodule FontFamily do
-    @moduledoc false
+    @moduledoc "Font stack. Field: `families`."
     defstruct [:families]
     @type t :: %__MODULE__{families: [String.t()]}
   end
 
   defmodule FontWeight do
-    @moduledoc false
+    @moduledoc "Font weight (100-900). Field: `weight`."
     defstruct [:weight]
     @type t :: %__MODULE__{weight: 100..900}
   end
 
   defmodule TextColor do
-    @moduledoc false
+    @moduledoc "Text fill color (hex, named, rgb). Field: `color`."
     defstruct [:color]
     @type t :: %__MODULE__{color: String.t()}
   end
 
   defmodule ParJustify do
-    @moduledoc false
+    @moduledoc "Enable justified paragraphs. Field: `justify`."
     defstruct [:justify]
     @type t :: %__MODULE__{justify: boolean()}
   end
 
   defmodule ParIndent do
-    @moduledoc false
+    @moduledoc "First-line paragraph indent in points. Field: `indent`."
     defstruct [:indent]
     @type t :: %__MODULE__{indent: float()}
   end
 
   defmodule PageNumbering do
-    @moduledoc false
+    @moduledoc """
+    Page number format (e.g. `"1"`, `"i"`). Field: `pattern`.
+    """
     defstruct [:pattern]
     @type t :: %__MODULE__{pattern: String.t()}
   end
 
   defmodule PageHeader do
-    @moduledoc false
+    @moduledoc "Page header content. Field: `content`."
     defstruct [:content]
     @type t :: %__MODULE__{content: [Folio.Content.t()]}
   end
 
   defmodule PageFooter do
-    @moduledoc false
+    @moduledoc "Page footer content. Field: `content`."
     defstruct [:content]
     @type t :: %__MODULE__{content: [Folio.Content.t()]}
   end
 
   defmodule HeadingNumbering do
-    @moduledoc false
+    @moduledoc """
+    Heading number format (e.g. `"1."`, `"A.1"`). Field: `pattern`.
+    """
     defstruct [:pattern]
     @type t :: %__MODULE__{pattern: String.t()}
   end
 
   defmodule HeadingSupplement do
-    @moduledoc false
+    @moduledoc """
+    Heading supplement text (e.g. `"Chapter"`). Field: `content`.
+    """
     defstruct [:content]
     @type t :: %__MODULE__{content: [Folio.Content.t()]}
   end
 
   defmodule HeadingOutlined do
-    @moduledoc false
+    @moduledoc "Include heading in outline. Field: `outlined`."
     defstruct [:outlined]
     @type t :: %__MODULE__{outlined: boolean()}
   end
 
   defmodule HeadingBookmarked do
-    @moduledoc false
+    @moduledoc "Include heading in PDF bookmarks. Field: `bookmarked`."
     defstruct [:bookmarked]
     @type t :: %__MODULE__{bookmarked: boolean()}
   end
@@ -140,7 +146,7 @@ defmodule Folio.Styles do
   end
 
   @spec font_size(number()) :: FontSize.t()
-  def font_size(size) when is_number(size), do: %FontSize{size: size * 1.0}
+  def font_size(size) when is_number(size), do: %FontSize{size: size / 1}
 
   @spec font_family([String.t()]) :: FontFamily.t()
   def font_family(families) when is_list(families), do: %FontFamily{families: families}
@@ -156,7 +162,7 @@ defmodule Folio.Styles do
   def par_justify(justify) when is_boolean(justify), do: %ParJustify{justify: justify}
 
   @spec par_indent(number()) :: ParIndent.t()
-  def par_indent(indent) when is_number(indent), do: %ParIndent{indent: indent * 1.0}
+  def par_indent(indent) when is_number(indent), do: %ParIndent{indent: indent / 1}
 
   @spec page_numbering(String.t()) :: PageNumbering.t()
   def page_numbering(pattern) when is_binary(pattern), do: %PageNumbering{pattern: pattern}

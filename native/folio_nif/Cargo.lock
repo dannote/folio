@@ -546,7 +546,6 @@ version = "0.1.0"
 dependencies = [
  "comrak",
  "ecow",
- "parking_lot",
  "rustler",
  "smallvec",
  "typed-arena",

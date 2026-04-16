@@ -1,10 +1,10 @@
-defmodule Folio.PortfolioTest do
+defmodule Folio.DslTest do
   @moduledoc """
   Ported from Typst test suite: tests/suite/{visualize,model,layout}/*.typ
   Adapted to Folio's Markdown + Elixir DSL API.
   """
   use ExUnit.Case, async: true
-  use Folio
+  import Folio.DSL
 
   # ═══════════════════════════════════════════════════════════════════════════════
   # Ported from tests/suite/visualize/rect.typ
