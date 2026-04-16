@@ -1,25 +1,13 @@
 defmodule Folio.Sigil do
-  @moduledoc """
-  The `~MD` sigil for writing Folio documents in Markdown.
-
-  ## Modifiers
-
-  - `~MD(...)"p"` — compile to PDF, returns `{:ok, binary()}`
-  - `~MD(...)` — returns content nodes `[Folio.Content.t()]`
-
-  ## Example
-
-      use Folio
-
-      {:ok, pdf} = ~MD("Generated on " <> to_string(Date.utc_today()), :p)
-  """
+  @moduledoc false
 
   @doc false
   defmacro sigil_MD(term, modifiers) do
     format =
       case modifiers do
         ~c"p" -> :pdf
-        _ -> :document
+        ~c"s" -> :svg
+        _ -> :content
       end
 
     quote do
@@ -28,11 +16,15 @@ defmodule Folio.Sigil do
   end
 
   @doc false
-  def render(markdown, :document) when is_binary(markdown) do
+  def render(markdown, :content) when is_binary(markdown) do
     Folio.parse_markdown(markdown)
   end
 
   def render(markdown, :pdf) when is_binary(markdown) do
     Folio.to_pdf(markdown)
+  end
+
+  def render(markdown, :svg) when is_binary(markdown) do
+    Folio.to_svg(markdown)
   end
 end

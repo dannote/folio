@@ -3,99 +3,82 @@ defmodule FolioTest do
 
   describe "parse_markdown/1" do
     test "parses plain text paragraph" do
-      assert {:ok, [%Folio.Content.Paragraph{body: [%Folio.Content.Text{text: "hello"}]}]} =
+      assert [%Folio.Content.Paragraph{body: [%Folio.Content.Text{text: "hello"}]}] =
                Folio.parse_markdown("hello")
     end
 
     test "parses heading with level" do
-      assert {:ok, [%Folio.Content.Heading{level: 1, body: [%Folio.Content.Text{text: "Title"}]}]} =
+      assert [%Folio.Content.Heading{level: 1, body: [%Folio.Content.Text{text: "Title"}]}] =
                Folio.parse_markdown("# Title")
     end
 
     test "parses strong and emph" do
-      assert {:ok, [
-               %Folio.Content.Paragraph{
-                 body: [%Folio.Content.Strong{body: [%Folio.Content.Text{text: "bold"}]}]
-               }
-             ]} = Folio.parse_markdown("**bold**")
+      assert [%Folio.Content.Paragraph{
+               body: [%Folio.Content.Strong{body: [%Folio.Content.Text{text: "bold"}]}]
+             }] = Folio.parse_markdown("**bold**")
 
-      assert {:ok, [
-               %Folio.Content.Paragraph{
-                 body: [%Folio.Content.Emph{body: [%Folio.Content.Text{text: "it"}]}]
-               }
-             ]} = Folio.parse_markdown("*it*")
+      assert [%Folio.Content.Paragraph{
+               body: [%Folio.Content.Emph{body: [%Folio.Content.Text{text: "it"}]}]
+             }] = Folio.parse_markdown("*it*")
     end
 
     test "parses link" do
-      assert {:ok, [
-               %Folio.Content.Paragraph{
-                 body: [%Folio.Content.Link{url: "https://example.com", body: body}]
-               }
-             ]} = Folio.parse_markdown("[click](https://example.com)")
+      assert [%Folio.Content.Paragraph{
+               body: [%Folio.Content.Link{url: "https://example.com", body: body}]
+             }] = Folio.parse_markdown("[click](https://example.com)")
 
       assert [%Folio.Content.Text{text: "click"}] = body
     end
 
     test "parses image" do
-      assert {:ok, [
-               %Folio.Content.Paragraph{
-                 body: [%Folio.Content.Image{src: "photo.png"}]
-               }
-             ]} = Folio.parse_markdown("![photo](photo.png)")
+      assert [%Folio.Content.Paragraph{
+               body: [%Folio.Content.Image{src: "photo.png"}]
+             }] = Folio.parse_markdown("![photo](photo.png)")
     end
 
     test "parses table" do
       md = "| A | B |\n|---|---|\n| 1 | 2 |"
 
-      assert {:ok, [%Folio.Content.Table{children: children}]} = Folio.parse_markdown(md)
+      assert [%Folio.Content.Table{children: children}] = Folio.parse_markdown(md)
       assert length(children) == 2
     end
 
     test "parses block math" do
-      # Block math is wrapped in a paragraph by comrak
-      assert {:ok, [
-               %Folio.Content.Paragraph{
-                 body: [%Folio.Content.Math{content: "E = m c ^2", block: true}]
-               }
-             ]} = Folio.parse_markdown("$$E = m c ^2$$")
+      assert [%Folio.Content.Paragraph{
+               body: [%Folio.Content.Math{content: "E = m c ^2", block: true}]
+             }] = Folio.parse_markdown("$$E = m c ^2$$")
     end
 
     test "parses inline math" do
-      assert {:ok, [
-               %Folio.Content.Paragraph{
-                 body: [%Folio.Content.Math{content: "x", block: false}]
-               }
-             ]} = Folio.parse_markdown("$x$")
+      assert [%Folio.Content.Paragraph{
+               body: [%Folio.Content.Math{content: "x", block: false}]
+             }] = Folio.parse_markdown("$x$")
     end
 
     test "parses strikethrough" do
-      assert {:ok, [
-               %Folio.Content.Paragraph{
-                 body: [%Folio.Content.Strike{body: [%Folio.Content.Text{text: "gone"}]}]
-               }
-             ]} = Folio.parse_markdown("~~gone~~")
+      assert [%Folio.Content.Paragraph{
+               body: [%Folio.Content.Strike{body: [%Folio.Content.Text{text: "gone"}]}]
+             }] = Folio.parse_markdown("~~gone~~")
     end
 
     test "parses code block" do
-      assert {:ok, [%Folio.Content.Raw{text: "x = 1\n", lang: "elixir", block: true}]} =
+      assert [%Folio.Content.Raw{text: "x = 1\n", lang: "elixir", block: true}] =
                Folio.parse_markdown("```elixir\nx = 1\n```")
     end
 
     test "parses blockquote" do
-      assert {:ok, [%Folio.Content.Quote{body: body}]} = Folio.parse_markdown("> wisdom")
+      assert [%Folio.Content.Quote{body: body}] = Folio.parse_markdown("> wisdom")
       assert [%Folio.Content.Paragraph{body: [%Folio.Content.Text{text: "wisdom"}]}] = body
     end
 
     test "parses code span" do
-      assert {:ok, [
-               %Folio.Content.Paragraph{
-                 body: [%Folio.Content.Raw{text: "ok", lang: nil, block: false}]
-               }
-             ]} = Folio.parse_markdown("`ok`")
+      assert [%Folio.Content.Paragraph{
+               body: [%Folio.Content.Raw{text: "ok", lang: nil, block: false}]
+             }] = Folio.parse_markdown("`ok`")
     end
 
     test "returns empty list for empty input" do
-      assert {:ok, []} = Folio.parse_markdown("")
+      assert [] = Folio.parse_markdown("")
     end
   end
 
@@ -161,6 +144,39 @@ defmodule FolioTest do
       Folio.register_file("test_pixel.png", @pixel_png)
       assert {:ok, pdf} = Folio.to_pdf("![pixel](test_pixel.png)")
       assert byte_size(pdf) > 100
+    end
+  end
+
+  describe "Document pipeline" do
+    test "builds and compiles a Document" do
+      doc =
+        Folio.Document.new()
+        |> Folio.Document.add_style(Folio.Styles.font_size(14))
+        |> Folio.Document.add_style(Folio.Styles.page_numbering("1"))
+        |> Folio.Document.add_content("# Document API\n\nBuilt with pipeline.")
+
+      assert {:ok, pdf} = Folio.to_pdf(doc)
+      assert is_binary(pdf)
+      assert byte_size(pdf) > 100
+    end
+
+    test "Document styles merge with opts styles" do
+      doc =
+        Folio.Document.new()
+        |> Folio.Document.add_style(Folio.Styles.font_size(12))
+        |> Folio.Document.add_content("Test")
+
+      assert {:ok, pdf} = Folio.to_pdf(doc, styles: [Folio.Styles.page_numbering("1")])
+      assert is_binary(pdf)
+    end
+  end
+
+  describe "~MD sigil" do
+    test "~MD returns content nodes" do
+      use Folio
+      nodes = ~MD"# Hello"
+      assert is_list(nodes)
+      assert [%Folio.Content.Heading{level: 1}] = nodes
     end
   end
 
