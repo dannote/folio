@@ -143,6 +143,34 @@ Some **bold** content with inline $E = m c^2$ math.
 ])
 ```
 
+## Page headers and footers
+
+```elixir
+{:ok, pdf} =
+  Folio.to_pdf("# Report\n\nBody text.",
+    styles: [
+      Folio.Styles.page_header(align("center", [smallcaps("Quarterly Report")])),
+      Folio.Styles.page_footer(align("center", [text("Confidential")])),
+      Folio.Styles.page_numbering("1")
+    ]
+  )
+```
+
+## Heading styling
+
+```elixir
+{:ok, pdf} =
+  Folio.to_pdf("# Intro\n\n## Details",
+    styles: [
+      Folio.Styles.heading_numbering("1."),
+      Folio.Styles.heading_supplement("Chapter"),
+      Folio.Styles.heading_bookmarked(true),
+      Folio.Styles.heading_outlined(true),
+      Folio.Styles.par_indent(18)
+    ]
+  )
+```
+
 ## Document pipeline
 
 ```elixir
@@ -170,6 +198,24 @@ Folio.register_file("chart.png", File.read!("chart.png"))
 {:ok, pdf} = Folio.to_pdf([image("chart.png", width: "200pt", fit: "contain")])
 ```
 
+## Citations and bibliography
+
+Register bibliography files the same way as images:
+
+```elixir
+Folio.register_file("works.bib", File.read!("examples/works.bib"))
+
+{:ok, pdf} =
+  Folio.to_pdf([
+    text("See "),
+    cite("knuth1984", supplement: "p. 7"),
+    text(" for details."),
+    bibliography("works.bib", title: "References")
+  ])
+```
+
+Supported bibliography sources are `.bib`, `.yaml`, and `.yml` files provided through `register_file/2`.
+
 ## DSL reference
 
 `use Folio` imports all builder functions. Every function returns a `%Folio.Content.*{}` struct.
@@ -195,6 +241,8 @@ Folio.register_file("chart.png", File.read!("chart.png"))
 | Function | Example |
 |----------|---------|
 | `heading/2` | `heading(1, "Title")` |
+| `cite/2` | `cite("knuth1984", supplement: "p. 7")` |
+| `bibliography/2` | `bibliography("works.bib", title: "References")` |
 | `blockquote/2` | `blockquote([text("Wisdom")], attribution: "Author")` |
 | `list/2` | `list(["Apples", "Oranges"])` |
 | `enum/2` | `enum(["First", "Second"])` |
@@ -264,6 +312,21 @@ image("photo.png", width: "200pt", height: "100pt", fit: "contain")
 ```
 
 Fit options: `"cover"` (default), `"contain"`, `"stretch"`.
+
+### Style helpers
+
+```elixir
+styles = [
+  Folio.Styles.page_header(align("center", [text("Header")])),
+  Folio.Styles.page_footer(align("center", [text("Footer")])),
+  Folio.Styles.page_numbering("1"),
+  Folio.Styles.heading_numbering("1."),
+  Folio.Styles.heading_supplement("Chapter"),
+  Folio.Styles.heading_outlined(true),
+  Folio.Styles.heading_bookmarked(true),
+  Folio.Styles.par_indent(18)
+]
+```
 
 ### Math
 
