@@ -47,7 +47,7 @@ Folio lets you use all of Elixir — GenServers, protocols, behaviours, macros, 
 
 ### No Typst Language, No Typst Parser, No Typst Evaluator
 
-Folio constructs `typst::Content` trees directly in Rust and feeds them straight to the layout engine. It bypasses Typst's parser, AST, and evaluation VM entirely:
+Folio constructs Typst content trees directly in Rust and feeds them straight to the layout engine. It bypasses Typst's parser, AST, and evaluation VM entirely:
 
 - **No template injection** — there's no string template to inject into
 - **No syntax errors** — content is structurally valid by construction
@@ -68,7 +68,7 @@ orders
 |> Stream.run()
 ```
 
-Fonts and the Typst library are loaded once in a Rust `LazyLock<GlobalState>`. Each PDF compilation shares that cached state.
+Fonts and layout data are loaded once and shared across compilations.
 
 ### The Sigil as a Hybrid Format
 
@@ -282,21 +282,9 @@ math("x^2 + 1", block: true)
 
 ## Value syntax
 
-All size/color/position values are strings parsed in the Rust NIF:
-
 - **Lengths**: `"10pt"`, `"2cm"`, `"5mm"`, `"1in"`
 - **Percentages**: `"50%"`, `"100%"`
-- **Colors**: `"#RGB"`, `"#RRGGBB"`, `"#RRGGBBAA"`, `"rgb(255,0,0)"`, or named colors (`"red"`, `"blue"`, `"black"`, `"white"`, etc.)
-
-## How it works
-
-1. Markdown is parsed with [comrak](https://github.com/kivikakk/comrak) into an AST
-2. AST nodes are converted to Elixir structs (`%Folio.Content.*{}`)
-3. Structs cross the NIF boundary and become Typst `Content` objects
-4. Typst's layout engine produces frames
-5. Frames are exported to PDF/SVG/PNG
-
-No Typst source strings are ever generated — Content trees are built directly in Rust.
+- **Colors**: `"#RGB"`, `"#RRGGBB"`, `"#RRGGBBAA"`, `"rgb(255,0,0)"`, or named (`"red"`, `"blue"`, `"black"`, `"white"`, etc.)
 
 ## Installation
 
