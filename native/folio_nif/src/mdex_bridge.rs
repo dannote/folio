@@ -107,7 +107,7 @@ fn convert_node<'a>(node: &'a AstNode<'a>) -> ExContent {
                         other => ExContent::EnumItem(ExEnumItem { body: vec![other], number: None }),
                     }).collect(),
                     tight: list.tight,
-                    start: if list.start > 1 { Some(list.start as u32) } else { None },
+                    start: if list.start == 0 { None } else { Some(list.start as u32) },
                 }),
                 _ => ExContent::List(ExList {
                     children: items.into_iter().map(|item| match item {

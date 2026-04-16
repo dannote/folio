@@ -176,20 +176,16 @@ impl FolioWorld {
             Err(_) => TextElem::packed(eco_format!("${}$", math_str)),
         }
     }
+}
 
-    pub fn get_image_source(src: &str) -> Option<Derived<DataSource, Loaded>> {
-        let data = get_file_data(src)?;
-        let bytes = Bytes::new(data);
-        let loaded = Loaded::new(
-            Spanned::new(LoadSource::Bytes, Span::detached()),
-            bytes.clone(),
-        );
-        Some(Derived::new(DataSource::Bytes(bytes), loaded))
-    }
-
-    pub fn get_file_bytes(src: &str) -> Option<Vec<u8>> {
-        get_file_data(src)
-    }
+pub(crate) fn get_image_source(src: &str) -> Option<Derived<DataSource, Loaded>> {
+    let data = get_file_data(src)?;
+    let bytes = Bytes::new(data);
+    let loaded = Loaded::new(
+        Spanned::new(LoadSource::Bytes, Span::detached()),
+        bytes.clone(),
+    );
+    Some(Derived::new(DataSource::Bytes(bytes), loaded))
 }
 
 fn style_content(engine: &mut Engine, nodes: &[ExContent]) -> Content {

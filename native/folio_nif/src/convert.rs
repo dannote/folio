@@ -108,7 +108,7 @@ fn parse_axes(s: &str) -> Option<Axes<Rel<Length>>> {
 fn bibliography_sources(paths: &[String]) -> Option<OneOrMultiple<DataSource>> {
     let sources = paths
         .iter()
-        .map(|path| FolioWorld::get_file_bytes(path).map(|bytes| DataSource::Bytes(Bytes::new(bytes))))
+        .map(|path| crate::world::get_file_data(path).map(|bytes| DataSource::Bytes(Bytes::new(bytes))))
         .collect::<Option<Vec<_>>>()?;
 
     Some(OneOrMultiple(sources))
@@ -209,7 +209,7 @@ fn convert_node(engine: &mut Engine, node: &ExContent) -> Content {
 
         // Images & figures
         ExContent::Image(img) => {
-            let mut elem = match FolioWorld::get_image_source(&img.src) {
+            let mut elem = match crate::world::get_image_source(&img.src) {
                 Some(source) => ImageElem::new(source),
                 None => return TextElem::packed(eco_format!("[image: {}]", img.src)),
             };
