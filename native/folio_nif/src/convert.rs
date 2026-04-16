@@ -4,10 +4,11 @@ use std::str::FromStr;
 use ecow::{eco_format, EcoString};
 use typst::engine::Engine;
 use typst::foundations::{Bytes, Content, NativeElement, OneOrMultiple, Smart};
+use std::sync::Arc;
 use typst::layout::{
-    Abs, AlignElem, Alignment, Axes, BlockBody, BlockElem, ColbreakElem,
+    Abs, AlignElem, Alignment, Axes, BlockBody, BlockElem, Celled, ColbreakElem,
     ColumnsElem, Dir, HElem, HideElem, Length, PadElem,
-    PagebreakElem, PlaceElem, Ratio, Rel, RepeatElem, Sizing,
+    PagebreakElem, PlaceElem, Ratio, Rel, RepeatElem, Sides, Sizing,
     StackChild, StackElem, TrackSizings, VElem,
 };
 use typst::text::SpaceElem as TextSpace;
@@ -534,6 +535,14 @@ fn convert_table(engine: &mut Engine, tbl: &crate::types::ExTable) -> Content {
         if let Some(r) = parse_rel(g) {
             elem = elem.with_row_gutter(TrackSizings(smallvec::smallvec![Sizing::Rel(r)]));
             elem = elem.with_column_gutter(TrackSizings(smallvec::smallvec![Sizing::Rel(r)]));
+        }
+    }
+    if let Some(al) = &tbl.align {
+        elem = elem.with_align(Celled::Value(Smart::Custom(parse_align(al))));
+    }
+    if let Some(st) = &tbl.stroke {
+        if let Some(s) = parse_stroke(st) {
+            elem = elem.with_stroke(Celled::Value(Sides::splat(Some(Some(Arc::new(s))))));
         }
     }
     elem.pack()

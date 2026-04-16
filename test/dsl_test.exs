@@ -865,6 +865,50 @@ defmodule Folio.DslTest do
     end
   end
 
+  describe "table with stroke and align" do
+    test "table with uniform stroke" do
+      assert {:ok, pdf} =
+               Folio.to_pdf([
+                 table([stroke: "1pt + black"],
+                   do: [
+                     table_header([table_cell("A"), table_cell("B")]),
+                     table_row([table_cell("1"), table_cell("2")])
+                   ]
+                 )
+               ])
+
+      assert pdf_size_above?(pdf, 100)
+    end
+
+    test "table with align" do
+      assert {:ok, pdf} =
+               Folio.to_pdf([
+                 table([align: "center"],
+                   do: [
+                     table_row([table_cell("centered")])
+                   ]
+                 )
+               ])
+
+      assert pdf_size_above?(pdf, 100)
+    end
+  end
+
+  describe "description list from markdown" do
+    test "term list from markdown" do
+      markdown = """
+      Apple
+      : A fruit
+
+      Banana
+      : A yellow fruit
+      """
+
+      assert {:ok, nodes} = Folio.parse_markdown(markdown)
+      assert Enum.any?(nodes, &match?(%Folio.Content.TermList{}, &1))
+    end
+  end
+
   # ═══════════════════════════════════════════════════════════════════════════════
   # Helpers
   # ═══════════════════════════════════════════════════════════════════════════════

@@ -135,6 +135,44 @@ fn convert_node<'a>(node: &'a AstNode<'a>) -> ExContent {
             ExContent::Sequence(ExSequence { children: vec![] })
         }
 
+        NodeValue::DescriptionList => {
+            let items: Vec<ExContent> = node.children().map(|item_node| {
+                let mut term = vec![];
+                let mut descriptions = vec![];
+                for child in item_node.children() {
+                    match &child.data.borrow().value {
+                        NodeValue::DescriptionTerm => {
+                            term = convert_children(child);
+                        }
+                        NodeValue::DescriptionDetails => {
+                            let desc = convert_children(child);
+                            descriptions.push(ExContent::TermItem(ExTermItem {
+                                term: term.clone(),
+                                description: desc,
+                            }));
+                        }
+                        _ => {}
+                    }
+                }
+                ExContent::Sequence(ExSequence { children: descriptions })
+            }).collect();
+
+            let term_items: Vec<ExContent> = items.iter().flat_map(|c| match c {
+                ExContent::Sequence(s) => s.children.clone(),
+                other => vec![other.clone()],
+            }).collect();
+
+            ExContent::TermList(ExTermList {
+                children: term_items,
+                tight: false,
+            })
+        }
+
+        NodeValue::DescriptionItem(_) | NodeValue::DescriptionTerm | NodeValue::DescriptionDetails => {
+            convert_children(node).into_iter().next()
+                .unwrap_or(ExContent::Space(ExSpace {}))
+        }
+
         NodeValue::Table(_aligns) => {
             convert_table(node)
         }

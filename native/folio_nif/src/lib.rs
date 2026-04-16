@@ -50,6 +50,11 @@ fn parse_markdown(markdown: String) -> NifResult<Vec<ExContent>> {
         options.extension.strikethrough = true;
         options.extension.autolink = true;
         options.extension.math_dollars = true;
+        options.extension.strikethrough = true;
+        options.extension.table = true;
+        options.extension.autolink = true;
+        options.extension.description_lists = true;
+        options.extension.tasklist = true;
 
         let root = comrak::parse_document(&arena, &markdown, &options);
         Ok(mdex_bridge::convert_children(root))
