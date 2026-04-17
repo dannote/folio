@@ -71,19 +71,25 @@ Fonts and layout data are loaded once and shared across compilations.
 
 ## Quick start
 
+Add Folio to your dependencies:
+
 ```elixir
 def deps do
   [{:folio, "~> 0.1"}]
 end
 ```
 
+Render Markdown to PDF with math, tables, and Elixir interpolation:
+
 ```elixir
 use Folio
 
-# Markdown → PDF
 {:ok, pdf} = Folio.to_pdf("# Hello\n\n**Bold** and $x^2$ math.")
+```
 
-# ~MD sigil with p modifier → {:ok, binary}
+Or use the `~MD` sigil for multi-line documents — the `p` modifier returns `{:ok, pdf_binary}` directly:
+
+```elixir
 {:ok, pdf} = ~MD"""
 # Report
 
@@ -94,8 +100,11 @@ Some **bold** content with inline $E = m c^2$ math.
 | A      | 1     |
 | B      | 2     |
 """p
+```
 
-# DSL → PDF
+For full control, compose content with the DSL — every function returns a plain struct:
+
+```elixir
 {:ok, pdf} = Folio.to_pdf([
   heading(1, "Hello"),
   text("Normal "),
@@ -103,15 +112,15 @@ Some **bold** content with inline $E = m c^2$ math.
   text(" and "),
   emph("italic"),
 ])
-
-# Export formats
-{:ok, pdf} = Folio.to_pdf("# Hello")          # PDF binary
-{:ok, svgs} = Folio.to_svg("# Hello")         # one SVG per page
-{:ok, pngs} = Folio.to_png("# Hello")         # one PNG per page
-{:ok, pngs} = Folio.to_png("# Hello", dpi: 3) # higher resolution
 ```
 
-Full API documentation at [hexdocs.pm/folio](https://hexdocs.pm/folio).
+Export to PDF, SVG, or PNG with configurable resolution:
+
+```elixir
+{:ok, pdf} = Folio.to_pdf("# Hello")          # PDF binary
+{:ok, svgs} = Folio.to_svg("# Hello")         # [String.t()] per page
+{:ok, pngs} = Folio.to_png("# Hello", dpi: 3) # [binary()] per page
+```
 
 Full API documentation at [hexdocs.pm/folio](https://hexdocs.pm/folio).
 
