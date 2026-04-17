@@ -55,10 +55,10 @@ File.mkdir_p!("examples/output")
   smallcaps("Payment terms: Net 30 days"),
   footnote(text("Reference invoice number on all payments.")),
 ], styles: [
-  Folio.Styles.page_size(width: 595, height: 842),
-  Folio.Styles.font_size(11),
-  Folio.Styles.font_family(["Helvetica"]),
-  Folio.Styles.page_numbering("1"),
+  page_size(width: 595, height: 842),
+  font_size(11),
+  font_family(["Helvetica"]),
+  page_numbering("1"),
 ])
 File.write!("examples/output/invoice.pdf", pdf)
 IO.puts("  invoice.pdf — #{byte_size(pdf)} bytes")
@@ -138,11 +138,11 @@ IO.puts("  invoice.pdf — #{byte_size(pdf)} bytes")
     {"Quorum", "A majority subset of processes"},
   ]),
 ], styles: [
-  Folio.Styles.page_size(width: 595, height: 842),
-  Folio.Styles.font_size(11),
-  Folio.Styles.font_family(["Helvetica"]),
-  Folio.Styles.text_color("#222222"),
-  Folio.Styles.page_numbering("1"),
+  page_size(width: 595, height: 842),
+  font_size(11),
+  font_family(["Helvetica"]),
+  text_color("#222222"),
+  page_numbering("1"),
 ])
 File.write!("examples/output/technical_report.pdf", pdf)
 IO.puts("  technical_report.pdf — #{byte_size(pdf)} bytes")
@@ -234,10 +234,10 @@ IO.puts("  technical_report.pdf — #{byte_size(pdf)} bytes")
   divider(),
   align("center", smallcaps("Confidential — Do Not Distribute")),
 ], styles: [
-  Folio.Styles.page_size(width: 595, height: 842),
-  Folio.Styles.font_size(11),
-  Folio.Styles.font_family(["Helvetica"]),
-  Folio.Styles.page_numbering("1"),
+  page_size(width: 595, height: 842),
+  font_size(11),
+  font_family(["Helvetica"]),
+  page_numbering("1"),
 ])
 File.write!("examples/output/portfolio.pdf", pdf)
 IO.puts("  portfolio.pdf — #{byte_size(pdf)} bytes")

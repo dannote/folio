@@ -31,22 +31,22 @@ Folio.register_file("works.bib", File.read!("examples/works.bib"))
       bibliography("works.bib", title: "References")
     ],
     styles: [
-      Folio.Styles.page_size(width: 595, height: 842),
-      Folio.Styles.page_margin(top: 48, right: 48, bottom: 56, left: 48),
-      Folio.Styles.font_size(11),
-      Folio.Styles.font_family(["Helvetica"]),
-      Folio.Styles.page_header(
+      page_size(width: 595, height: 842),
+      page_margin(top: 48, right: 48, bottom: 56, left: 48),
+      font_size(11),
+      font_family(["Helvetica"]),
+      page_header(
         align("center", [smallcaps("Folio Publishing Example")])
       ),
-      Folio.Styles.page_footer(
+      page_footer(
         align("center", [text("Generated with Folio")])
       ),
-      Folio.Styles.page_numbering("1"),
-      Folio.Styles.heading_numbering("1."),
-      Folio.Styles.heading_supplement("Chapter"),
-      Folio.Styles.heading_bookmarked(true),
-      Folio.Styles.heading_outlined(true),
-      Folio.Styles.par_indent(18)
+      page_numbering("1"),
+      heading_numbering("1."),
+      heading_supplement("Chapter"),
+      heading_bookmarked(true),
+      heading_outlined(true),
+      par_indent(18)
     ]
   )
 

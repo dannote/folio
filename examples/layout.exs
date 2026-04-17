@@ -271,7 +271,7 @@ IO.puts("  divider.pdf — #{byte_size(pdf)} bytes")
   heading(1, "Page 3"),
   text("Content on the third page."),
 ], styles: [
-  Folio.Styles.page_numbering("1"),
+  page_numbering("1"),
 ])
 File.write!("examples/output/pagebreak.pdf", pdf)
 IO.puts("  pagebreak.pdf — #{byte_size(pdf)} bytes")

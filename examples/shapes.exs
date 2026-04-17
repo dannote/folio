@@ -126,8 +126,8 @@ IO.puts("  line.pdf — #{byte_size(pdf)} bytes")
   vspace("12pt"),
   line(),
 ], styles: [
-  Folio.Styles.page_size(width: 595, height: 842),
-  Folio.Styles.font_size(11),
+  page_size(width: 595, height: 842),
+  font_size(11),
 ])
 File.write!("examples/output/all_shapes.pdf", pdf)
 IO.puts("  all_shapes.pdf — #{byte_size(pdf)} bytes")
