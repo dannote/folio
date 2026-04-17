@@ -125,7 +125,7 @@ Full API documentation at [hexdocs.pm/folio](https://hexdocs.pm/folio).
 | **External deps** | Rust toolchain (compile-time only) | Chromium + Ghostscript | Chromium/wkhtmltopdf + Node.js | Rust toolchain (compile-time only) | None | None |
 | **Runtime overhead** | In-process NIF | External Chrome process | External process per PDF | In-process NIF | In-process | In-process |
 | **Text layout** | Automatic (hyphenation, justification, ligatures, kerning) | Browser CSS | Browser CSS | Automatic (full Typst) | Manual `text_at(x, y)` | Manual `text_at(x, y)` |
-| **Math** | `$E = mc^2$` via Typst | No | No | Full Typst math | No | No |
+| **Math** | `$E = mc^2$` via Typst math parser | No | No | `$E = mc^2$` via Typst math parser | No | No |
 | **Tables** | Structured DSL with header/rowspan/colspan | HTML tables | HTML tables | Typst tables | Manual grid drawing | Basic row grid |
 | **Bibliography** | Built-in (`.bib`, `.yaml`) | No | No | Via Typst packages | No | No |
 | **Multi-page flow** | Automatic | Browser pagination | Browser pagination | Automatic | Manual page management | Manual page management |
