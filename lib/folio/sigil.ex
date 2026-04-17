@@ -1,5 +1,5 @@
 defmodule Folio.Sigil do
-  @moduledoc false
+  @moduledoc "Markdown sigil `~MD` for Folio."
 
   @doc false
   defmacro sigil_MD(term, modifiers) do

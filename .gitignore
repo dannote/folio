@@ -9,3 +9,4 @@ native/folio_nif/target/
 .elixir_ls/
 examples/output/*.pdf
 *.tar
+doc/

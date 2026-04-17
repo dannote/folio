@@ -3,7 +3,7 @@ defmodule Folio.DSL do
   Builder functions for Folio content nodes.
 
   Every function returns a `%Folio.Content.*{}` struct.
-  Use inside `#{}` interpolation in `~MD` sigils, or directly in Elixir code.
+  Use inside `\#{}` interpolation in `~MD` sigils, or directly in Elixir code.
 
       use Folio
       content = [heading(1, "Title"), text("Hello"), strong("world")]

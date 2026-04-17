@@ -13,7 +13,7 @@ defmodule Folio.Content do
   end
 
   defmodule Space do
-    @moduledoc false
+    @moduledoc "Inter-word space."
     defstruct []
     @type t :: %__MODULE__{}
   end
@@ -55,49 +55,49 @@ defmodule Folio.Content do
   end
 
   defmodule Strong do
-    @moduledoc false
+    @moduledoc "Bold text."
     defstruct [:body]
     @type t :: %__MODULE__{body: [Folio.Content.t()]}
   end
 
   defmodule Emph do
-    @moduledoc false
+    @moduledoc "Italic text."
     defstruct [:body]
     @type t :: %__MODULE__{body: [Folio.Content.t()]}
   end
 
   defmodule Strike do
-    @moduledoc false
+    @moduledoc "Strikethrough text."
     defstruct [:body]
     @type t :: %__MODULE__{body: [Folio.Content.t()]}
   end
 
   defmodule Underline do
-    @moduledoc false
+    @moduledoc "Underlined text."
     defstruct [:body]
     @type t :: %__MODULE__{body: [Folio.Content.t()]}
   end
 
   defmodule Highlight do
-    @moduledoc false
+    @moduledoc "Highlighted text."
     defstruct [:body, :fill]
     @type t :: %__MODULE__{body: [Folio.Content.t()], fill: String.t() | nil}
   end
 
   defmodule Super do
-    @moduledoc false
+    @moduledoc "Superscript text."
     defstruct [:body]
     @type t :: %__MODULE__{body: [Folio.Content.t()]}
   end
 
   defmodule Sub do
-    @moduledoc false
+    @moduledoc "Subscript text."
     defstruct [:body]
     @type t :: %__MODULE__{body: [Folio.Content.t()]}
   end
 
   defmodule Smallcaps do
-    @moduledoc false
+    @moduledoc "Small capitals text."
     defstruct [:body]
     @type t :: %__MODULE__{body: [Folio.Content.t()]}
   end
@@ -143,19 +143,19 @@ defmodule Folio.Content do
   end
 
   defmodule TableHeader do
-    @moduledoc false
+    @moduledoc "Table header row."
     defstruct [:children]
     @type t :: %__MODULE__{children: [Folio.Content.t()]}
   end
 
   defmodule TableRow do
-    @moduledoc false
+    @moduledoc "Table data row."
     defstruct [:children]
     @type t :: %__MODULE__{children: [Folio.Content.t()]}
   end
 
   defmodule TableCell do
-    @moduledoc false
+    @moduledoc "Table cell."
     defstruct [:body, :colspan, :rowspan, :align]
 
     @type t :: %__MODULE__{
@@ -167,7 +167,7 @@ defmodule Folio.Content do
   end
 
   defmodule Columns do
-    @moduledoc false
+    @moduledoc "Multi-column layout."
     defstruct [:count, :body, :gutter]
 
     @type t :: %__MODULE__{
@@ -178,49 +178,49 @@ defmodule Folio.Content do
   end
 
   defmodule Colbreak do
-    @moduledoc false
+    @moduledoc "Column break."
     defstruct [:weak]
     @type t :: %__MODULE__{weak: boolean()}
   end
 
   defmodule Pagebreak do
-    @moduledoc false
+    @moduledoc "Page break."
     defstruct [:weak]
     @type t :: %__MODULE__{weak: boolean()}
   end
 
   defmodule Parbreak do
-    @moduledoc false
+    @moduledoc "Paragraph break."
     defstruct []
     @type t :: %__MODULE__{}
   end
 
   defmodule Linebreak do
-    @moduledoc false
+    @moduledoc "Line break."
     defstruct []
     @type t :: %__MODULE__{}
   end
 
   defmodule Math do
-    @moduledoc false
+    @moduledoc "Math expression."
     defstruct [:content, :block]
     @type t :: %__MODULE__{content: String.t(), block: boolean()}
   end
 
   defmodule Link do
-    @moduledoc false
+    @moduledoc "Hyperlink."
     defstruct [:url, :body]
     @type t :: %__MODULE__{url: String.t(), body: [Folio.Content.t()]}
   end
 
   defmodule Raw do
-    @moduledoc false
+    @moduledoc "Raw/code text."
     defstruct [:text, :lang, :block]
     @type t :: %__MODULE__{text: String.t(), lang: String.t() | nil, block: boolean()}
   end
 
   defmodule Quote do
-    @moduledoc false
+    @moduledoc "Block quote."
     defstruct [:body, :block, :attribution]
 
     @type t :: %__MODULE__{
@@ -231,7 +231,7 @@ defmodule Folio.Content do
   end
 
   defmodule List do
-    @moduledoc false
+    @moduledoc "Bullet list."
     defstruct [:children, :tight, :marker]
 
     @type t :: %__MODULE__{
@@ -242,13 +242,13 @@ defmodule Folio.Content do
   end
 
   defmodule ListItem do
-    @moduledoc false
+    @moduledoc "Bullet list item."
     defstruct [:body]
     @type t :: %__MODULE__{body: [Folio.Content.t()]}
   end
 
   defmodule EnumList do
-    @moduledoc false
+    @moduledoc "Numbered (ordered) list."
     defstruct [:children, :tight, :start]
 
     @type t :: %__MODULE__{
@@ -259,31 +259,31 @@ defmodule Folio.Content do
   end
 
   defmodule EnumItem do
-    @moduledoc false
+    @moduledoc "Numbered list item."
     defstruct [:body, :number]
     @type t :: %__MODULE__{body: [Folio.Content.t()], number: pos_integer() | nil}
   end
 
   defmodule Label do
-    @moduledoc false
+    @moduledoc "Cross-reference label."
     defstruct [:name]
     @type t :: %__MODULE__{name: String.t()}
   end
 
   defmodule Ref do
-    @moduledoc false
+    @moduledoc "Cross-reference."
     defstruct [:target, :supplement]
     @type t :: %__MODULE__{target: String.t(), supplement: [Folio.Content.t()] | nil}
   end
 
   defmodule Align do
-    @moduledoc false
+    @moduledoc "Content alignment."
     defstruct [:alignment, :body]
     @type t :: %__MODULE__{alignment: String.t(), body: [Folio.Content.t()]}
   end
 
   defmodule Block do
-    @moduledoc false
+    @moduledoc "Block-level container."
     defstruct [:body, :width, :height, :above, :below]
 
     @type t :: %__MODULE__{
@@ -296,19 +296,19 @@ defmodule Folio.Content do
   end
 
   defmodule Hide do
-    @moduledoc false
+    @moduledoc "Hidden content."
     defstruct [:body]
     @type t :: %__MODULE__{body: [Folio.Content.t()]}
   end
 
   defmodule Repeat do
-    @moduledoc false
+    @moduledoc "Repeating content."
     defstruct [:body]
     @type t :: %__MODULE__{body: [Folio.Content.t()]}
   end
 
   defmodule Place do
-    @moduledoc false
+    @moduledoc "Absolute placement."
     defstruct [:alignment, :body, :float]
 
     @type t :: %__MODULE__{
@@ -319,19 +319,19 @@ defmodule Folio.Content do
   end
 
   defmodule VSpace do
-    @moduledoc false
+    @moduledoc "Vertical spacing."
     defstruct [:amount, :weak]
     @type t :: %__MODULE__{amount: String.t(), weak: boolean()}
   end
 
   defmodule HSpace do
-    @moduledoc false
+    @moduledoc "Horizontal spacing."
     defstruct [:amount, :weak]
     @type t :: %__MODULE__{amount: String.t(), weak: boolean()}
   end
 
   defmodule Pad do
-    @moduledoc false
+    @moduledoc "Padding around content."
     defstruct [:body, :left, :right, :top, :bottom]
 
     @type t :: %__MODULE__{
@@ -344,7 +344,7 @@ defmodule Folio.Content do
   end
 
   defmodule Stack do
-    @moduledoc false
+    @moduledoc "Stacked layout."
     defstruct [:dir, :children, :spacing]
 
     @type t :: %__MODULE__{
@@ -355,7 +355,7 @@ defmodule Folio.Content do
   end
 
   defmodule Rect do
-    @moduledoc false
+    @moduledoc "Rectangle shape."
     defstruct [:body, :width, :height, :fill]
 
     @type t :: %__MODULE__{
@@ -367,7 +367,7 @@ defmodule Folio.Content do
   end
 
   defmodule Square do
-    @moduledoc false
+    @moduledoc "Square shape."
     defstruct [:body, :size, :fill]
 
     @type t :: %__MODULE__{
@@ -378,7 +378,7 @@ defmodule Folio.Content do
   end
 
   defmodule Circle do
-    @moduledoc false
+    @moduledoc "Circle shape."
     defstruct [:body, :radius, :fill]
 
     @type t :: %__MODULE__{
@@ -389,7 +389,7 @@ defmodule Folio.Content do
   end
 
   defmodule Ellipse do
-    @moduledoc false
+    @moduledoc "Ellipse shape."
     defstruct [:body, :width, :height, :fill]
 
     @type t :: %__MODULE__{
@@ -401,7 +401,7 @@ defmodule Folio.Content do
   end
 
   defmodule Line do
-    @moduledoc false
+    @moduledoc "Line shape."
     defstruct [:start, :end, :length, :angle, :stroke]
 
     @type t :: %__MODULE__{
@@ -414,7 +414,7 @@ defmodule Folio.Content do
   end
 
   defmodule Polygon do
-    @moduledoc false
+    @moduledoc "Polygon shape."
     defstruct [:vertices, :fill, :stroke]
 
     @type t :: %__MODULE__{
@@ -425,7 +425,7 @@ defmodule Folio.Content do
   end
 
   defmodule Outline do
-    @moduledoc false
+    @moduledoc "Table of contents."
     defstruct [:title, :indent, :depth]
 
     @type t :: %__MODULE__{
@@ -436,37 +436,37 @@ defmodule Folio.Content do
   end
 
   defmodule Title do
-    @moduledoc false
+    @moduledoc "Document title."
     defstruct [:body]
     @type t :: %__MODULE__{body: [Folio.Content.t()]}
   end
 
   defmodule TermList do
-    @moduledoc false
+    @moduledoc "Definition/term list."
     defstruct [:children, :tight]
     @type t :: %__MODULE__{children: [Folio.Content.t()], tight: boolean()}
   end
 
   defmodule TermItem do
-    @moduledoc false
+    @moduledoc "Term list item."
     defstruct [:term, :description]
     @type t :: %__MODULE__{term: [Folio.Content.t()], description: [Folio.Content.t()]}
   end
 
   defmodule Footnote do
-    @moduledoc false
+    @moduledoc "Footnote."
     defstruct [:body]
     @type t :: %__MODULE__{body: [Folio.Content.t()]}
   end
 
   defmodule Divider do
-    @moduledoc false
+    @moduledoc "Horizontal divider."
     defstruct []
     @type t :: %__MODULE__{}
   end
 
   defmodule Sequence do
-    @moduledoc false
+    @moduledoc "Content sequence."
     defstruct [:children]
     @type t :: %__MODULE__{children: [Folio.Content.t()]}
   end
