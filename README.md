@@ -113,6 +113,33 @@ Some **bold** content with inline $E = m c^2$ math.
 
 Full API documentation at [hexdocs.pm/folio](https://hexdocs.pm/folio).
 
+Full API documentation at [hexdocs.pm/folio](https://hexdocs.pm/folio).
+
+## Comparison with other Elixir PDF libraries
+
+| | **Folio** | [**ChromicPDF**](https://hex.pm/packages/chromic_pdf) | [**pdf_generator**](https://hex.pm/packages/pdf_generator) | [**Imprintor**](https://hex.pm/packages/imprintor) | [**pdf**](https://hex.pm/packages/pdf) | [**PrawnEx**](https://hex.pm/packages/prawn_ex) |
+|---|---|---|---|---|---|---|
+| **Approach** | Typst layout engine via Rustler NIF | Headless Chrome → PDF | wkhtmltopdf or Chrome via shell | Typst templates via Rustler NIF | Raw PDF primitives in pure Elixir | Raw PDF primitives in pure Elixir |
+| **Input format** | Markdown + Elixir DSL | HTML | HTML | Typst source strings | Programmatic API calls | Programmatic API calls |
+| **Layout engine** | Typst (print-quality typesetting) | Chrome (CSS box model) | Chrome / wkhtmltopdf (CSS) | Typst (full Typst language) | None (manual positioning) | None (manual positioning) |
+| **External deps** | Rust toolchain (compile-time only) | Chromium + Ghostscript | Chromium/wkhtmltopdf + Node.js | Rust toolchain (compile-time only) | None | None |
+| **Runtime overhead** | In-process NIF | External Chrome process | External process per PDF | In-process NIF | In-process | In-process |
+| **Text layout** | Automatic (hyphenation, justification, ligatures, kerning) | Browser CSS | Browser CSS | Automatic (full Typst) | Manual `text_at(x, y)` | Manual `text_at(x, y)` |
+| **Math** | `$E = mc^2$` via Typst | No | No | Full Typst math | No | No |
+| **Tables** | Structured DSL with header/rowspan/colspan | HTML tables | HTML tables | Typst tables | Manual grid drawing | Basic row grid |
+| **Bibliography** | Built-in (`.bib`, `.yaml`) | No | No | Via Typst packages | No | No |
+| **Multi-page flow** | Automatic | Browser pagination | Browser pagination | Automatic | Manual page management | Manual page management |
+| **Output formats** | PDF, SVG, PNG | PDF, PDF/A | PDF | PDF | PDF | PDF |
+| **Template injection risk** | None (no string templates) | HTML injection possible | HTML injection possible | Typst code injection possible | N/A | N/A |
+| **Batch performance** | Fonts shared, in-process NIF | Chrome session pool | Process spawn per PDF | In-process NIF | In-process | In-process |
+
+### When to use what
+
+- **Folio** — Data-driven documents (invoices, reports, certificates) from Elixir data at runtime. You want print-quality typography, math, and tables without external processes or template strings.
+- **ChromicPDF** — You already have HTML/CSS that looks right in a browser and want it as PDF. Best option for Pixel-perfect HTML-to-PDF with PDF/A compliance.
+- **Imprintor** — You want Typst's full language (templates, packages, scripting) and are comfortable with Typst syntax. Note: passes raw Typst source strings to the evaluator, so template injection is possible with untrusted input.
+- **pdf / PrawnEx** — Simple PDFs with manual positioning (labels, receipts, badges) where you control every coordinate and don't need automatic text flow.
+
 ## License
 
 MIT — see [LICENSE.md](LICENSE.md)
