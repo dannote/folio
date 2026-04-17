@@ -134,13 +134,15 @@ Some **bold** content with inline $E = m c^2$ math.
 
 ## Styles
 
+`use Folio` imports all style functions, so you can use them without the `Folio.Styles.` prefix:
+
 ```elixir
 {:ok, pdf} = Folio.to_pdf("Hello", styles: [
-  Folio.Styles.page_size(width: 595, height: 842),
-  Folio.Styles.font_family(["Helvetica"]),
-  Folio.Styles.font_size(12),
-  Folio.Styles.text_color("#222222"),
-  Folio.Styles.page_numbering("1"),
+  page_size(width: 595, height: 842),
+  font_family(["Helvetica"]),
+  font_size(12),
+  text_color("#222222"),
+  page_numbering("1"),
 ])
 ```
 
@@ -150,9 +152,9 @@ Some **bold** content with inline $E = m c^2$ math.
 {:ok, pdf} =
   Folio.to_pdf("# Report\n\nBody text.",
     styles: [
-      Folio.Styles.page_header(align("center", [smallcaps("Quarterly Report")])),
-      Folio.Styles.page_footer(align("center", [text("Confidential")])),
-      Folio.Styles.page_numbering("1")
+      page_header(align("center", [smallcaps("Quarterly Report")])),
+      page_footer(align("center", [text("Confidential")])),
+      page_numbering("1")
     ]
   )
 ```
@@ -163,11 +165,11 @@ Some **bold** content with inline $E = m c^2$ math.
 {:ok, pdf} =
   Folio.to_pdf("# Intro\n\n## Details",
     styles: [
-      Folio.Styles.heading_numbering("1."),
-      Folio.Styles.heading_supplement("Chapter"),
-      Folio.Styles.heading_bookmarked(true),
-      Folio.Styles.heading_outlined(true),
-      Folio.Styles.par_indent(18)
+      heading_numbering("1."),
+      heading_supplement("Chapter"),
+      heading_bookmarked(true),
+      heading_outlined(true),
+      par_indent(18)
     ]
   )
 ```
@@ -177,8 +179,8 @@ Some **bold** content with inline $E = m c^2$ math.
 ```elixir
 doc =
   Folio.Document.new()
-  |> Folio.Document.add_style(Folio.Styles.page_numbering("1"))
-  |> Folio.Document.add_style(Folio.Styles.font_family(["Helvetica"]))
+  |> Folio.Document.add_style(page_numbering("1"))
+  |> Folio.Document.add_style(font_family(["Helvetica"]))
   |> Folio.Document.add_content("# Invoice\n\n...")
   |> Folio.Document.add_content(Folio.parse_markdown!("Terms and conditions."))
 
@@ -326,18 +328,20 @@ image("photo.png", width: "200pt", height: "100pt", fit: "contain")
 
 Fit options: `"cover"` (default), `"contain"`, `"stretch"`.
 
-### Style helpers
+### Styles
+
+`use Folio` imports all style functions. Use them without prefix:
 
 ```elixir
 styles = [
-  Folio.Styles.page_header(align("center", [text("Header")])),
-  Folio.Styles.page_footer(align("center", [text("Footer")])),
-  Folio.Styles.page_numbering("1"),
-  Folio.Styles.heading_numbering("1."),
-  Folio.Styles.heading_supplement("Chapter"),
-  Folio.Styles.heading_outlined(true),
-  Folio.Styles.heading_bookmarked(true),
-  Folio.Styles.par_indent(18)
+  page_header(align("center", [text("Header")])),
+  page_footer(align("center", [text("Footer")])),
+  page_numbering("1"),
+  heading_numbering("1."),
+  heading_supplement("Chapter"),
+  heading_outlined(true),
+  heading_bookmarked(true),
+  par_indent(18)
 ]
 ```
 
