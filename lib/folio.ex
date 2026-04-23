@@ -173,18 +173,24 @@ defmodule Folio do
          %Folio.Document{content: content, styles: doc_styles, files: doc_files},
          opts
        ) do
+    content = Folio.Show.apply(content)
     opts_styles = Keyword.get(opts, :styles, [])
     {:ok, {content, opts_styles ++ doc_styles, doc_files}}
   end
 
   defp normalize_source(markdown, opts) when is_binary(markdown) do
     case parse_markdown(markdown) do
-      {:ok, nodes} -> {:ok, {nodes, Keyword.get(opts, :styles, []), %{}}}
-      {:error, _} = err -> err
+      {:ok, nodes} ->
+        nodes = Folio.Show.apply(nodes)
+        {:ok, {nodes, Keyword.get(opts, :styles, []), %{}}}
+
+      {:error, _} = err ->
+        err
     end
   end
 
   defp normalize_source(content, opts) when is_list(content) do
+    content = Folio.Show.apply(content)
     {:ok, {content, Keyword.get(opts, :styles, []), %{}}}
   end
 

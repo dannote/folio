@@ -36,10 +36,29 @@ struct GlobalState {
     main_id: FileId,
 }
 
+fn load_system_fonts() -> Vec<Font> {
+    let mut db = fontdb::Database::new();
+    db.load_system_fonts();
+
+    let mut fonts = Vec::new();
+    for face in db.faces() {
+        let _ = db.with_face_data(face.id, |data, index| {
+            let bytes = Bytes::new(data.to_vec());
+            for font in Font::iter(bytes) {
+                if font.index() == index {
+                    fonts.push(font);
+                }
+            }
+        });
+    }
+    fonts
+}
+
 static GLOBAL: LazyLock<GlobalState> = LazyLock::new(|| {
-    let fonts: Vec<Font> = typst_assets::fonts()
+    let mut fonts: Vec<Font> = typst_assets::fonts()
         .flat_map(|data| Font::iter(Bytes::new(data)))
         .collect();
+    fonts.extend(load_system_fonts());
     let book = LazyHash::new(FontBook::from_fonts(&fonts));
     let library = LazyHash::new(
         Library::builder()
@@ -240,10 +259,11 @@ fn apply_styles(styles: &mut typst::foundations::Styles, user_styles: &[ExStyle]
                 styles.set(typst::model::ParElem::justify, pj.justify);
             }
             ExStyle::ParIndent(pi) => {
-                styles.set(
-                    typst::model::ParElem::first_line_indent,
-                    typst::model::FirstLineIndent::new(Some(Abs::pt(pi.indent).into()), None),
+                let fli = typst::model::FirstLineIndent::new(
+                    Some(Abs::pt(pi.indent).into()),
+                    pi.all.map(|a| if a { Some(true) } else { None }).flatten(),
                 );
+                styles.set(typst::model::ParElem::first_line_indent, fli);
             }
             ExStyle::PageNumbering(pn) => {
                 if let Ok(pat) = NumberingPattern::from_str(&pn.pattern) {
@@ -272,6 +292,62 @@ fn apply_styles(styles: &mut typst::foundations::Styles, user_styles: &[ExStyle]
             }
             ExStyle::HeadingBookmarked(hb) => {
                 styles.set(HeadingElem::bookmarked, Smart::Custom(hb.bookmarked));
+            }
+            ExStyle::Lang(l) => {
+                if let Ok(lang) = std::str::FromStr::from_str(&l.lang) {
+                    styles.set(TextElem::lang, lang);
+                }
+            }
+            ExStyle::Hyphenate(h) => {
+                styles.set(TextElem::hyphenate, Smart::Custom(h.hyphenate));
+            }
+            ExStyle::Leading(l) => {
+                styles.set(
+                    typst::model::ParElem::leading,
+                    typst::layout::Length { abs: Abs::zero(), em: typst::layout::Em::new(l.leading) },
+                );
+            }
+            ExStyle::ParSpacing(s) => {
+                styles.set(
+                    typst::model::ParElem::spacing,
+                    typst::layout::Length { abs: Abs::zero(), em: typst::layout::Em::new(s.spacing) },
+                );
+            }
+            ExStyle::EnumIndent(e) => {
+                styles.set(
+                    typst::model::EnumElem::indent,
+                    typst::layout::Length { abs: Abs::pt(e.indent), em: typst::layout::Em::zero() },
+                );
+            }
+            ExStyle::EnumBodyIndent(e) => {
+                styles.set(
+                    typst::model::EnumElem::body_indent,
+                    typst::layout::Length { abs: Abs::pt(e.body_indent), em: typst::layout::Em::zero() },
+                );
+            }
+            ExStyle::EnumItemSpacing(e) => {
+                styles.set(
+                    typst::model::EnumElem::spacing,
+                    Smart::Custom(typst::layout::Length { abs: Abs::zero(), em: typst::layout::Em::new(e.spacing) }),
+                );
+            }
+            ExStyle::ListIndent(l) => {
+                styles.set(
+                    typst::model::ListElem::indent,
+                    typst::layout::Length { abs: Abs::pt(l.indent), em: typst::layout::Em::zero() },
+                );
+            }
+            ExStyle::ListBodyIndent(l) => {
+                styles.set(
+                    typst::model::ListElem::body_indent,
+                    typst::layout::Length { abs: Abs::pt(l.body_indent), em: typst::layout::Em::zero() },
+                );
+            }
+            ExStyle::ListItemSpacing(l) => {
+                styles.set(
+                    typst::model::ListElem::spacing,
+                    Smart::Custom(typst::layout::Length { abs: Abs::zero(), em: typst::layout::Em::new(l.spacing) }),
+                );
             }
         }
     }

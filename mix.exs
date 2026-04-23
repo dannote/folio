@@ -1,7 +1,7 @@
 defmodule Folio.MixProject do
   use Mix.Project
 
-  @version "0.1.0"
+  @version "0.2.0"
   @source_url "https://github.com/dannote/folio"
 
   def project do
@@ -33,7 +33,8 @@ defmodule Folio.MixProject do
 
   defp deps do
     [
-      {:rustler, "~> 0.37"},
+      {:rustler, "~> 0.37", optional: true},
+      {:rustler_precompiled, "~> 0.8"},
       {:ex_doc, "~> 0.34", only: :dev, runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
@@ -55,7 +56,8 @@ defmodule Folio.MixProject do
       links: %{"GitHub" => @source_url},
       files: ~w(lib native/folio_nif/Cargo.toml native/folio_nif/Cargo.lock native/folio_nif/src
            vendor/typst/Cargo.toml vendor/typst/Cargo.lock vendor/typst/crates
-           mix.exs README.md LICENSE.md CHANGELOG.md .rustler.toml),
+           mix.exs README.md LICENSE.md CHANGELOG.md .rustler.toml
+           checksum-Elixir.Folio.Native.exs),
       exclude_patterns: [~r{vendor/typst/crates/typst-cli}, ~r{vendor/typst/crates/typst-ide}]
     ]
   end

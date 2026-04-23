@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.2.0 (2026-04-23)
+
+### Content
+
+- `grid/2` and `grid_cell/2` — CSS Grid-like layouts with `:columns`, `:rows`, `:gutter`, `:colspan`, `:rowspan`, `:align`, `:fill`
+- `local_set/2` — local style overrides (`:hyphenate`, `:justify`, `:first_line_indent`) mirroring Typst's `#set` scoping
+- `show/2` — Elixir-side show rules that transform content elements before compilation (custom enum/list formatting, etc.)
+- `raw_typst/1` — escape hatch for injecting raw Typst markup when the DSL isn't enough
+
+### Styles
+
+- `lang/1` — document language for hyphenation (e.g. `"ru"`)
+- `hyphenate/1` — enable/disable text hyphenation
+- `leading/1` — line leading in em units
+- `par_spacing/1` — paragraph spacing in em units
+- `par_indent/2` — now supports `all: true` to indent all paragraphs including after headings/lists
+- `enum_indent/1`, `enum_body_indent/1`, `enum_item_spacing/1` — enum list layout control
+- `list_indent/1`, `list_body_indent/1`, `list_item_spacing/1` — bullet list layout control
+
+### Engine
+
+- System font loading via `fontdb` — `font_family(["Times New Roman"])` now works when the font is installed
+- `em` unit parsing — `hspace("0.3em")`, `vspace("0.65em")` resolve correctly
+- `fr` unit parsing — `grid(columns: ["1fr", "1fr"])` resolves correctly instead of falling back to 100%
+- `Block` `above`/`below` fields now wired through to Typst block spacing
+- Auto parbreak insertion fixed — no longer inserts spurious breaks between arbitrary block elements (grid, align, vspace, etc.)
+
 ## 0.1.0 (2026-04-15)
 
 Initial release.

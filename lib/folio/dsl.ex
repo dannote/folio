@@ -348,6 +348,45 @@ defmodule Folio.DSL do
     }
   end
 
+  @doc """
+  Grid layout. Options: `:columns`, `:rows`, `:gutter`.
+  Use `do` block for cells.
+
+      grid(columns: ["1fr", "1fr"], gutter: "6pt",
+        do: [grid_cell("A"), grid_cell("B")])
+  """
+  @spec grid(keyword(), [{:do, [Content.t()]}]) :: Content.Grid.t()
+  def grid(opts, do: children) when is_list(opts) do
+    columns = Keyword.get(opts, :columns)
+    rows = Keyword.get(opts, :rows)
+
+    normalized_columns =
+      if is_list(columns) do
+        Enum.map(columns, &to_string/1)
+      else
+        columns
+      end
+
+    %Content.Grid{
+      columns: normalized_columns,
+      rows: if(is_list(rows), do: Enum.map(rows, &to_string/1), else: rows),
+      gutter: Keyword.get(opts, :gutter),
+      children: Content.flatten(Content.to_content(children))
+    }
+  end
+
+  @doc "Create a grid cell. Options: `:colspan`, `:rowspan`, `:align`, `:fill`."
+  @spec grid_cell(Content.t() | [Content.t()] | String.t(), keyword()) :: Content.GridCell.t()
+  def grid_cell(content, opts \\ []) do
+    %Content.GridCell{
+      body: Content.to_content(content),
+      colspan: Keyword.get(opts, :colspan),
+      rowspan: Keyword.get(opts, :rowspan),
+      align: Keyword.get(opts, :align),
+      fill: Keyword.get(opts, :fill)
+    }
+  end
+
   @doc "Document title."
   @spec title(Content.t() | [Content.t()] | String.t()) :: Content.Title.t()
   def title(content), do: %Content.Title{body: Content.to_content(content)}
@@ -454,6 +493,71 @@ defmodule Folio.DSL do
       lang: Keyword.get(opts, :lang),
       block: Keyword.get(opts, :block, true)
     }
+  end
+
+  @doc """
+  Local style overrides for a content block.
+  Mirrors Typst's `#set text(...)` / `#set par(...)` within a scope.
+
+      local_set([hyphenate: false, justify: false],
+        do: [text("No hyphenation here")])
+  """
+  @spec local_set(keyword(), [{:do, [Content.t()]}]) :: Content.LocalSet.t()
+  def local_set(opts, do: body) when is_list(opts) do
+    %Content.LocalSet{
+      body: Content.flatten(Content.to_content(body)),
+      hyphenate: Keyword.get(opts, :hyphenate),
+      justify: Keyword.get(opts, :justify),
+      first_line_indent: then_if_some(Keyword.get(opts, :first_line_indent), &(&1 / 1))
+    }
+  end
+
+  @doc """
+  Raw Typst source injected directly.
+
+      raw_typst("#set text(hyphenate: false)\nHello")
+  """
+  @spec raw_typst(String.t()) :: Content.RawTypst.t()
+  def raw_typst(source) when is_binary(source) do
+    %Content.RawTypst{source: source}
+  end
+
+  @doc """
+  Create a show rule that transforms matching content elements.
+
+  The target is an atom matching the content type. Common targets:
+  `:enum`, `:enum_item`, `:list`, `:list_item`, `:heading`,
+  `:paragraph`, `:quote`, `:table`, `:grid`, `:block`, etc.
+
+  The transform receives the matched struct and returns replacement
+  content (a struct, a list of structs, or a string).
+
+  ## Example — custom enum formatting
+
+      show(:enum, fn %Folio.Content.EnumList{children: items} ->
+        items
+        |> Enum.with_index(1)
+        |> Enum.map(fn {item, num} ->
+          block([above: "0.65em", below: "0.65em"],
+            do: [
+              local_set([first_line_indent: 0],
+                do: [
+                  hspace("1.25cm"),
+                  text("\#{num}."),
+                  hspace("0.3em"),
+                  item.body
+                ]
+              )
+            ]
+          )
+        end)
+        |> List.flatten()
+      end)
+  """
+  @spec show(atom(), (struct() -> Content.t() | [Content.t()] | String.t())) ::
+          Content.ShowRule.t()
+  def show(target, transform) when is_atom(target) and is_function(transform, 1) do
+    %Content.ShowRule{target: target, transform: transform}
   end
 
   # ── Quote ──

@@ -60,9 +60,9 @@ defmodule Folio.Styles do
   end
 
   defmodule ParIndent do
-    @moduledoc "First-line paragraph indent in points. Field: `indent`."
-    defstruct [:indent]
-    @type t :: %__MODULE__{indent: float()}
+    @moduledoc "First-line paragraph indent in points. Fields: `indent`, `all`."
+    defstruct [:indent, :all]
+    @type t :: %__MODULE__{indent: float(), all: boolean() | nil}
   end
 
   defmodule PageNumbering do
@@ -113,6 +113,66 @@ defmodule Folio.Styles do
     @type t :: %__MODULE__{bookmarked: boolean()}
   end
 
+  defmodule Lang do
+    @moduledoc "Document language (ISO 639-1 code). Field: `lang`."
+    defstruct [:lang]
+    @type t :: %__MODULE__{lang: String.t()}
+  end
+
+  defmodule Hyphenate do
+    @moduledoc "Enable/disable hyphenation. Field: `hyphenate`."
+    defstruct [:hyphenate]
+    @type t :: %__MODULE__{hyphenate: boolean()}
+  end
+
+  defmodule Leading do
+    @moduledoc "Line leading in em units. Field: `leading`."
+    defstruct [:leading]
+    @type t :: %__MODULE__{leading: float()}
+  end
+
+  defmodule ParSpacing do
+    @moduledoc "Paragraph spacing in em units. Field: `spacing`."
+    defstruct [:spacing]
+    @type t :: %__MODULE__{spacing: float()}
+  end
+
+  defmodule EnumIndent do
+    @moduledoc "Enum list indent. Field: `indent`."
+    defstruct [:indent]
+    @type t :: %__MODULE__{indent: float()}
+  end
+
+  defmodule EnumBodyIndent do
+    @moduledoc "Enum list body indent. Field: `body_indent`."
+    defstruct [:body_indent]
+    @type t :: %__MODULE__{body_indent: float()}
+  end
+
+  defmodule EnumItemSpacing do
+    @moduledoc "Enum list item spacing in em. Field: `spacing`."
+    defstruct [:spacing]
+    @type t :: %__MODULE__{spacing: float()}
+  end
+
+  defmodule ListIndent do
+    @moduledoc "Bullet list indent. Field: `indent`."
+    defstruct [:indent]
+    @type t :: %__MODULE__{indent: float()}
+  end
+
+  defmodule ListBodyIndent do
+    @moduledoc "Bullet list body indent. Field: `body_indent`."
+    defstruct [:body_indent]
+    @type t :: %__MODULE__{body_indent: float()}
+  end
+
+  defmodule ListItemSpacing do
+    @moduledoc "Bullet list item spacing in em. Field: `spacing`."
+    defstruct [:spacing]
+    @type t :: %__MODULE__{spacing: float()}
+  end
+
   @type rule ::
           PageSize.t()
           | PageMargin.t()
@@ -129,6 +189,16 @@ defmodule Folio.Styles do
           | HeadingSupplement.t()
           | HeadingOutlined.t()
           | HeadingBookmarked.t()
+          | Lang.t()
+          | Hyphenate.t()
+          | Leading.t()
+          | ParSpacing.t()
+          | EnumIndent.t()
+          | EnumBodyIndent.t()
+          | EnumItemSpacing.t()
+          | ListIndent.t()
+          | ListBodyIndent.t()
+          | ListItemSpacing.t()
 
   @spec page_size(keyword()) :: PageSize.t()
   def page_size(opts) when is_list(opts) do
@@ -161,8 +231,10 @@ defmodule Folio.Styles do
   @spec par_justify(boolean()) :: ParJustify.t()
   def par_justify(justify) when is_boolean(justify), do: %ParJustify{justify: justify}
 
-  @spec par_indent(number()) :: ParIndent.t()
-  def par_indent(indent) when is_number(indent), do: %ParIndent{indent: indent / 1}
+  @spec par_indent(number(), keyword()) :: ParIndent.t()
+  def par_indent(indent, opts \\ []) when is_number(indent) do
+    %ParIndent{indent: indent / 1, all: Keyword.get(opts, :all)}
+  end
 
   @spec page_numbering(String.t()) :: PageNumbering.t()
   def page_numbering(pattern) when is_binary(pattern), do: %PageNumbering{pattern: pattern}
@@ -188,4 +260,34 @@ defmodule Folio.Styles do
   @spec heading_bookmarked(boolean()) :: HeadingBookmarked.t()
   def heading_bookmarked(bookmarked) when is_boolean(bookmarked),
     do: %HeadingBookmarked{bookmarked: bookmarked}
+
+  @spec lang(String.t()) :: Lang.t()
+  def lang(lang) when is_binary(lang), do: %Lang{lang: lang}
+
+  @spec hyphenate(boolean()) :: Hyphenate.t()
+  def hyphenate(hyphenate) when is_boolean(hyphenate), do: %Hyphenate{hyphenate: hyphenate}
+
+  @spec leading(number()) :: Leading.t()
+  def leading(leading) when is_number(leading), do: %Leading{leading: leading / 1}
+
+  @spec par_spacing(number()) :: ParSpacing.t()
+  def par_spacing(spacing) when is_number(spacing), do: %ParSpacing{spacing: spacing / 1}
+
+  @spec enum_indent(number()) :: EnumIndent.t()
+  def enum_indent(indent) when is_number(indent), do: %EnumIndent{indent: indent / 1}
+
+  @spec enum_body_indent(number()) :: EnumBodyIndent.t()
+  def enum_body_indent(body_indent) when is_number(body_indent), do: %EnumBodyIndent{body_indent: body_indent / 1}
+
+  @spec enum_item_spacing(number()) :: EnumItemSpacing.t()
+  def enum_item_spacing(spacing) when is_number(spacing), do: %EnumItemSpacing{spacing: spacing / 1}
+
+  @spec list_indent(number()) :: ListIndent.t()
+  def list_indent(indent) when is_number(indent), do: %ListIndent{indent: indent / 1}
+
+  @spec list_body_indent(number()) :: ListBodyIndent.t()
+  def list_body_indent(body_indent) when is_number(body_indent), do: %ListBodyIndent{body_indent: body_indent / 1}
+
+  @spec list_item_spacing(number()) :: ListItemSpacing.t()
+  def list_item_spacing(spacing) when is_number(spacing), do: %ListItemSpacing{spacing: spacing / 1}
 end

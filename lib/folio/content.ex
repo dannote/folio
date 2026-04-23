@@ -465,6 +465,83 @@ defmodule Folio.Content do
     @type t :: %__MODULE__{}
   end
 
+  defmodule Grid do
+    @moduledoc "Grid layout. Fields: `columns`, `rows`, `gutter`, `children`."
+    defstruct [:columns, :rows, :gutter, :children]
+
+    @type t :: %__MODULE__{
+            columns: [String.t()] | pos_integer() | nil,
+            rows: [String.t()] | nil,
+            gutter: String.t() | nil,
+            children: [Folio.Content.t()]
+          }
+  end
+
+  defmodule GridCell do
+    @moduledoc "Grid cell. Fields: `body`, `colspan`, `rowspan`, `align`, `fill`."
+    defstruct [:body, :colspan, :rowspan, :align, :fill]
+
+    @type t :: %__MODULE__{
+            body: [Folio.Content.t()],
+            colspan: pos_integer() | nil,
+            rowspan: pos_integer() | nil,
+            align: String.t() | nil,
+            fill: String.t() | nil
+          }
+  end
+
+  defmodule LocalSet do
+    @moduledoc """
+    Local style overrides for a content block.
+    Mirrors Typst's `#set text(...)` within a scope.
+
+    Fields:
+    - `body` — child content
+    - `hyphenate` — override text hyphenation for this block
+    - `justify` — override paragraph justification
+    - `first_line_indent` — override first-line indent (nil = no change)
+    """
+    defstruct [:body, :hyphenate, :justify, :first_line_indent]
+
+    @type t :: %__MODULE__{
+            body: [Folio.Content.t()],
+            hyphenate: boolean() | nil,
+            justify: boolean() | nil,
+            first_line_indent: float() | nil
+          }
+  end
+
+  defmodule RawTypst do
+    @moduledoc """
+    Raw Typst source injected directly into the document.
+    Use when Folio's abstraction isn't enough.
+
+    Field: `source` — Typst markup/code string.
+    """
+    defstruct [:source]
+
+    @type t :: %__MODULE__{source: String.t()}
+  end
+
+  defmodule ShowRule do
+    @moduledoc """
+    A show rule that transforms matching content elements before compilation.
+
+    Applied on the Elixir side; never sent to Rust. The transform function
+    receives the matched struct and returns replacement content.
+
+    Targets are atoms matching content types: `:enum`, `:enum_item`, `:list`,
+    `:list_item`, `:heading`, `:paragraph`, `:quote`, `:table`, `:grid`,
+    `:block`, etc.
+    """
+    defstruct [:target, :transform]
+
+    @type t :: %__MODULE__{
+            target: atom(),
+            transform: (struct() -> Folio.Content.t() | [Folio.Content.t()] | String.t())
+          }
+  end
+
   defmodule Sequence do
     @moduledoc "Content sequence."
     defstruct [:children]
@@ -528,6 +605,11 @@ defmodule Folio.Content do
           | TermItem.t()
           | Footnote.t()
           | Divider.t()
+          | Grid.t()
+          | GridCell.t()
+          | LocalSet.t()
+          | RawTypst.t()
+          | ShowRule.t()
           | Sequence.t()
 
   @doc "Flatten nested Sequences."

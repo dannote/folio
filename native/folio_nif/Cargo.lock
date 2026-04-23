@@ -546,6 +546,7 @@ version = "0.1.0"
 dependencies = [
  "comrak",
  "ecow",
+ "fontdb",
  "rustler",
  "smallvec",
  "typed-arena",

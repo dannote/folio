@@ -7,7 +7,7 @@ use typst::foundations::{Bytes, Content, NativeElement, OneOrMultiple, Smart};
 use std::sync::Arc;
 use typst::layout::{
     Abs, AlignElem, Alignment, Axes, BlockBody, BlockElem, Celled, ColbreakElem,
-    ColumnsElem, Dir, HElem, HideElem, Length, PadElem,
+    ColumnsElem, Dir, Em, Fr, HElem, HideElem, Length, PadElem,
     PagebreakElem, PlaceElem, Ratio, Rel, RepeatElem, Sides, Sizing,
     StackChild, StackElem, TrackSizings, VElem,
 };
@@ -43,18 +43,38 @@ fn parse_abs(s: &str) -> Option<Abs> {
     else { s.parse::<f64>().ok().map(Abs::pt) }
 }
 
+fn parse_length(s: &str) -> Option<Length> {
+    let s = s.trim();
+    if let Some(r) = s.strip_suffix("em") {
+        let em: f64 = r.trim().parse().ok()?;
+        Some(Length { abs: Abs::zero(), em: Em::new(em) })
+    } else {
+        parse_abs(s).map(|abs| Length { abs, em: Em::zero() })
+    }
+}
+
 fn parse_rel(s: &str) -> Option<Rel<Length>> {
     let s = s.trim();
     if s.ends_with('%') {
         let pct: f64 = s.trim_end_matches('%').trim().parse().ok()?;
         Some(Ratio::new(pct / 100.0).into())
+    } else if s.ends_with("em") {
+        parse_length(s).map(Into::into)
     } else {
         parse_abs(s).map(Into::into)
     }
 }
 
 fn parse_sizing(s: &str) -> Sizing {
-    if s == "auto" { Sizing::Auto } else { Sizing::Rel(parse_rel(s).unwrap_or(Rel::one())) }
+    let s = s.trim();
+    if s == "auto" {
+        Sizing::Auto
+    } else if s.ends_with("fr") {
+        let val: f64 = s.trim_end_matches("fr").trim().parse().unwrap_or(1.0);
+        Sizing::Fr(Fr::new(val))
+    } else {
+        Sizing::Rel(parse_rel(s).unwrap_or(Rel::one()))
+    }
 }
 
 fn smart_rel(opt: Option<&str>) -> Smart<Rel<Length>> {
@@ -147,8 +167,29 @@ fn bibliography_sources(paths: &[String]) -> Option<OneOrMultiple<DataSource>> {
 pub fn build_content(engine: &mut Engine, nodes: &[ExContent]) -> Content {
     let mut seq: Vec<Content> = Vec::new();
     for (i, node) in nodes.iter().enumerate() {
-        if i > 0 && is_block(node) && is_block(&nodes[i-1]) {
-            seq.push(ParbreakElem::shared().clone());
+        // Only insert auto parbreaks between paragraph-like content and other blocks,
+        // or between two paragraph-like blocks. Don't insert between arbitrary
+        // block elements (grid, align, vspace, etc.) to match Typst source behavior.
+        if i > 0 {
+            let prev = &nodes[i - 1];
+            let needs_parbreak = match (prev, node) {
+                // Never insert around explicit spacing/pagebreaks
+                (ExContent::VSpace(_), _) | (_, ExContent::VSpace(_)) => false,
+                (ExContent::HSpace(_), _) | (_, ExContent::HSpace(_)) => false,
+                (ExContent::Parbreak(_), _) | (_, ExContent::Parbreak(_)) => false,
+                (ExContent::Pagebreak(_), _) | (_, ExContent::Pagebreak(_)) => false,
+                (ExContent::Colbreak(_), _) | (_, ExContent::Colbreak(_)) => false,
+                // Between two paragraph-like blocks
+                (p, n) if is_paragraph_like(p) && is_paragraph_like(n) => true,
+                // After a paragraph-like block and before another block
+                (p, n) if is_paragraph_like(p) && is_block(n) => true,
+                // Before a paragraph-like block after another block
+                (p, n) if is_block(p) && is_paragraph_like(n) => true,
+                _ => false,
+            };
+            if needs_parbreak {
+                seq.push(ParbreakElem::shared().clone());
+            }
         }
         seq.push(convert_node(engine, node));
     }
@@ -164,11 +205,20 @@ fn is_block(node: &ExContent) -> bool {
         | ExContent::Title(_) | ExContent::TermList(_) | ExContent::Divider(_)
         | ExContent::Rect(_) | ExContent::Square(_) | ExContent::Circle(_)
         | ExContent::Ellipse(_) | ExContent::Polygon(_) | ExContent::Stack(_)
-        | ExContent::VSpace(_) | ExContent::Footnote(_) => true,
+        | ExContent::VSpace(_) | ExContent::Footnote(_) | ExContent::Grid(_) => true,
         ExContent::Raw(r) => r.block,
         ExContent::Math(m) => m.block,
         _ => false,
     }
+}
+
+/// Nodes that are "paragraph-like" — auto parbreaks should only be inserted
+/// between these and other blocks, not between arbitrary block elements.
+fn is_paragraph_like(node: &ExContent) -> bool {
+    matches!(node,
+        ExContent::Paragraph(_) | ExContent::Quote(_) | ExContent::List(_)
+        | ExContent::Enum(_) | ExContent::TermList(_)
+    )
 }
 
 fn cc(engine: &mut Engine, nodes: &[ExContent]) -> Content {
@@ -285,6 +335,58 @@ fn convert_node(engine: &mut Engine, node: &ExContent) -> Content {
         ExContent::TableHeader(_) | ExContent::TableRow(_) => Content::empty(),
         ExContent::TableCell(tc) => cc(engine, &tc.body),
 
+        ExContent::Grid(grid) => convert_grid(engine, grid),
+        ExContent::GridCell(gc) => convert_grid_cell(engine, gc),
+
+        ExContent::LocalSet(ls) => {
+            let mut body = cc(engine, &ls.body);
+            if let Some(h) = ls.hyphenate {
+                body = body.styled(typst::foundations::Property::new(
+                    TextElem::hyphenate,
+                    Smart::Custom(h),
+                ));
+            }
+            if let Some(j) = ls.justify {
+                body = body.styled(typst::foundations::Property::new(
+                    typst::model::ParElem::justify,
+                    j,
+                ));
+            }
+            if let Some(indent) = ls.first_line_indent {
+                let fli = typst::model::FirstLineIndent::new(
+                    Some(Abs::pt(indent).into()),
+                    None,
+                );
+                body = body.styled(typst::foundations::Property::new(
+                    typst::model::ParElem::first_line_indent,
+                    fli,
+                ));
+            }
+            body
+        }
+
+        ExContent::RawTypst(rt) => {
+            use typst::comemo::Track;
+            let result = typst_eval::eval_string(
+                engine.routines,
+                engine.world,
+                typst::comemo::TrackedMut::reborrow_mut(&mut engine.sink),
+                engine.introspector.into_raw(),
+                typst::foundations::Context::none().track(),
+                &rt.source,
+                Span::detached(),
+                typst::syntax::SyntaxMode::Markup,
+                typst::foundations::Scope::new(),
+            );
+            match result {
+                Ok(value) => match value.cast::<Content>() {
+                    Ok(content) => content,
+                    Err(_) => TextElem::packed("[raw typst: not content]"),
+                },
+                Err(_) => TextElem::packed("[raw typst: eval error]"),
+            }
+        }
+
         // Layout
         ExContent::Columns(cols) => {
             let n = NonZeroUsize::new(cols.count as usize).unwrap_or(NonZeroUsize::MIN);
@@ -298,10 +400,23 @@ fn convert_node(engine: &mut Engine, node: &ExContent) -> Content {
         ExContent::Align(a) => AlignElem::new(cc(engine, &a.body))
             .with_alignment(parse_align(&a.alignment)).pack(),
 
-        ExContent::Block(b) => BlockElem::new()
-            .with_body(Some(BlockBody::Content(cc(engine, &b.body))))
-            .with_width(smart_rel(b.width.as_deref()))
-            .with_height(smart_sizing(b.height.as_deref())).pack(),
+        ExContent::Block(b) => {
+            let mut e = BlockElem::new()
+                .with_body(Some(BlockBody::Content(cc(engine, &b.body))))
+                .with_width(smart_rel(b.width.as_deref()))
+                .with_height(smart_sizing(b.height.as_deref()));
+            if let Some(a) = &b.above {
+                if let Some(sp) = parse_rel(a) {
+                    e = e.with_above(Smart::Custom(typst::layout::Spacing::Rel(sp)));
+                }
+            }
+            if let Some(below) = &b.below {
+                if let Some(sp) = parse_rel(below) {
+                    e = e.with_below(Smart::Custom(typst::layout::Spacing::Rel(sp)));
+                }
+            }
+            e.pack()
+        }
 
         ExContent::Hide(h) => HideElem::new(cc(engine, &h.body)).pack(),
         ExContent::Repeat(r) => RepeatElem::new(cc(engine, &r.body)).pack(),
@@ -559,4 +674,68 @@ fn count_columns(tbl: &crate::types::ExTable) -> usize {
         }
     }
     max_cols.max(1)
+}
+
+// ── Grid conversion ─────────────────────────────────────────────────────────
+
+fn convert_grid(engine: &mut Engine, grid: &crate::types::ExGrid) -> Content {
+    use typst::layout::{GridElem, GridChild, GridItem, GridCell};
+
+    let mut children: Vec<GridChild> = Vec::new();
+
+    for child in &grid.children {
+        if let ExContent::GridCell(gc) = child {
+            let cell = convert_grid_cell_raw(engine, gc);
+            children.push(GridChild::Item(GridItem::Cell(typst::foundations::Packed::new(cell))));
+        } else {
+            let cell = GridCell::new(convert_node(engine, child));
+            children.push(GridChild::Item(GridItem::Cell(typst::foundations::Packed::new(cell))));
+        }
+    }
+
+    let mut elem = GridElem::new(children);
+
+    if let Some(cols) = &grid.columns {
+        let track: smallvec::SmallVec<[Sizing; 4]> = cols.iter().map(|s| parse_sizing(s)).collect();
+        elem = elem.with_columns(TrackSizings(track));
+    }
+
+    if let Some(rows) = &grid.rows {
+        let track: smallvec::SmallVec<[Sizing; 4]> = rows.iter().map(|s| parse_sizing(s)).collect();
+        elem = elem.with_rows(TrackSizings(track));
+    }
+
+    if let Some(g) = &grid.gutter {
+        if let Some(r) = parse_rel(g) {
+            elem = elem.with_column_gutter(TrackSizings(smallvec::smallvec![Sizing::Rel(r)]));
+            elem = elem.with_row_gutter(TrackSizings(smallvec::smallvec![Sizing::Rel(r)]));
+        }
+    }
+
+    elem.pack()
+}
+
+fn convert_grid_cell(engine: &mut Engine, gc: &crate::types::ExGridCell) -> Content {
+    convert_grid_cell_raw(engine, gc).pack()
+}
+
+fn convert_grid_cell_raw(engine: &mut Engine, gc: &crate::types::ExGridCell) -> typst::layout::GridCell {
+    use typst::layout::GridCell;
+
+    let mut cell = GridCell::new(cc(engine, &gc.body));
+    if let Some(cs) = gc.colspan {
+        cell = cell.with_colspan(NonZeroUsize::new(cs as _).unwrap_or(NonZeroUsize::MIN));
+    }
+    if let Some(rs) = gc.rowspan {
+        cell = cell.with_rowspan(NonZeroUsize::new(rs as _).unwrap_or(NonZeroUsize::MIN));
+    }
+    if let Some(al) = &gc.align {
+        cell = cell.with_align(Smart::Custom(parse_align(al)));
+    }
+    if let Some(f) = &gc.fill {
+        if let Some(p) = parse_paint(f) {
+            cell = cell.with_fill(Smart::Custom(Some(p)));
+        }
+    }
+    cell
 }

@@ -75,8 +75,16 @@ Add Folio to your dependencies:
 
 ```elixir
 def deps do
-  [{:folio, "~> 0.1"}]
+  [{:folio, "~> 0.2"}]
 end
+```
+
+Folio ships with precompiled NIFs for macOS (Intel & Apple Silicon), Linux (x86_64 & aarch64, glibc & musl). No Rust toolchain is required.
+
+To build from source instead (e.g. for a custom target or during development):
+
+```sh
+FOLIO_BUILD=1 mix compile
 ```
 
 Render Markdown to PDF with math, tables, and Elixir interpolation:

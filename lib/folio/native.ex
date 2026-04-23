@@ -4,9 +4,27 @@ defmodule Folio.Native do
   alias Folio.Content
   alias Folio.Styles
 
-  use Rustler,
+  version = Mix.Project.config()[:version]
+  source_root = Path.expand("../..", __DIR__)
+
+  local_test_build =
+    Mix.env() in [:dev, :test] and
+      File.exists?(Path.join(source_root, "test/test_helper.exs")) and
+      File.dir?(Path.join(source_root, ".git"))
+
+  use RustlerPrecompiled,
     otp_app: :folio,
-    crate: :folio_nif
+    crate: :folio_nif,
+    base_url: "https://github.com/dannote/folio/releases/download/v#{version}",
+    force_build: local_test_build or System.get_env("FOLIO_BUILD") in ["1", "true"],
+    targets: ~w(
+      aarch64-apple-darwin
+      aarch64-unknown-linux-gnu
+      x86_64-apple-darwin
+      x86_64-unknown-linux-gnu
+      x86_64-unknown-linux-musl
+    ),
+    version: version
 
   @spec parse_markdown(String.t()) :: [Content.t()]
   def parse_markdown(_markdown), do: :erlang.nif_error(:nif_not_loaded)

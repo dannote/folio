@@ -309,6 +309,40 @@ pub struct ExFootnote { pub body: Vec<ExContent> }
 pub struct ExDivider {}
 
 #[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Grid"]
+pub struct ExGrid {
+    pub columns: Option<Vec<String>>,
+    pub rows: Option<Vec<String>>,
+    pub gutter: Option<String>,
+    pub children: Vec<ExContent>,
+}
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.GridCell"]
+pub struct ExGridCell {
+    pub body: Vec<ExContent>,
+    pub colspan: Option<u32>,
+    pub rowspan: Option<u32>,
+    pub align: Option<String>,
+    pub fill: Option<String>,
+}
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.LocalSet"]
+pub struct ExLocalSet {
+    pub body: Vec<ExContent>,
+    pub hyphenate: Option<bool>,
+    pub justify: Option<bool>,
+    pub first_line_indent: Option<f64>,
+}
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.RawTypst"]
+pub struct ExRawTypst {
+    pub source: String,
+}
+
+#[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Sequence"]
 pub struct ExSequence { pub children: Vec<ExContent> }
 
@@ -372,6 +406,10 @@ pub enum ExContent {
     TermItem(ExTermItem),
     Footnote(ExFootnote),
     Divider(ExDivider),
+    Grid(ExGrid),
+    GridCell(ExGridCell),
+    LocalSet(ExLocalSet),
+    RawTypst(ExRawTypst),
     Sequence(ExSequence),
 }
 
@@ -442,6 +480,10 @@ impl<'a> rustler::Decoder<'a> for ExContent {
             "Elixir.Folio.Content.TermItem" => Ok(ExContent::TermItem(Decoder::decode(term)?)),
             "Elixir.Folio.Content.Footnote" => Ok(ExContent::Footnote(Decoder::decode(term)?)),
             "Elixir.Folio.Content.Divider" => Ok(ExContent::Divider(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.Grid" => Ok(ExContent::Grid(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.GridCell" => Ok(ExContent::GridCell(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.LocalSet" => Ok(ExContent::LocalSet(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.RawTypst" => Ok(ExContent::RawTypst(Decoder::decode(term)?)),
             "Elixir.Folio.Content.Sequence" => Ok(ExContent::Sequence(Decoder::decode(term)?)),
             _ => Err(rustler::Error::RaiseAtom("unknown_content_variant")),
         }
@@ -507,6 +549,10 @@ impl rustler::Encoder for ExContent {
             ExContent::TermItem(v) => v.encode(env),
             ExContent::Footnote(v) => v.encode(env),
             ExContent::Divider(v) => v.encode(env),
+            ExContent::Grid(v) => v.encode(env),
+            ExContent::GridCell(v) => v.encode(env),
+            ExContent::LocalSet(v) => v.encode(env),
+            ExContent::RawTypst(v) => v.encode(env),
             ExContent::Sequence(v) => v.encode(env),
         }
     }
@@ -547,7 +593,7 @@ pub struct ExParJustify { pub justify: bool }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Styles.ParIndent"]
-pub struct ExParIndent { pub indent: f64 }
+pub struct ExParIndent { pub indent: f64, pub all: Option<bool> }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Styles.PageNumbering"]
@@ -577,6 +623,46 @@ pub struct ExHeadingOutlined { pub outlined: bool }
 #[module = "Folio.Styles.HeadingBookmarked"]
 pub struct ExHeadingBookmarked { pub bookmarked: bool }
 
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Styles.Lang"]
+pub struct ExLang { pub lang: String }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Styles.Hyphenate"]
+pub struct ExHyphenate { pub hyphenate: bool }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Styles.Leading"]
+pub struct ExLeading { pub leading: f64 }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Styles.ParSpacing"]
+pub struct ExParSpacing { pub spacing: f64 }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Styles.EnumIndent"]
+pub struct ExEnumIndent { pub indent: f64 }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Styles.EnumBodyIndent"]
+pub struct ExEnumBodyIndent { pub body_indent: f64 }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Styles.EnumItemSpacing"]
+pub struct ExEnumItemSpacing { pub spacing: f64 }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Styles.ListIndent"]
+pub struct ExListIndent { pub indent: f64 }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Styles.ListBodyIndent"]
+pub struct ExListBodyIndent { pub body_indent: f64 }
+
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Styles.ListItemSpacing"]
+pub struct ExListItemSpacing { pub spacing: f64 }
+
 #[derive(Clone, Debug, NifUntaggedEnum)]
 pub enum ExStyle {
     PageSize(ExPageSize),
@@ -594,4 +680,14 @@ pub enum ExStyle {
     HeadingSupplement(ExHeadingSupplement),
     HeadingOutlined(ExHeadingOutlined),
     HeadingBookmarked(ExHeadingBookmarked),
+    Lang(ExLang),
+    Hyphenate(ExHyphenate),
+    Leading(ExLeading),
+    ParSpacing(ExParSpacing),
+    EnumIndent(ExEnumIndent),
+    EnumBodyIndent(ExEnumBodyIndent),
+    EnumItemSpacing(ExEnumItemSpacing),
+    ListIndent(ExListIndent),
+    ListBodyIndent(ExListBodyIndent),
+    ListItemSpacing(ExListItemSpacing),
 }
