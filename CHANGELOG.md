@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.3 (2026-04-24)
+
+### Fixes
+
+- Remove musl target from precompiled NIFs — musl toolchain doesn't support cdylib builds for this crate
+
 ## 0.2.2 (2026-04-24)
 
 ### Fixes
