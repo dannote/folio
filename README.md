@@ -79,7 +79,7 @@ def deps do
 end
 ```
 
-Folio ships with precompiled NIFs for macOS (Intel & Apple Silicon), Linux (x86_64 & aarch64, glibc & musl). No Rust toolchain is required.
+Folio ships with precompiled NIFs for macOS (Intel & Apple Silicon) and Linux (x86_64 & aarch64, glibc). No Rust toolchain is required.
 
 To build from source instead (e.g. for a custom target or during development):
 
@@ -139,7 +139,7 @@ Full API documentation at [hexdocs.pm/folio](https://hexdocs.pm/folio).
 | **Approach** | Typst layout engine via Rustler NIF | Headless Chrome → PDF | wkhtmltopdf or Chrome via shell | Typst templates via Rustler NIF | Raw PDF primitives in pure Elixir | Raw PDF primitives in pure Elixir |
 | **Input format** | Markdown + Elixir DSL | HTML | HTML | Typst source strings | Programmatic API calls | Programmatic API calls |
 | **Layout engine** | Typst (print-quality typesetting) | Chrome (CSS box model) | Chrome / wkhtmltopdf (CSS) | Typst (full Typst language) | None (manual positioning) | None (manual positioning) |
-| **External deps** | Rust toolchain (compile-time only) | Chromium + Ghostscript | Chromium/wkhtmltopdf + Node.js | Rust toolchain (compile-time only) | None | None |
+| **External deps** | None (precompiled NIFs) | Chromium + Ghostscript | Chromium/wkhtmltopdf + Node.js | Rust toolchain (compile-time only) | None | None |
 | **Runtime overhead** | In-process NIF | External Chrome process | External process per PDF | In-process NIF | In-process | In-process |
 | **Text layout** | Automatic (hyphenation, justification, ligatures, kerning) | Browser CSS | Browser CSS | Automatic (full Typst) | Manual `text_at(x, y)` | Manual `text_at(x, y)` |
 | **Math** | `$E = mc^2$` via Typst math parser | No | No | `$E = mc^2$` via Typst math parser | No | No |
