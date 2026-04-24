@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.2 (2026-04-24)
+
+### Fixes
+
+- musl target: add `RUSTFLAGS=-C target-feature=-crt-static` to support cdylib builds
+
 ## 0.2.1 (2026-04-24)
 
 ### Fixes
