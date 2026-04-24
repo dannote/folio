@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.1 (2026-04-24)
+
+### Fixes
+
+- `rustler_precompiled` release workflow now fetches git submodules and builds without `cross`
+- Added missing `vendor/typst` submodule checkout in CI
+
 ## 0.2.0 (2026-04-23)
 
 ### Content
