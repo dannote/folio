@@ -16,7 +16,10 @@ defmodule Folio.DSL do
 
   @doc "Create a text node."
   @spec text(String.t()) :: Content.Text.t()
-  def text(str), do: %Content.Text{text: str}
+  def text(str) when is_binary(str), do: %Content.Text{text: str}
+
+  def text(str),
+    do: raise(ArgumentError, message: "text/1 expects a string, got: #{inspect(str)}")
 
   # ── Headings ──
 
@@ -24,6 +27,16 @@ defmodule Folio.DSL do
   @spec heading(1..6, Content.t() | [Content.t()] | String.t()) :: Content.Heading.t()
   def heading(level, content) when is_integer(level) and level >= 1 and level <= 6 do
     %Content.Heading{level: level, body: Content.to_content(content)}
+  end
+
+  def heading(level, _content) when is_integer(level) do
+    raise(ArgumentError, message: "heading/2 level must be 1..6, got: #{level}")
+  end
+
+  def heading(level, _content) do
+    raise(ArgumentError,
+      message: "heading/2 expects an integer level (1..6), got: #{inspect(level)}"
+    )
   end
 
   @doc """
@@ -104,13 +117,20 @@ defmodule Folio.DSL do
   Embed an image. Options: `:width`, `:height`, `:fit` ("contain"/"cover"/"stretch").
   """
   @spec image(String.t(), keyword()) :: Content.Image.t()
-  def image(src, opts \\ []) do
+  def image(src, opts \\ [])
+
+  def image(src, opts) when is_binary(src) and is_list(opts) do
     %Content.Image{
       src: src,
       width: Keyword.get(opts, :width),
       height: Keyword.get(opts, :height),
       fit: Keyword.get(opts, :fit)
     }
+  end
+
+  def image(src, opts) do
+    raise ArgumentError,
+          "image/2 expects a string source and a keyword list, got: #{inspect({src, opts})}"
   end
 
   # ── Figures ──
@@ -136,8 +156,16 @@ defmodule Folio.DSL do
   @doc "Create a table. Options: `:columns`, `:rows`, `:stroke`, `:gutter`, `:align`. Use `do` block for rows."
   @spec table(keyword(), [{:do, [Content.t()]}]) :: Content.Table.t()
   def table(opts, do: children) when is_list(opts) do
+    columns = Keyword.get(opts, :columns)
+
+    unless is_nil(columns) or is_binary(columns) do
+      raise ArgumentError,
+            "table :columns must be a string (e.g. \"3\"), got: #{inspect(columns)}. " <>
+              "Use grid/2 for fractional column definitions like [\"1fr\", \"1fr\"]."
+    end
+
     %Content.Table{
-      columns: Keyword.get(opts, :columns),
+      columns: columns,
       rows: Keyword.get(opts, :rows),
       children: Content.flatten(Content.to_content(children)),
       stroke: Keyword.get(opts, :stroke),
@@ -202,6 +230,11 @@ defmodule Folio.DSL do
   def align(alignment, content)
       when alignment in [:left, :center, :right, "left", "center", "right"] do
     %Content.Align{alignment: to_string(alignment), body: Content.to_content(content)}
+  end
+
+  def align(alignment, _content) do
+    raise ArgumentError,
+          "align/2 expects :left, :center, or :right as the first argument, got: #{inspect(alignment)}"
   end
 
   @doc "Block-level container. Options: `:width`, `:height`, `:above`, `:below`."
@@ -377,7 +410,7 @@ defmodule Folio.DSL do
 
   @doc "Create a grid cell. Options: `:colspan`, `:rowspan`, `:align`, `:fill`."
   @spec grid_cell(Content.t() | [Content.t()] | String.t(), keyword()) :: Content.GridCell.t()
-  def grid_cell(content, opts \\ []) do
+  def grid_cell(content, opts \\ []) when is_list(opts) do
     %Content.GridCell{
       body: Content.to_content(content),
       colspan: Keyword.get(opts, :colspan),
@@ -459,8 +492,14 @@ defmodule Folio.DSL do
 
   @doc "Hyperlink. Second argument is optional display text."
   @spec link(String.t(), nil | Content.t() | String.t()) :: Content.Link.t()
-  def link(url, text \\ nil) do
+  def link(url, text \\ nil)
+
+  def link(url, text) when is_binary(url) do
     %Content.Link{url: url, body: if(text, do: Content.to_content(text), else: [])}
+  end
+
+  def link(url, _text) do
+    raise ArgumentError, "link/2 expects a string URL, got: #{inspect(url)}"
   end
 
   # ── Labels & References ──
@@ -471,28 +510,48 @@ defmodule Folio.DSL do
 
   @doc "Reference a labelled element."
   @spec ref(String.t(), nil | Content.t() | [Content.t()] | String.t()) :: Content.Ref.t()
-  def ref(target, supplement \\ nil) do
+  def ref(target, supplement \\ nil)
+
+  def ref(target, supplement) when is_binary(target) do
     %Content.Ref{target: target, supplement: if(supplement, do: Content.to_content(supplement))}
+  end
+
+  def ref(target, _supplement) do
+    raise ArgumentError, "ref/2 expects a string target label, got: #{inspect(target)}"
   end
 
   # ── Math ──
 
   @doc "Math expression in Typst syntax. Options: `:block`."
   @spec math(String.t(), keyword()) :: Content.Math.t()
-  def math(content, opts \\ []) do
+  def math(content, opts \\ [])
+
+  def math(content, opts) when is_binary(content) and is_list(opts) do
     %Content.Math{content: content, block: Keyword.get(opts, :block, false)}
+  end
+
+  def math(content, opts) do
+    raise ArgumentError,
+          "math/2 expects a string expression and a keyword list, got: #{inspect({content, opts})}"
   end
 
   # ── Raw / Code ──
 
   @doc "Raw/code text. Options: `:lang`, `:block`."
   @spec raw(String.t(), keyword()) :: Content.Raw.t()
-  def raw(text, opts \\ []) do
+  def raw(text, opts \\ [])
+
+  def raw(text, opts) when is_binary(text) and is_list(opts) do
     %Content.Raw{
       text: text,
       lang: Keyword.get(opts, :lang),
       block: Keyword.get(opts, :block, true)
     }
+  end
+
+  def raw(text, opts) do
+    raise ArgumentError,
+          "raw/2 expects a string and a keyword list, got: #{inspect({text, opts})}"
   end
 
   @doc """
@@ -520,6 +579,10 @@ defmodule Folio.DSL do
   @spec raw_typst(String.t()) :: Content.RawTypst.t()
   def raw_typst(source) when is_binary(source) do
     %Content.RawTypst{source: source}
+  end
+
+  def raw_typst(source) do
+    raise ArgumentError, "raw_typst/1 expects a string, got: #{inspect(source)}"
   end
 
   @doc """
@@ -558,6 +621,11 @@ defmodule Folio.DSL do
           Content.ShowRule.t()
   def show(target, transform) when is_atom(target) and is_function(transform, 1) do
     %Content.ShowRule{target: target, transform: transform}
+  end
+
+  def show(target, transform) do
+    raise ArgumentError,
+          "show/2 expects an atom target and a 1-arity function, got: #{inspect({target, transform})}"
   end
 
   # ── Quote ──

@@ -277,17 +277,21 @@ defmodule Folio.Styles do
   def enum_indent(indent) when is_number(indent), do: %EnumIndent{indent: indent / 1}
 
   @spec enum_body_indent(number()) :: EnumBodyIndent.t()
-  def enum_body_indent(body_indent) when is_number(body_indent), do: %EnumBodyIndent{body_indent: body_indent / 1}
+  def enum_body_indent(body_indent) when is_number(body_indent),
+    do: %EnumBodyIndent{body_indent: body_indent / 1}
 
   @spec enum_item_spacing(number()) :: EnumItemSpacing.t()
-  def enum_item_spacing(spacing) when is_number(spacing), do: %EnumItemSpacing{spacing: spacing / 1}
+  def enum_item_spacing(spacing) when is_number(spacing),
+    do: %EnumItemSpacing{spacing: spacing / 1}
 
   @spec list_indent(number()) :: ListIndent.t()
   def list_indent(indent) when is_number(indent), do: %ListIndent{indent: indent / 1}
 
   @spec list_body_indent(number()) :: ListBodyIndent.t()
-  def list_body_indent(body_indent) when is_number(body_indent), do: %ListBodyIndent{body_indent: body_indent / 1}
+  def list_body_indent(body_indent) when is_number(body_indent),
+    do: %ListBodyIndent{body_indent: body_indent / 1}
 
   @spec list_item_spacing(number()) :: ListItemSpacing.t()
-  def list_item_spacing(spacing) when is_number(spacing), do: %ListItemSpacing{spacing: spacing / 1}
+  def list_item_spacing(spacing) when is_number(spacing),
+    do: %ListItemSpacing{spacing: spacing / 1}
 end

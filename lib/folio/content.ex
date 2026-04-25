@@ -627,4 +627,9 @@ defmodule Folio.Content do
   def to_content(%_{} = node), do: [node]
   def to_content(str) when is_binary(str), do: [%Text{text: str}]
   def to_content(list) when is_list(list), do: Enum.flat_map(list, &to_content/1)
+
+  def to_content(other) do
+    raise ArgumentError,
+          "expected a content struct, string, or list, got: #{inspect(other)}"
+  end
 end

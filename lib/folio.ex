@@ -200,6 +200,17 @@ defmodule Folio do
     {:ok, fun.()}
   rescue
     e in ErlangError ->
-      {:error, error_builder.(Exception.message(e))}
+      reason = format_nif_error(Exception.message(e))
+      {:error, error_builder.(reason)}
+  end
+
+  defp format_nif_error(msg) do
+    case Regex.run(~r/Could not decode field :(\w+) on %Ex(\w+)\{\}/, msg) do
+      [_, field, type] ->
+        "invalid value for #{type}.#{field} — check that the field type matches the DSL function signature"
+
+      _ ->
+        msg
+    end
   end
 end
