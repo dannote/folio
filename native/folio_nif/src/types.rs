@@ -122,6 +122,8 @@ pub struct ExTableCell {
     pub colspan: Option<u32>,
     pub rowspan: Option<u32>,
     pub align: Option<String>,
+    pub fill: Option<String>,
+    pub stroke: Option<String>,
 }
 
 #[derive(Clone, Debug, NifStruct)]

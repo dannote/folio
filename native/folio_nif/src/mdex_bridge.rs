@@ -201,6 +201,8 @@ fn convert_table<'a>(node: &'a AstNode<'a>) -> ExContent {
                     colspan: None,
                     rowspan: None,
                     align: None,
+                    fill: None,
+                    stroke: None,
                 })
             }).collect();
             column_count = column_count.max(cells.len());

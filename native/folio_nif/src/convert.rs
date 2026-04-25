@@ -152,6 +152,9 @@ fn parse_font_weight(s: &str) -> FontWeight {
 
 fn parse_stroke(s: &str) -> Option<Stroke> {
     let s = s.trim();
+    if s == "none" {
+        return Some(Stroke { thickness: Smart::Custom(Abs::zero().into()), ..Default::default() });
+    }
     // Try "thickness+color" format (e.g. "2pt + red", "1pt+#ff0000")
     if let Some((lhs, rhs)) = s.split_once('+') {
         let thickness = parse_abs(lhs.trim())?;
@@ -709,6 +712,16 @@ fn convert_table(engine: &mut Engine, tbl: &crate::types::ExTable) -> Content {
         if let Some(rs) = tc.rowspan { cell = cell.with_rowspan(NonZeroUsize::new(rs as _).unwrap_or(NonZeroUsize::MIN)); }
         if let Some(cs) = tc.colspan { cell = cell.with_colspan(NonZeroUsize::new(cs as _).unwrap_or(NonZeroUsize::MIN)); }
         if let Some(al) = &tc.align { cell = cell.with_align(Smart::Custom(parse_align(al))); }
+        if let Some(f) = &tc.fill {
+            if let Some(p) = parse_paint(f) {
+                cell = cell.with_fill(Smart::Custom(Some(p)));
+            }
+        }
+        if let Some(st) = &tc.stroke {
+            if let Some(s) = parse_stroke(st) {
+                cell = cell.with_stroke(Sides::splat(Some(Some(Arc::new(s)))));
+            }
+        }
         TableItem::Cell(typst::foundations::Packed::new(cell))
     };
 

@@ -165,13 +165,15 @@ defmodule Folio.Content do
 
   defmodule TableCell do
     @moduledoc "Table cell."
-    defstruct [:body, :colspan, :rowspan, :align]
+    defstruct [:body, :colspan, :rowspan, :align, :fill, :stroke]
 
     @type t :: %__MODULE__{
             body: [Folio.Content.t()],
             colspan: pos_integer() | nil,
             rowspan: pos_integer() | nil,
-            align: String.t() | nil
+            align: String.t() | nil,
+            fill: String.t() | nil,
+            stroke: String.t() | nil
           }
   end
 

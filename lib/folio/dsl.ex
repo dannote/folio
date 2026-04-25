@@ -357,7 +357,9 @@ defmodule Folio.DSL do
       body: Content.to_content(content),
       colspan: Keyword.get(opts, :colspan),
       rowspan: Keyword.get(opts, :rowspan),
-      align: Keyword.get(opts, :align)
+      align: Keyword.get(opts, :align),
+      fill: Keyword.get(opts, :fill),
+      stroke: Keyword.get(opts, :stroke)
     }
   end
 
