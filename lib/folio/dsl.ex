@@ -14,7 +14,14 @@ defmodule Folio.DSL do
 
   # ── Text ──
 
-  @doc "Create a text node."
+  @doc """
+  Create a text node.
+
+  ## Examples
+
+      use Folio
+      text("Hello, world!")
+  """
   @spec text(String.t()) :: Content.Text.t()
   def text(str) when is_binary(str), do: %Content.Text{text: str}
 
@@ -23,7 +30,15 @@ defmodule Folio.DSL do
 
   # ── Headings ──
 
-  @doc "Create a heading (levels 1-6)."
+  @doc """
+  Create a heading (levels 1-6).
+
+  ## Examples
+
+      use Folio
+      heading(1, "Introduction")
+      heading(2, [strong("Bold"), text(" subtitle")])
+  """
   @spec heading(1..6, Content.t() | [Content.t()] | String.t()) :: Content.Heading.t()
   def heading(level, content) when is_integer(level) and level >= 1 and level <= 6 do
     %Content.Heading{level: level, body: Content.to_content(content)}
@@ -93,37 +108,95 @@ defmodule Folio.DSL do
 
   # ── Inline formatting ──
 
-  @doc "Bold text."
+  @doc """
+  Bold text.
+
+  ## Examples
+
+      use Folio
+      strong("important")
+      strong([text("also "), emph("works")])
+  """
   @spec strong(Content.t() | [Content.t()] | String.t()) :: Content.Strong.t()
   def strong(content), do: %Content.Strong{body: Content.to_content(content)}
 
-  @doc "Italic text."
+  @doc """
+  Italic text.
+
+  ## Examples
+
+      use Folio
+      emph("emphasis")
+  """
   @spec emph(Content.t() | [Content.t()] | String.t()) :: Content.Emph.t()
   def emph(content), do: %Content.Emph{body: Content.to_content(content)}
 
-  @doc "Strikethrough text."
+  @doc """
+  Strikethrough text.
+
+  ## Examples
+
+      use Folio
+      strike("deleted")
+  """
   @spec strike(Content.t() | [Content.t()] | String.t()) :: Content.Strike.t()
   def strike(content), do: %Content.Strike{body: Content.to_content(content)}
 
-  @doc "Underlined text."
+  @doc """
+  Underlined text.
+
+  ## Examples
+
+      use Folio
+      underline("underlined")
+  """
   @spec underline(Content.t() | [Content.t()] | String.t()) :: Content.Underline.t()
   def underline(content), do: %Content.Underline{body: Content.to_content(content)}
 
-  @doc "Highlighted text. Options: `:fill` color."
+  @doc """
+  Highlighted text. Options: `:fill` color.
+
+  ## Examples
+
+      use Folio
+      highlight("important passage")
+      highlight("custom color", fill: "#ffff00")
+  """
   @spec highlight(Content.t() | [Content.t()] | String.t(), keyword()) :: Content.Highlight.t()
   def highlight(content, opts \\ []) when is_list(opts) do
     %Content.Highlight{body: Content.to_content(content), fill: Keyword.get(opts, :fill)}
   end
 
-  @doc "Superscript text."
+  @doc """
+  Superscript text.
+
+  ## Examples
+
+      use Folio
+      [text("x"), superscript("2")]
+  """
   @spec superscript(Content.t() | [Content.t()] | String.t()) :: Content.Super.t()
   def superscript(content), do: %Content.Super{body: Content.to_content(content)}
 
-  @doc "Subscript text."
+  @doc """
+  Subscript text.
+
+  ## Examples
+
+      use Folio
+      [text("H"), subscript("2"), text("O")]
+  """
   @spec subscript(Content.t() | [Content.t()] | String.t()) :: Content.Sub.t()
   def subscript(content), do: %Content.Sub{body: Content.to_content(content)}
 
-  @doc "Small capitals text."
+  @doc """
+  Small capitals text.
+
+  ## Examples
+
+      use Folio
+      smallcaps("Section Title")
+  """
   @spec smallcaps(Content.t() | [Content.t()] | String.t()) :: Content.Smallcaps.t()
   def smallcaps(content), do: %Content.Smallcaps{body: Content.to_content(content)}
 
@@ -176,7 +249,19 @@ defmodule Folio.DSL do
 
   # ── Tables ──
 
-  @doc "Create a table. Options: `:columns`, `:rows`, `:stroke`, `:gutter`, `:align`. Use `do` block for rows."
+  @doc """
+  Create a table. Options: `:columns`, `:rows`, `:stroke`, `:gutter`, `:align`. Use `do` block for rows.
+
+  ## Examples
+
+      use Folio
+      table(columns: ["1fr", "1fr"],
+        do: [
+          table_header(["Name", "Score"]),
+          table_row(["Alice", "95"]),
+          table_row(["Bob", "87"])
+        ])
+  """
   @spec table(keyword(), [{:do, [Content.t()]}]) :: Content.Table.t()
   def table(opts, do: children) when is_list(opts) do
     columns =
@@ -205,7 +290,14 @@ defmodule Folio.DSL do
     }
   end
 
-  @doc "Create a table header row from a list of cell contents."
+  @doc """
+  Create a table header row from a list of cell contents.
+
+  ## Examples
+
+      use Folio
+      table_header(["Name", "Age", "City"])
+  """
   @spec table_header([Content.t() | String.t()]) :: Content.TableHeader.t()
   def table_header([_ | _] = cells) do
     %Content.TableHeader{children: Enum.map(cells, &table_cell/1)}
@@ -216,7 +308,14 @@ defmodule Folio.DSL do
           "table_header/1 expects a non-empty list of cell contents, got: #{inspect(cells)}"
   end
 
-  @doc "Create a table data row from a list of cell contents."
+  @doc """
+  Create a table data row from a list of cell contents.
+
+  ## Examples
+
+      use Folio
+      table_row(["Alice", "30", "London"])
+  """
   @spec table_row([Content.t() | String.t()]) :: Content.TableRow.t()
   def table_row([_ | _] = cells) do
     %Content.TableRow{children: Enum.map(cells, &table_cell/1)}
@@ -227,7 +326,15 @@ defmodule Folio.DSL do
           "table_row/1 expects a non-empty list of cell contents, got: #{inspect(cells)}"
   end
 
-  @doc "Create a table cell. Options: `:colspan`, `:rowspan`, `:align`."
+  @doc """
+  Create a table cell. Options: `:colspan`, `:rowspan`, `:align`.
+
+  ## Examples
+
+      use Folio
+      table_cell("plain cell")
+      table_cell(strong("header"), colspan: 2, align: "center")
+  """
   @spec table_cell(Content.t() | [Content.t()] | String.t(), keyword()) :: Content.TableCell.t()
   def table_cell(content, opts \\ []) when is_list(opts) do
     %Content.TableCell{
@@ -240,7 +347,19 @@ defmodule Folio.DSL do
 
   # ── Layout ──
 
-  @doc "Flow content into `count` columns. Options: `:gutter`."
+  @doc """
+  Flow content into `count` columns. Options: `:gutter`.
+
+  ## Examples
+
+      use Folio
+      columns(2, gutter: "12pt",
+        do: [
+          text("Left column content."),
+          colbreak(),
+          text("Right column content.")
+        ])
+  """
   @spec columns(pos_integer(), keyword(), [{:do, [Content.t()]}]) :: Content.Columns.t()
   def columns(count, opts \\ [], do: body)
       when is_integer(count) and count >= 1 and is_list(opts) do
@@ -251,23 +370,61 @@ defmodule Folio.DSL do
     }
   end
 
-  @doc "Force a column break. Options: `:weak`."
+  @doc """
+  Force a column break. Options: `:weak`.
+
+  ## Examples
+
+      use Folio
+      colbreak()
+      colbreak(weak: true)
+  """
   @spec colbreak(keyword()) :: Content.Colbreak.t()
   def colbreak(opts \\ []), do: %Content.Colbreak{weak: Keyword.get(opts, :weak, false)}
 
-  @doc "Force a page break. Options: `:weak`."
+  @doc """
+  Force a page break. Options: `:weak`.
+
+  ## Examples
+
+      use Folio
+      pagebreak()
+      pagebreak(weak: true)
+  """
   @spec pagebreak(keyword()) :: Content.Pagebreak.t()
   def pagebreak(opts \\ []), do: %Content.Pagebreak{weak: Keyword.get(opts, :weak, false)}
 
-  @doc "Insert a paragraph break."
+  @doc """
+  Insert a paragraph break.
+
+  ## Examples
+
+      use Folio
+      [text("First paragraph."), parbreak(), text("Second paragraph.")]
+  """
   @spec parbreak() :: Content.Parbreak.t()
   def parbreak, do: %Content.Parbreak{}
 
-  @doc "Insert a line break."
+  @doc """
+  Insert a line break.
+
+  ## Examples
+
+      use Folio
+      [text("Line one."), linebreak(), text("Line two.")]
+  """
   @spec linebreak() :: Content.Linebreak.t()
   def linebreak, do: %Content.Linebreak{}
 
-  @doc "Align content. Accepts `:left`, `:center`, `:right` or string equivalents."
+  @doc """
+  Align content. Accepts `:left`, `:center`, `:right` or string equivalents.
+
+  ## Examples
+
+      use Folio
+      align(:center, heading(1, "Centered Title"))
+      align(:right, text("Right-aligned"))
+  """
   @spec align(atom() | String.t(), Content.t() | [Content.t()] | String.t()) :: Content.Align.t()
   def align(alignment, content)
       when alignment in [:left, :center, :right, "left", "center", "right"] do
@@ -279,7 +436,15 @@ defmodule Folio.DSL do
           "align/2 expects :left, :center, or :right as the first argument, got: #{inspect(alignment)}"
   end
 
-  @doc "Block-level container. Options: `:width`, `:height`, `:above`, `:below`."
+  @doc """
+  Block-level container. Options: `:width`, `:height`, `:above`, `:below`.
+
+  ## Examples
+
+      use Folio
+      block(above: "1em", below: "1em",
+        do: [text("Spaced block content.")])
+  """
   @spec block(keyword(), [{:do, [Content.t()]}]) :: Content.Block.t()
   def block(opts \\ [], do: body) when is_list(opts) do
     %Content.Block{
@@ -291,15 +456,36 @@ defmodule Folio.DSL do
     }
   end
 
-  @doc "Hide content (invisible but takes space)."
+  @doc """
+  Hide content (invisible but takes space).
+
+  ## Examples
+
+      use Folio
+      hide(text("placeholder"))
+  """
   @spec hide(Content.t() | [Content.t()] | String.t()) :: Content.Hide.t()
   def hide(content), do: %Content.Hide{body: Content.to_content(content)}
 
-  @doc "Repeat content to fill available space."
+  @doc """
+  Repeat content to fill available space.
+
+  ## Examples
+
+      use Folio
+      repeat(text("."))
+  """
   @spec repeat(Content.t() | [Content.t()] | String.t()) :: Content.Repeat.t()
   def repeat(content), do: %Content.Repeat{body: Content.to_content(content)}
 
-  @doc "Place content at an alignment. Options: `:alignment`, `:float`."
+  @doc """
+  Place content at an alignment. Options: `:alignment`, `:float`.
+
+  ## Examples
+
+      use Folio
+      place(image("logo.png"), alignment: "top + right", float: true)
+  """
   @spec place(Content.t() | [Content.t()] | String.t(), keyword()) :: Content.Place.t()
   def place(content, opts \\ []) when is_list(opts) do
     %Content.Place{
@@ -309,7 +495,15 @@ defmodule Folio.DSL do
     }
   end
 
-  @doc "Vertical spacing. Options: `:weak`."
+  @doc """
+  Vertical spacing. Options: `:weak`.
+
+  ## Examples
+
+      use Folio
+      vspace("1em")
+      vspace("2pt", weak: true)
+  """
   @spec vspace(String.t() | number(), keyword()) :: Content.VSpace.t()
   def vspace(amount, opts \\ [])
 
@@ -322,7 +516,15 @@ defmodule Folio.DSL do
           "vspace/2 expects a string or number as the amount, got: #{inspect({amount, opts})}"
   end
 
-  @doc "Horizontal spacing. Options: `:weak`."
+  @doc """
+  Horizontal spacing. Options: `:weak`.
+
+  ## Examples
+
+      use Folio
+      hspace("1em")
+      hspace("0.5cm", weak: true)
+  """
   @spec hspace(String.t() | number(), keyword()) :: Content.HSpace.t()
   def hspace(amount, opts \\ [])
 
@@ -335,7 +537,15 @@ defmodule Folio.DSL do
           "hspace/2 expects a string or number as the amount, got: #{inspect({amount, opts})}"
   end
 
-  @doc "Add padding around content. Options: `:left`, `:right`, `:top`, `:bottom`."
+  @doc """
+  Add padding around content. Options: `:left`, `:right`, `:top`, `:bottom`.
+
+  ## Examples
+
+      use Folio
+      pad(left: "1cm", right: "1cm",
+        do: [text("Indented paragraph.")])
+  """
   @spec pad(keyword(), [{:do, [Content.t()]}]) :: Content.Pad.t()
   def pad(opts, do: body) when is_list(opts) do
     %Content.Pad{
@@ -361,7 +571,15 @@ defmodule Folio.DSL do
 
   # ── Shapes ──
 
-  @doc "Rectangle. Options: `:width`, `:height`, `:fill`, `:body`."
+  @doc """
+  Rectangle. Options: `:width`, `:height`, `:fill`, `:body`.
+
+  ## Examples
+
+      use Folio
+      rect(width: "100pt", height: "50pt", fill: "#cccccc")
+      rect(width: "4cm", body: text("inside"))
+  """
   @spec rect(keyword()) :: Content.Rect.t()
   def rect(opts \\ [])
 
@@ -378,7 +596,14 @@ defmodule Folio.DSL do
     raise ArgumentError, "rect/1 expects a keyword list of options, got: #{inspect(opts)}"
   end
 
-  @doc "Square. Options: `:size`, `:fill`, `:body`."
+  @doc """
+  Square. Options: `:size`, `:fill`, `:body`.
+
+  ## Examples
+
+      use Folio
+      square(size: "40pt", fill: "#0055bb")
+  """
   @spec square(keyword()) :: Content.Square.t()
   def square(opts \\ [])
 
@@ -394,7 +619,14 @@ defmodule Folio.DSL do
     raise ArgumentError, "square/1 expects a keyword list of options, got: #{inspect(opts)}"
   end
 
-  @doc "Circle. Options: `:radius`, `:fill`, `:body`."
+  @doc """
+  Circle. Options: `:radius`, `:fill`, `:body`.
+
+  ## Examples
+
+      use Folio
+      circle(radius: "20pt", fill: "#ff0000")
+  """
   @spec circle(keyword()) :: Content.Circle.t()
   def circle(opts \\ [])
 
@@ -410,7 +642,14 @@ defmodule Folio.DSL do
     raise ArgumentError, "circle/1 expects a keyword list of options, got: #{inspect(opts)}"
   end
 
-  @doc "Ellipse. Options: `:width`, `:height`, `:fill`, `:body`."
+  @doc """
+  Ellipse. Options: `:width`, `:height`, `:fill`, `:body`.
+
+  ## Examples
+
+      use Folio
+      ellipse(width: "80pt", height: "40pt", fill: "#aaffaa")
+  """
   @spec ellipse(keyword()) :: Content.Ellipse.t()
   def ellipse(opts \\ [])
 
@@ -427,7 +666,15 @@ defmodule Folio.DSL do
     raise ArgumentError, "ellipse/1 expects a keyword list of options, got: #{inspect(opts)}"
   end
 
-  @doc "Line. Options: `:start`, `:end`, `:length`, `:angle`, `:stroke`."
+  @doc """
+  Line. Options: `:start`, `:end`, `:length`, `:angle`, `:stroke`.
+
+  ## Examples
+
+      use Folio
+      line(length: "100%", stroke: "1pt")
+      line(start: "(0pt, 0pt)", end: "(50pt, 50pt)")
+  """
   @spec line(keyword()) :: Content.Line.t()
   def line(opts \\ [])
 
@@ -445,7 +692,14 @@ defmodule Folio.DSL do
     raise ArgumentError, "line/1 expects a keyword list of options, got: #{inspect(opts)}"
   end
 
-  @doc "Polygon from coordinate list. Options: `:fill`, `:stroke`."
+  @doc """
+  Polygon from coordinate list. Options: `:fill`, `:stroke`.
+
+  ## Examples
+
+      use Folio
+      polygon([{0, 0}, {50, 0}, {25, 40}], fill: "#aaaaff", stroke: "1pt")
+  """
   @spec polygon([{number(), number()}], keyword()) :: Content.Polygon.t()
   def polygon(vertices, opts \\ [])
 
@@ -464,7 +718,15 @@ defmodule Folio.DSL do
 
   # ── Document structure ──
 
-  @doc "Table of contents. Options: `:title`, `:indent`, `:depth`."
+  @doc """
+  Table of contents. Options: `:title`, `:indent`, `:depth`.
+
+  ## Examples
+
+      use Folio
+      outline()
+      outline(title: "Contents", depth: 2)
+  """
   @spec outline(keyword()) :: Content.Outline.t()
   def outline(opts \\ [])
 
@@ -518,7 +780,15 @@ defmodule Folio.DSL do
     }
   end
 
-  @doc "Create a grid cell. Options: `:colspan`, `:rowspan`, `:align`, `:fill`."
+  @doc """
+  Create a grid cell. Options: `:colspan`, `:rowspan`, `:align`, `:fill`.
+
+  ## Examples
+
+      use Folio
+      grid_cell("plain")
+      grid_cell(strong("header"), colspan: 2, fill: "#eeeeee")
+  """
   @spec grid_cell(Content.t() | [Content.t()] | String.t(), keyword()) :: Content.GridCell.t()
   def grid_cell(content, opts \\ [])
 
@@ -537,17 +807,42 @@ defmodule Folio.DSL do
           "grid_cell/2 expects content and a keyword list of options, got: #{inspect({content, opts})}"
   end
 
-  @doc "Document title."
+  @doc """
+  Document title.
+
+  ## Examples
+
+      use Folio
+      title("My Report")
+      title([strong("Folio"), text(" — PDF Library")])
+  """
   @spec title(Content.t() | [Content.t()] | String.t()) :: Content.Title.t()
   def title(content), do: %Content.Title{body: Content.to_content(content)}
 
-  @doc "Horizontal divider."
+  @doc """
+  Horizontal divider.
+
+  ## Examples
+
+      use Folio
+      divider()
+  """
   @spec divider() :: Content.Divider.t()
   def divider, do: %Content.Divider{}
 
   # ── Term lists ──
 
-  @doc "Definition list from `{term, description}` tuples. Options: `:tight`."
+  @doc """
+  Definition list from `{term, description}` tuples. Options: `:tight`.
+
+  ## Examples
+
+      use Folio
+      term_list([
+        {"Elixir", "A functional language."},
+        {"Typst", "A modern typesetting system."}
+      ])
+  """
   @spec term_list([{term(), term()}], keyword()) :: Content.TermList.t()
   def term_list(items, opts \\ [])
 
@@ -571,7 +866,14 @@ defmodule Folio.DSL do
           "term_list/2 expects a list of tuples and a keyword list, got: #{inspect({items, opts})}"
   end
 
-  @doc "Single term item."
+  @doc """
+  Single term item.
+
+  ## Examples
+
+      use Folio
+      term_item("Folio", "A PDF library for Elixir.")
+  """
   @spec term_item(term(), term()) :: Content.TermItem.t()
   def term_item(term, description) do
     %Content.TermItem{
@@ -582,13 +884,28 @@ defmodule Folio.DSL do
 
   # ── Footnotes ──
 
-  @doc "Footnote."
+  @doc """
+  Footnote.
+
+  ## Examples
+
+      use Folio
+      [text("See here"), footnote("Additional details in the appendix.")]
+  """
   @spec footnote(Content.t() | [Content.t()] | String.t()) :: Content.Footnote.t()
   def footnote(content), do: %Content.Footnote{body: Content.to_content(content)}
 
   # ── Lists ──
 
-  @doc "Bullet list. Options: `:tight`, `:marker`."
+  @doc """
+  Bullet list. Options: `:tight`, `:marker`.
+
+  ## Examples
+
+      use Folio
+      list(["First item", "Second item", "Third item"])
+      list(["A", "B"], tight: false, marker: "–")
+  """
   @spec list([term()], keyword()) :: Content.List.t()
   def list(items, opts \\ [])
 
@@ -634,7 +951,16 @@ defmodule Folio.DSL do
 
   # ── Links ──
 
-  @doc "Hyperlink. Second argument is optional display text."
+  @doc """
+  Hyperlink. Second argument is optional display text.
+
+  ## Examples
+
+      use Folio
+      link("https://elixir-lang.org")
+      link("https://elixir-lang.org", "Elixir")
+      link("https://elixir-lang.org", strong("Elixir"))
+  """
   @spec link(String.t(), nil | Content.t() | String.t()) :: Content.Link.t()
   def link(url, text \\ nil)
 
@@ -648,7 +974,14 @@ defmodule Folio.DSL do
 
   # ── Labels & References ──
 
-  @doc "Label a position for cross-references."
+  @doc """
+  Label a position for cross-references.
+
+  ## Examples
+
+      use Folio
+      [heading(1, "Introduction"), label("intro")]
+  """
   @spec label(String.t()) :: Content.Label.t()
   def label(name) when is_binary(name), do: %Content.Label{name: name}
 
@@ -656,7 +989,15 @@ defmodule Folio.DSL do
     raise ArgumentError, "label/1 expects a string, got: #{inspect(name)}"
   end
 
-  @doc "Reference a labelled element."
+  @doc """
+  Reference a labelled element.
+
+  ## Examples
+
+      use Folio
+      ref("intro")
+      ref("fig:chart", "Figure")
+  """
   @spec ref(String.t(), nil | Content.t() | [Content.t()] | String.t()) :: Content.Ref.t()
   def ref(target, supplement \\ nil)
 
@@ -670,7 +1011,15 @@ defmodule Folio.DSL do
 
   # ── Math ──
 
-  @doc "Math expression in Typst syntax. Options: `:block`."
+  @doc """
+  Math expression in Typst syntax. Options: `:block`.
+
+  ## Examples
+
+      use Folio
+      math("x^2 + y^2 = r^2")
+      math("sum_(i=1)^n i = (n(n+1))/2", block: true)
+  """
   @spec math(String.t(), keyword()) :: Content.Math.t()
   def math(content, opts \\ [])
 
@@ -685,7 +1034,15 @@ defmodule Folio.DSL do
 
   # ── Raw / Code ──
 
-  @doc "Raw/code text. Options: `:lang`, `:block`."
+  @doc """
+  Raw/code text. Options: `:lang`, `:block`.
+
+  ## Examples
+
+      use Folio
+      raw("IO.puts(\"hello\")", lang: "elixir")
+      raw("SELECT * FROM users", lang: "sql", block: true)
+  """
   @spec raw(String.t(), keyword()) :: Content.Raw.t()
   def raw(text, opts \\ [])
 
@@ -778,7 +1135,15 @@ defmodule Folio.DSL do
 
   # ── Quote ──
 
-  @doc "Block quote. Options: `:block`, `:attribution`."
+  @doc """
+  Block quote. Options: `:block`, `:attribution`.
+
+  ## Examples
+
+      use Folio
+      blockquote("To be, or not to be.")
+      blockquote("Elementary, my dear Watson.", attribution: "Sherlock Holmes")
+  """
   @spec blockquote(Content.t() | [Content.t()] | String.t(), keyword()) :: Content.Quote.t()
   def blockquote(content, opts \\ []) when is_list(opts) do
     %Content.Quote{
