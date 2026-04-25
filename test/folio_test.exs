@@ -232,6 +232,38 @@ defmodule FolioTest do
 
       assert %Folio.Content.Table{gutter: "6pt", children: [_header, _row]} = tbl
     end
+
+    test "table with fr columns compiles" do
+      import Folio.DSL
+
+      assert {:ok, pdf} =
+               Folio.to_pdf([
+                 table([columns: ["1fr", "2fr", "1fr"], gutter: "8pt", stroke: "0.5pt"],
+                   do: [
+                     table_header([table_cell("A"), table_cell("B"), table_cell("C")]),
+                     table_row([table_cell("1"), table_cell("2"), table_cell("3")])
+                   ]
+                 )
+               ])
+
+      assert is_binary(pdf)
+      assert byte_size(pdf) > 100
+    end
+
+    test "table with mixed sizing columns compiles" do
+      import Folio.DSL
+
+      assert {:ok, pdf} =
+               Folio.to_pdf([
+                 table([columns: ["100pt", "1fr", "auto"], gutter: "4pt"],
+                   do: [
+                     table_row([table_cell("fixed"), table_cell("flex"), table_cell("auto")])
+                   ]
+                 )
+               ])
+
+      assert is_binary(pdf)
+    end
   end
 
   describe "Styles" do
@@ -377,12 +409,97 @@ defmodule FolioTest do
   describe "error handling" do
     test "to_pdf returns error for broken image" do
       assert {:ok, _} = Folio.to_pdf([%Folio.Content.Image{src: "nope.png"}])
-      # Currently returns ok with fallback text — this is expected behavior
     end
 
     test "parse_markdown raises on NIF error" do
-      # Normal strings parse fine
       assert [%Folio.Content.Paragraph{}] = Folio.parse_markdown!("ok")
+    end
+  end
+
+  describe "DSL argument validation" do
+    import Folio.DSL
+
+    test "text/1 rejects non-string" do
+      assert_raise ArgumentError, ~r/text\/1 expects a string/, fn -> text(123) end
+    end
+
+    test "heading/2 rejects out-of-range level" do
+      assert_raise ArgumentError, ~r/level must be 1\.\.6/, fn -> heading(0, "test") end
+      assert_raise ArgumentError, ~r/level must be 1\.\.6/, fn -> heading(7, "test") end
+    end
+
+    test "heading/2 rejects non-integer level" do
+      assert_raise ArgumentError, ~r/expects an integer/, fn -> heading("1", "test") end
+    end
+
+    test "align/2 rejects invalid alignment" do
+      assert_raise ArgumentError, ~r/expects :left, :center, or :right/, fn ->
+        align(:top, "hello")
+      end
+    end
+
+    test "rect/1 rejects non-keyword" do
+      assert_raise ArgumentError, ~r/expects a keyword list/, fn -> rect("bad") end
+    end
+
+    test "circle/1 rejects non-keyword" do
+      assert_raise ArgumentError, ~r/expects a keyword list/, fn -> circle(:oops) end
+    end
+
+    test "math/2 rejects non-string" do
+      assert_raise ArgumentError, ~r/expects a string expression/, fn -> math(123) end
+    end
+
+    test "raw/2 rejects non-string" do
+      assert_raise ArgumentError, ~r/expects a string/, fn -> raw(:not_string) end
+    end
+
+    test "vspace/2 rejects non-numeric" do
+      assert_raise ArgumentError, ~r/expects a string or number/, fn -> vspace(nil) end
+    end
+
+    test "link/2 rejects non-string URL" do
+      assert_raise ArgumentError, ~r/expects a string URL/, fn -> link(123) end
+    end
+
+    test "label/1 rejects non-string" do
+      assert_raise ArgumentError, ~r/expects a string/, fn -> label(123) end
+    end
+
+    test "raw_typst/1 rejects non-string" do
+      assert_raise ArgumentError, ~r/expects a string/, fn -> raw_typst(:not_string) end
+    end
+
+    test "show/2 rejects non-atom target" do
+      assert_raise ArgumentError, ~r/expects an atom target/, fn ->
+        show("heading", fn x -> x end)
+      end
+    end
+
+    test "polygon/2 rejects non-list vertices" do
+      assert_raise ArgumentError, ~r/expects a list/, fn -> polygon("bad") end
+    end
+
+    test "bibliography/2 rejects non-string non-list" do
+      assert_raise ArgumentError, ~r/expects a string or list/, fn -> bibliography(123) end
+    end
+
+    test "grid/2 validates :columns type" do
+      assert_raise ArgumentError, ~r/grid :columns must be a list/, fn ->
+        grid([columns: 123], do: [grid_cell("A")])
+      end
+    end
+
+    test "table_header/1 rejects empty list" do
+      assert_raise ArgumentError, ~r/non-empty list/, fn -> table_header([]) end
+    end
+
+    test "table_row/1 rejects empty list" do
+      assert_raise ArgumentError, ~r/non-empty list/, fn -> table_row([]) end
+    end
+
+    test "term_list/2 rejects non-tuple elements" do
+      assert_raise ArgumentError, ~r/not a 2-tuple/, fn -> term_list([1, 2, 3]) end
     end
   end
 

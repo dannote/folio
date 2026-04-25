@@ -610,8 +610,13 @@ fn convert_node(engine: &mut Engine, node: &ExContent) -> Content {
 // ── Table conversion ─────────────────────────────────────────────────────────
 
 fn convert_table(engine: &mut Engine, tbl: &crate::types::ExTable) -> Content {
-    let ncols = count_columns(tbl);
-    let cols = TrackSizings(std::iter::repeat_with(|| Sizing::Auto).take(ncols).collect());
+    let cols = if let Some(specs) = &tbl.columns {
+        let track: smallvec::SmallVec<[Sizing; 4]> = specs.iter().map(|s| parse_sizing(s)).collect();
+        TrackSizings(track)
+    } else {
+        let ncols = count_columns(tbl);
+        TrackSizings(std::iter::repeat_with(|| Sizing::Auto).take(ncols).collect())
+    };
     let mut children: Vec<TableChild> = Vec::new();
 
     let mut make_cell = |tc: &crate::types::ExTableCell| {

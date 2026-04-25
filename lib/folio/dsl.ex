@@ -179,13 +179,21 @@ defmodule Folio.DSL do
   @doc "Create a table. Options: `:columns`, `:rows`, `:stroke`, `:gutter`, `:align`. Use `do` block for rows."
   @spec table(keyword(), [{:do, [Content.t()]}]) :: Content.Table.t()
   def table(opts, do: children) when is_list(opts) do
-    columns = Keyword.get(opts, :columns)
+    columns =
+      case Keyword.get(opts, :columns) do
+        nil ->
+          nil
 
-    unless is_nil(columns) or is_binary(columns) do
-      raise ArgumentError,
-            "table :columns must be a string (e.g. \"3\"), got: #{inspect(columns)}. " <>
-              "Use grid/2 for fractional column definitions like [\"1fr\", \"1fr\"]."
-    end
+        cols when is_list(cols) ->
+          Enum.map(cols, &to_string/1)
+
+        col when is_binary(col) ->
+          [col]
+
+        other ->
+          raise ArgumentError,
+                "table :columns must be a list of sizing strings (e.g. [\"1fr\", \"1fr\", \"1fr\"]) or a single string, got: #{inspect(other)}"
+      end
 
     %Content.Table{
       columns: columns,

@@ -91,7 +91,7 @@ pub struct ExFigure {
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Table"]
 pub struct ExTable {
-    pub columns: Option<String>,
+    pub columns: Option<Vec<String>>,
     pub rows: Option<String>,
     pub children: Vec<ExContent>,
     pub stroke: Option<String>,

@@ -133,7 +133,7 @@ defmodule Folio.Content do
     defstruct [:columns, :rows, :children, :stroke, :gutter, :align]
 
     @type t :: %__MODULE__{
-            columns: String.t() | nil,
+            columns: [String.t()] | nil,
             rows: String.t() | nil,
             children: [Folio.Content.t()],
             stroke: String.t() | nil,
