@@ -4,7 +4,13 @@ use rustler::{NifStruct, NifUntaggedEnum};
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Text"]
-pub struct ExText { pub text: String }
+pub struct ExText {
+    pub text: String,
+    pub size: Option<String>,
+    pub weight: Option<String>,
+    pub fill: Option<String>,
+    pub tracking: Option<String>,
+}
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Space"]
@@ -97,6 +103,8 @@ pub struct ExTable {
     pub stroke: Option<String>,
     pub gutter: Option<String>,
     pub align: Option<String>,
+    pub inset: Option<String>,
+    pub fill: Option<String>,
 }
 
 #[derive(Clone, Debug, NifStruct)]
@@ -192,6 +200,10 @@ pub struct ExBlock {
     pub height: Option<String>,
     pub above: Option<String>,
     pub below: Option<String>,
+    pub fill: Option<String>,
+    pub inset: Option<String>,
+    pub radius: Option<String>,
+    pub stroke: Option<String>,
 }
 
 #[derive(Clone, Debug, NifStruct)]
@@ -235,6 +247,8 @@ pub struct ExRect {
     pub width: Option<String>,
     pub height: Option<String>,
     pub fill: Option<String>,
+    pub inset: Option<String>,
+    pub radius: Option<String>,
 }
 
 #[derive(Clone, Debug, NifStruct)]
@@ -314,6 +328,8 @@ pub struct ExGrid {
     pub columns: Option<Vec<String>>,
     pub rows: Option<Vec<String>>,
     pub gutter: Option<String>,
+    pub column_gutter: Option<String>,
+    pub row_gutter: Option<String>,
     pub children: Vec<ExContent>,
 }
 

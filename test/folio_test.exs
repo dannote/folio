@@ -419,8 +419,8 @@ defmodule FolioTest do
   describe "DSL argument validation" do
     import Folio.DSL
 
-    test "text/1 rejects non-string" do
-      assert_raise ArgumentError, ~r/text\/1 expects a string/, fn -> text(123) end
+    test "text/2 rejects non-string" do
+      assert_raise ArgumentError, ~r/text\/2 expects a string/, fn -> text(123) end
     end
 
     test "heading/2 rejects out-of-range level" do

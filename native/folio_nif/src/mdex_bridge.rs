@@ -33,7 +33,13 @@ fn convert_node<'a>(node: &'a AstNode<'a>) -> ExContent {
         }
 
         NodeValue::Text(literal) => {
-            ExContent::Text(ExText { text: literal.to_string() })
+            ExContent::Text(ExText {
+                text: literal.to_string(),
+                size: None,
+                weight: None,
+                fill: None,
+                tracking: None,
+            })
         }
 
         NodeValue::Strong => {
@@ -220,5 +226,7 @@ fn convert_table<'a>(node: &'a AstNode<'a>) -> ExContent {
         stroke: None,
         gutter: None,
         align: None,
+        inset: None,
+        fill: None,
     })
 }

@@ -7,9 +7,16 @@ defmodule Folio.Content do
   """
 
   defmodule Text do
-    @moduledoc "A plain text run. Field: `text`."
-    defstruct [:text]
-    @type t :: %__MODULE__{text: String.t()}
+    @moduledoc "A plain text run. Fields: `text`, `size`, `weight`, `fill`, `tracking`."
+    defstruct [:text, :size, :weight, :fill, :tracking]
+
+    @type t :: %__MODULE__{
+            text: String.t(),
+            size: String.t() | nil,
+            weight: String.t() | nil,
+            fill: String.t() | nil,
+            tracking: String.t() | nil
+          }
   end
 
   defmodule Space do
@@ -129,8 +136,8 @@ defmodule Folio.Content do
   end
 
   defmodule Table do
-    @moduledoc "A table grid. Fields: `children`, `gutter`, `stroke`, `align`."
-    defstruct [:columns, :rows, :children, :stroke, :gutter, :align]
+    @moduledoc "A table grid. Fields: `children`, `gutter`, `stroke`, `align`, `inset`, `fill`."
+    defstruct [:columns, :rows, :children, :stroke, :gutter, :align, :inset, :fill]
 
     @type t :: %__MODULE__{
             columns: [String.t()] | nil,
@@ -138,7 +145,9 @@ defmodule Folio.Content do
             children: [Folio.Content.t()],
             stroke: String.t() | nil,
             gutter: String.t() | nil,
-            align: String.t() | nil
+            align: String.t() | nil,
+            inset: String.t() | nil,
+            fill: String.t() | nil
           }
   end
 
@@ -284,14 +293,18 @@ defmodule Folio.Content do
 
   defmodule Block do
     @moduledoc "Block-level container."
-    defstruct [:body, :width, :height, :above, :below]
+    defstruct [:body, :width, :height, :above, :below, :fill, :inset, :radius, :stroke]
 
     @type t :: %__MODULE__{
             body: [Folio.Content.t()],
             width: String.t() | nil,
             height: String.t() | nil,
             above: String.t() | nil,
-            below: String.t() | nil
+            below: String.t() | nil,
+            fill: String.t() | nil,
+            inset: String.t() | nil,
+            radius: String.t() | nil,
+            stroke: String.t() | nil
           }
   end
 
@@ -356,13 +369,15 @@ defmodule Folio.Content do
 
   defmodule Rect do
     @moduledoc "Rectangle shape."
-    defstruct [:body, :width, :height, :fill]
+    defstruct [:body, :width, :height, :fill, :inset, :radius]
 
     @type t :: %__MODULE__{
             body: [Folio.Content.t()],
             width: String.t() | nil,
             height: String.t() | nil,
-            fill: String.t() | nil
+            fill: String.t() | nil,
+            inset: String.t() | nil,
+            radius: String.t() | nil
           }
   end
 
@@ -466,13 +481,15 @@ defmodule Folio.Content do
   end
 
   defmodule Grid do
-    @moduledoc "Grid layout. Fields: `columns`, `rows`, `gutter`, `children`."
-    defstruct [:columns, :rows, :gutter, :children]
+    @moduledoc "Grid layout. Fields: `columns`, `rows`, `gutter`, `column_gutter`, `row_gutter`, `children`."
+    defstruct [:columns, :rows, :gutter, :column_gutter, :row_gutter, :children]
 
     @type t :: %__MODULE__{
             columns: [String.t()] | pos_integer() | nil,
             rows: [String.t()] | nil,
             gutter: String.t() | nil,
+            column_gutter: String.t() | nil,
+            row_gutter: String.t() | nil,
             children: [Folio.Content.t()]
           }
   end

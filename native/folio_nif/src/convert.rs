@@ -7,7 +7,7 @@ use typst::foundations::{Bytes, Content, NativeElement, OneOrMultiple, Smart};
 use std::sync::Arc;
 use typst::layout::{
     Abs, AlignElem, Alignment, Axes, BlockBody, BlockElem, Celled, ColbreakElem,
-    ColumnsElem, Dir, Em, Fr, HElem, HideElem, Length, PadElem,
+    ColumnsElem, Corners, Dir, Em, Fr, HElem, HideElem, Length, PadElem,
     PagebreakElem, PlaceElem, Ratio, Rel, RepeatElem, Sides, Sizing,
     StackChild, StackElem, TrackSizings, VElem,
 };
@@ -20,8 +20,8 @@ use typst::model::{
     TableItem, TermItem, TermsElem, TitleElem,
 };
 use typst::text::{
-    HighlightElem, LinebreakElem, RawContent, RawElem, SmallcapsElem,
-    StrikeElem, SubElem, SuperElem, TextElem, UnderlineElem,
+    FontWeight, HighlightElem, LinebreakElem, RawContent, RawElem, SmallcapsElem,
+    StrikeElem, SubElem, SuperElem, TextElem, TextSize, UnderlineElem,
 };
 use typst::utils::PicoStr;
 use typst::layout::Angle;
@@ -129,6 +129,27 @@ fn parse_angle(s: &str) -> Option<Angle> {
     else { s.parse::<f64>().ok().map(Angle::deg) }
 }
 
+fn parse_font_weight(s: &str) -> FontWeight {
+    match s.trim().to_ascii_lowercase().as_str() {
+        "thin" => FontWeight::THIN,
+        "extralight" => FontWeight::EXTRALIGHT,
+        "light" => FontWeight::LIGHT,
+        "regular" => FontWeight::REGULAR,
+        "medium" => FontWeight::MEDIUM,
+        "semibold" => FontWeight::SEMIBOLD,
+        "bold" => FontWeight::BOLD,
+        "extrabold" => FontWeight::EXTRABOLD,
+        "black" => FontWeight::BLACK,
+        other => {
+            if let Ok(n) = other.parse::<u16>() {
+                FontWeight::from_number(n)
+            } else {
+                FontWeight::REGULAR
+            }
+        }
+    }
+}
+
 fn parse_stroke(s: &str) -> Option<Stroke> {
     let s = s.trim();
     // Try "thickness+color" format (e.g. "2pt + red", "1pt+#ff0000")
@@ -228,7 +249,40 @@ fn cc(engine: &mut Engine, nodes: &[ExContent]) -> Content {
 fn convert_node(engine: &mut Engine, node: &ExContent) -> Content {
     match node {
         // Text basics
-        ExContent::Text(t) => TextElem::packed(&t.text),
+        ExContent::Text(t) => {
+            let mut content = TextElem::packed(&t.text);
+            if let Some(size_str) = &t.size {
+                if let Some(len) = parse_length(size_str) {
+                    content = content.styled(typst::foundations::Property::new(
+                        TextElem::size,
+                        TextSize(len),
+                    ));
+                }
+            }
+            if let Some(weight_str) = &t.weight {
+                content = content.styled(typst::foundations::Property::new(
+                    TextElem::weight,
+                    parse_font_weight(weight_str),
+                ));
+            }
+            if let Some(fill_str) = &t.fill {
+                if let Some(paint) = parse_paint(fill_str) {
+                    content = content.styled(typst::foundations::Property::new(
+                        TextElem::fill,
+                        paint,
+                    ));
+                }
+            }
+            if let Some(tracking_str) = &t.tracking {
+                if let Some(len) = parse_length(tracking_str) {
+                    content = content.styled(typst::foundations::Property::new(
+                        TextElem::tracking,
+                        len,
+                    ));
+                }
+            }
+            content
+        }
         ExContent::Space(_) => TextSpace::shared().clone(),
         ExContent::Heading(h) => HeadingElem::new(cc(engine, &h.body))
             .with_depth(NonZeroUsize::new(h.level as usize).unwrap_or(NonZeroUsize::MIN)).pack(),
@@ -415,6 +469,24 @@ fn convert_node(engine: &mut Engine, node: &ExContent) -> Content {
                     e = e.with_below(Smart::Custom(typst::layout::Spacing::Rel(sp)));
                 }
             }
+            if let Some(paint) = opt_paint(b.fill.as_deref()) {
+                e = e.with_fill(Some(paint));
+            }
+            if let Some(inset_str) = &b.inset {
+                if let Some(r) = parse_rel(inset_str) {
+                    e = e.with_inset(Sides::splat(Some(r)));
+                }
+            }
+            if let Some(radius_str) = &b.radius {
+                if let Some(r) = parse_rel(radius_str) {
+                    e = e.with_radius(Corners::splat(Some(r)));
+                }
+            }
+            if let Some(stroke_str) = &b.stroke {
+                if let Some(s) = parse_stroke(stroke_str) {
+                    e = e.with_stroke(Sides::splat(Some(Some(s))));
+                }
+            }
             e.pack()
         }
 
@@ -457,11 +529,24 @@ fn convert_node(engine: &mut Engine, node: &ExContent) -> Content {
         }
 
         // Shapes
-        ExContent::Rect(r) => RectElem::new()
-            .with_body(Some(cc(engine, &r.body)))
-            .with_width(smart_rel(r.width.as_deref()))
-            .with_height(smart_sizing(r.height.as_deref()))
-            .with_fill(opt_paint(r.fill.as_deref())).pack(),
+        ExContent::Rect(r) => {
+            let mut e = RectElem::new()
+                .with_body(Some(cc(engine, &r.body)))
+                .with_width(smart_rel(r.width.as_deref()))
+                .with_height(smart_sizing(r.height.as_deref()))
+                .with_fill(opt_paint(r.fill.as_deref()));
+            if let Some(inset_str) = &r.inset {
+                if let Some(rv) = parse_rel(inset_str) {
+                    e = e.with_inset(Sides::splat(Some(rv)));
+                }
+            }
+            if let Some(radius_str) = &r.radius {
+                if let Some(rv) = parse_rel(radius_str) {
+                    e = e.with_radius(Corners::splat(Some(rv)));
+                }
+            }
+            e.pack()
+        }
 
         ExContent::Square(sq) => SquareElem::new()
             .with_body(Some(cc(engine, &sq.body)))
@@ -665,6 +750,16 @@ fn convert_table(engine: &mut Engine, tbl: &crate::types::ExTable) -> Content {
             elem = elem.with_stroke(Celled::Value(Sides::splat(Some(Some(Arc::new(s))))));
         }
     }
+    if let Some(inset_str) = &tbl.inset {
+        if let Some(r) = parse_rel(inset_str) {
+            elem = elem.with_inset(Celled::Value(Sides::splat(Some(r))));
+        }
+    }
+    if let Some(fill_str) = &tbl.fill {
+        if let Some(paint) = parse_paint(fill_str) {
+            elem = elem.with_fill(Celled::Value(Some(paint)));
+        }
+    }
     elem.pack()
 }
 
@@ -713,6 +808,18 @@ fn convert_grid(engine: &mut Engine, grid: &crate::types::ExGrid) -> Content {
     if let Some(g) = &grid.gutter {
         if let Some(r) = parse_rel(g) {
             elem = elem.with_column_gutter(TrackSizings(smallvec::smallvec![Sizing::Rel(r)]));
+            elem = elem.with_row_gutter(TrackSizings(smallvec::smallvec![Sizing::Rel(r)]));
+        }
+    }
+
+    if let Some(cg) = &grid.column_gutter {
+        if let Some(r) = parse_rel(cg) {
+            elem = elem.with_column_gutter(TrackSizings(smallvec::smallvec![Sizing::Rel(r)]));
+        }
+    }
+
+    if let Some(rg) = &grid.row_gutter {
+        if let Some(r) = parse_rel(rg) {
             elem = elem.with_row_gutter(TrackSizings(smallvec::smallvec![Sizing::Rel(r)]));
         }
     }

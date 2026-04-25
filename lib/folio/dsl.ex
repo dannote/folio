@@ -15,18 +15,32 @@ defmodule Folio.DSL do
   # ── Text ──
 
   @doc """
-  Create a text node.
+  Create a text node. Options: `:size`, `:weight`, `:fill`, `:tracking`.
 
   ## Examples
 
       use Folio
       text("Hello, world!")
+      text("Big", size: "24pt", weight: "bold", fill: "#ff0000")
   """
-  @spec text(String.t()) :: Content.Text.t()
-  def text(str) when is_binary(str), do: %Content.Text{text: str}
+  @spec text(String.t(), keyword()) :: Content.Text.t()
+  def text(str, opts \\ [])
 
-  def text(str),
-    do: raise(ArgumentError, message: "text/1 expects a string, got: #{inspect(str)}")
+  def text(str, opts) when is_binary(str) and is_list(opts) do
+    %Content.Text{
+      text: str,
+      size: Keyword.get(opts, :size),
+      weight: Keyword.get(opts, :weight),
+      fill: Keyword.get(opts, :fill),
+      tracking: Keyword.get(opts, :tracking)
+    }
+  end
+
+  def text(str, opts),
+    do:
+      raise(ArgumentError,
+        message: "text/2 expects a string and keyword list, got: #{inspect({str, opts})}"
+      )
 
   # ── Headings ──
 
@@ -286,7 +300,9 @@ defmodule Folio.DSL do
       children: Content.flatten(Content.to_content(children)),
       stroke: Keyword.get(opts, :stroke),
       gutter: Keyword.get(opts, :gutter),
-      align: Keyword.get(opts, :align)
+      align: Keyword.get(opts, :align),
+      inset: Keyword.get(opts, :inset),
+      fill: Keyword.get(opts, :fill)
     }
   end
 
@@ -452,7 +468,11 @@ defmodule Folio.DSL do
       width: Keyword.get(opts, :width),
       height: Keyword.get(opts, :height),
       above: Keyword.get(opts, :above),
-      below: Keyword.get(opts, :below)
+      below: Keyword.get(opts, :below),
+      fill: Keyword.get(opts, :fill),
+      inset: Keyword.get(opts, :inset),
+      radius: Keyword.get(opts, :radius),
+      stroke: Keyword.get(opts, :stroke)
     }
   end
 
@@ -588,7 +608,9 @@ defmodule Folio.DSL do
       body: shape_body(opts),
       width: Keyword.get(opts, :width),
       height: Keyword.get(opts, :height),
-      fill: Keyword.get(opts, :fill)
+      fill: Keyword.get(opts, :fill),
+      inset: Keyword.get(opts, :inset),
+      radius: Keyword.get(opts, :radius)
     }
   end
 
@@ -776,6 +798,8 @@ defmodule Folio.DSL do
       columns: normalized_columns,
       rows: if(is_list(rows), do: Enum.map(rows, &to_string/1), else: rows),
       gutter: Keyword.get(opts, :gutter),
+      column_gutter: Keyword.get(opts, :column_gutter),
+      row_gutter: Keyword.get(opts, :row_gutter),
       children: Content.flatten(Content.to_content(children))
     }
   end
