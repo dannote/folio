@@ -45,7 +45,9 @@ defmodule Folio.DSL do
       cite("knuth1984", form: "prose")
   """
   @spec cite(String.t(), keyword()) :: Content.Cite.t()
-  def cite(key, opts \\ []) when is_binary(key) do
+  def cite(key, opts \\ [])
+
+  def cite(key, opts) when is_binary(key) and is_list(opts) do
     %Content.Cite{
       key: key,
       supplement: then_if_some(Keyword.get(opts, :supplement), &Content.to_content/1),
@@ -54,21 +56,35 @@ defmodule Folio.DSL do
     }
   end
 
+  def cite(key, opts) do
+    raise ArgumentError,
+          "cite/2 expects a string key and a keyword list, got: #{inspect({key, opts})}"
+  end
+
   @doc """
   Insert a bibliography listing.
 
       bibliography("refs.bib", title: "References", style: "ieee")
   """
   @spec bibliography(String.t() | [String.t()], keyword()) :: Content.Bibliography.t()
-  def bibliography(sources, opts \\ []) do
-    normalized_sources =
-      case sources do
-        source when is_binary(source) -> [source]
-        source_list when is_list(source_list) -> source_list
-      end
+  def bibliography(sources, opts \\ [])
 
+  def bibliography(sources, opts) when is_binary(sources) and is_list(opts) do
+    do_bibliography([sources], opts)
+  end
+
+  def bibliography(sources, opts) when is_list(sources) and is_list(opts) do
+    do_bibliography(sources, opts)
+  end
+
+  def bibliography(sources, opts) do
+    raise ArgumentError,
+          "bibliography/2 expects a string or list of strings as the first argument, got: #{inspect(sources, opts)}"
+  end
+
+  defp do_bibliography(sources, opts) do
     %Content.Bibliography{
-      sources: normalized_sources,
+      sources: sources,
       title: then_if_some(Keyword.get(opts, :title), &Content.to_content/1),
       full: Keyword.get(opts, :full, false),
       style: Keyword.get(opts, :style)
@@ -95,7 +111,7 @@ defmodule Folio.DSL do
 
   @doc "Highlighted text. Options: `:fill` color."
   @spec highlight(Content.t() | [Content.t()] | String.t(), keyword()) :: Content.Highlight.t()
-  def highlight(content, opts \\ []) do
+  def highlight(content, opts \\ []) when is_list(opts) do
     %Content.Highlight{body: Content.to_content(content), fill: Keyword.get(opts, :fill)}
   end
 
@@ -140,7 +156,9 @@ defmodule Folio.DSL do
   """
   @spec figure(Content.t() | [Content.t()] | String.t(), keyword()) :: Content.Figure.t()
   def figure(content, opts \\ [])
-      when is_binary(content) or is_struct(content) or is_list(content) do
+
+  def figure(content, opts)
+      when (is_binary(content) or is_struct(content) or is_list(content)) and is_list(opts) do
     %Content.Figure{
       body: Content.to_content(content),
       caption: then_if_some(Keyword.get(opts, :caption), &Content.to_content/1),
@@ -149,6 +167,11 @@ defmodule Folio.DSL do
       numbering: Keyword.get(opts, :numbering),
       separator: Keyword.get(opts, :separator)
     }
+  end
+
+  def figure(content, opts) do
+    raise ArgumentError,
+          "figure/2 expects content (string, struct, or list) and a keyword list, got: #{inspect({content, opts})}"
   end
 
   # ── Tables ──
@@ -176,19 +199,29 @@ defmodule Folio.DSL do
 
   @doc "Create a table header row from a list of cell contents."
   @spec table_header([Content.t() | String.t()]) :: Content.TableHeader.t()
-  def table_header(cells) when is_list(cells) do
+  def table_header([_ | _] = cells) do
     %Content.TableHeader{children: Enum.map(cells, &table_cell/1)}
+  end
+
+  def table_header(cells) do
+    raise ArgumentError,
+          "table_header/1 expects a non-empty list of cell contents, got: #{inspect(cells)}"
   end
 
   @doc "Create a table data row from a list of cell contents."
   @spec table_row([Content.t() | String.t()]) :: Content.TableRow.t()
-  def table_row(cells) when is_list(cells) do
+  def table_row([_ | _] = cells) do
     %Content.TableRow{children: Enum.map(cells, &table_cell/1)}
+  end
+
+  def table_row(cells) do
+    raise ArgumentError,
+          "table_row/1 expects a non-empty list of cell contents, got: #{inspect(cells)}"
   end
 
   @doc "Create a table cell. Options: `:colspan`, `:rowspan`, `:align`."
   @spec table_cell(Content.t() | [Content.t()] | String.t(), keyword()) :: Content.TableCell.t()
-  def table_cell(content, opts \\ []) do
+  def table_cell(content, opts \\ []) when is_list(opts) do
     %Content.TableCell{
       body: Content.to_content(content),
       colspan: Keyword.get(opts, :colspan),
@@ -201,7 +234,8 @@ defmodule Folio.DSL do
 
   @doc "Flow content into `count` columns. Options: `:gutter`."
   @spec columns(pos_integer(), keyword(), [{:do, [Content.t()]}]) :: Content.Columns.t()
-  def columns(count, opts \\ [], do: body) when is_integer(count) and is_list(opts) do
+  def columns(count, opts \\ [], do: body)
+      when is_integer(count) and count >= 1 and is_list(opts) do
     %Content.Columns{
       count: count,
       body: Content.flatten(Content.to_content(body)),
@@ -259,7 +293,7 @@ defmodule Folio.DSL do
 
   @doc "Place content at an alignment. Options: `:alignment`, `:float`."
   @spec place(Content.t() | [Content.t()] | String.t(), keyword()) :: Content.Place.t()
-  def place(content, opts \\ []) do
+  def place(content, opts \\ []) when is_list(opts) do
     %Content.Place{
       alignment: Keyword.get(opts, :alignment),
       body: Content.to_content(content),
@@ -269,14 +303,28 @@ defmodule Folio.DSL do
 
   @doc "Vertical spacing. Options: `:weak`."
   @spec vspace(String.t() | number(), keyword()) :: Content.VSpace.t()
-  def vspace(amount, opts \\ []) do
+  def vspace(amount, opts \\ [])
+
+  def vspace(amount, opts) when (is_binary(amount) or is_number(amount)) and is_list(opts) do
     %Content.VSpace{amount: to_string(amount), weak: Keyword.get(opts, :weak, false)}
+  end
+
+  def vspace(amount, opts) do
+    raise ArgumentError,
+          "vspace/2 expects a string or number as the amount, got: #{inspect({amount, opts})}"
   end
 
   @doc "Horizontal spacing. Options: `:weak`."
   @spec hspace(String.t() | number(), keyword()) :: Content.HSpace.t()
-  def hspace(amount, opts \\ []) do
+  def hspace(amount, opts \\ [])
+
+  def hspace(amount, opts) when (is_binary(amount) or is_number(amount)) and is_list(opts) do
     %Content.HSpace{amount: to_string(amount), weak: Keyword.get(opts, :weak, false)}
+  end
+
+  def hspace(amount, opts) do
+    raise ArgumentError,
+          "hspace/2 expects a string or number as the amount, got: #{inspect({amount, opts})}"
   end
 
   @doc "Add padding around content. Options: `:left`, `:right`, `:top`, `:bottom`."
@@ -307,7 +355,9 @@ defmodule Folio.DSL do
 
   @doc "Rectangle. Options: `:width`, `:height`, `:fill`, `:body`."
   @spec rect(keyword()) :: Content.Rect.t()
-  def rect(opts \\ []) do
+  def rect(opts \\ [])
+
+  def rect(opts) when is_list(opts) do
     %Content.Rect{
       body: shape_body(opts),
       width: Keyword.get(opts, :width),
@@ -316,9 +366,15 @@ defmodule Folio.DSL do
     }
   end
 
+  def rect(opts) do
+    raise ArgumentError, "rect/1 expects a keyword list of options, got: #{inspect(opts)}"
+  end
+
   @doc "Square. Options: `:size`, `:fill`, `:body`."
   @spec square(keyword()) :: Content.Square.t()
-  def square(opts \\ []) do
+  def square(opts \\ [])
+
+  def square(opts) when is_list(opts) do
     %Content.Square{
       body: shape_body(opts),
       size: Keyword.get(opts, :size),
@@ -326,9 +382,15 @@ defmodule Folio.DSL do
     }
   end
 
+  def square(opts) do
+    raise ArgumentError, "square/1 expects a keyword list of options, got: #{inspect(opts)}"
+  end
+
   @doc "Circle. Options: `:radius`, `:fill`, `:body`."
   @spec circle(keyword()) :: Content.Circle.t()
-  def circle(opts \\ []) do
+  def circle(opts \\ [])
+
+  def circle(opts) when is_list(opts) do
     %Content.Circle{
       body: shape_body(opts),
       radius: Keyword.get(opts, :radius),
@@ -336,9 +398,15 @@ defmodule Folio.DSL do
     }
   end
 
+  def circle(opts) do
+    raise ArgumentError, "circle/1 expects a keyword list of options, got: #{inspect(opts)}"
+  end
+
   @doc "Ellipse. Options: `:width`, `:height`, `:fill`, `:body`."
   @spec ellipse(keyword()) :: Content.Ellipse.t()
-  def ellipse(opts \\ []) do
+  def ellipse(opts \\ [])
+
+  def ellipse(opts) when is_list(opts) do
     %Content.Ellipse{
       body: shape_body(opts),
       width: Keyword.get(opts, :width),
@@ -347,9 +415,15 @@ defmodule Folio.DSL do
     }
   end
 
+  def ellipse(opts) do
+    raise ArgumentError, "ellipse/1 expects a keyword list of options, got: #{inspect(opts)}"
+  end
+
   @doc "Line. Options: `:start`, `:end`, `:length`, `:angle`, `:stroke`."
   @spec line(keyword()) :: Content.Line.t()
-  def line(opts \\ []) do
+  def line(opts \\ [])
+
+  def line(opts) when is_list(opts) do
     %Content.Line{
       start: Keyword.get(opts, :start),
       end: Keyword.get(opts, :end),
@@ -359,9 +433,15 @@ defmodule Folio.DSL do
     }
   end
 
+  def line(opts) do
+    raise ArgumentError, "line/1 expects a keyword list of options, got: #{inspect(opts)}"
+  end
+
   @doc "Polygon from coordinate list. Options: `:fill`, `:stroke`."
   @spec polygon([{number(), number()}], keyword()) :: Content.Polygon.t()
-  def polygon(vertices, opts \\ []) do
+  def polygon(vertices, opts \\ [])
+
+  def polygon(vertices, opts) when is_list(vertices) and is_list(opts) do
     %Content.Polygon{
       vertices: Enum.map(vertices, &to_string/1),
       fill: Keyword.get(opts, :fill),
@@ -369,16 +449,27 @@ defmodule Folio.DSL do
     }
   end
 
+  def polygon(vertices, opts) do
+    raise ArgumentError,
+          "polygon/2 expects a list of coordinate pairs and a keyword list, got: #{inspect({vertices, opts})}"
+  end
+
   # ── Document structure ──
 
   @doc "Table of contents. Options: `:title`, `:indent`, `:depth`."
   @spec outline(keyword()) :: Content.Outline.t()
-  def outline(opts \\ []) do
+  def outline(opts \\ [])
+
+  def outline(opts) when is_list(opts) do
     %Content.Outline{
       title: Keyword.get(opts, :title),
       indent: Keyword.get(opts, :indent),
       depth: Keyword.get(opts, :depth)
     }
+  end
+
+  def outline(opts) do
+    raise ArgumentError, "outline/1 expects a keyword list of options, got: #{inspect(opts)}"
   end
 
   @doc """
@@ -391,7 +482,18 @@ defmodule Folio.DSL do
   @spec grid(keyword(), [{:do, [Content.t()]}]) :: Content.Grid.t()
   def grid(opts, do: children) when is_list(opts) do
     columns = Keyword.get(opts, :columns)
+
+    unless is_nil(columns) or is_list(columns) do
+      raise ArgumentError,
+            "grid :columns must be a list of strings (e.g. [\"1fr\", \"1fr\"]) or nil, got: #{inspect(columns)}"
+    end
+
     rows = Keyword.get(opts, :rows)
+
+    unless is_nil(rows) or is_list(rows) do
+      raise ArgumentError,
+            "grid :rows must be a list of strings or nil, got: #{inspect(rows)}"
+    end
 
     normalized_columns =
       if is_list(columns) do
@@ -410,7 +512,9 @@ defmodule Folio.DSL do
 
   @doc "Create a grid cell. Options: `:colspan`, `:rowspan`, `:align`, `:fill`."
   @spec grid_cell(Content.t() | [Content.t()] | String.t(), keyword()) :: Content.GridCell.t()
-  def grid_cell(content, opts \\ []) when is_list(opts) do
+  def grid_cell(content, opts \\ [])
+
+  def grid_cell(content, opts) when is_list(opts) do
     %Content.GridCell{
       body: Content.to_content(content),
       colspan: Keyword.get(opts, :colspan),
@@ -418,6 +522,11 @@ defmodule Folio.DSL do
       align: Keyword.get(opts, :align),
       fill: Keyword.get(opts, :fill)
     }
+  end
+
+  def grid_cell(content, opts) do
+    raise ArgumentError,
+          "grid_cell/2 expects content and a keyword list of options, got: #{inspect({content, opts})}"
   end
 
   @doc "Document title."
@@ -432,13 +541,26 @@ defmodule Folio.DSL do
 
   @doc "Definition list from `{term, description}` tuples. Options: `:tight`."
   @spec term_list([{term(), term()}], keyword()) :: Content.TermList.t()
-  def term_list(items, opts \\ []) when is_list(items) do
+  def term_list(items, opts \\ [])
+
+  def term_list(items, opts) when is_list(items) and is_list(opts) do
     children =
-      Enum.map(items, fn {term, desc} ->
-        %Content.TermItem{term: Content.to_content(term), description: Content.to_content(desc)}
+      Enum.map(items, fn
+        {term, desc} ->
+          %Content.TermItem{term: Content.to_content(term), description: Content.to_content(desc)}
+
+        other ->
+          raise ArgumentError,
+                "term_list/2 expects a list of {term, description} tuples, " <>
+                  "but an element is not a 2-tuple: #{inspect(other)}"
       end)
 
     %Content.TermList{children: children, tight: Keyword.get(opts, :tight, true)}
+  end
+
+  def term_list(items, opts) do
+    raise ArgumentError,
+          "term_list/2 expects a list of tuples and a keyword list, got: #{inspect({items, opts})}"
   end
 
   @doc "Single term item."
@@ -460,12 +582,19 @@ defmodule Folio.DSL do
 
   @doc "Bullet list. Options: `:tight`, `:marker`."
   @spec list([term()], keyword()) :: Content.List.t()
-  def list(items, opts \\ []) when is_list(items) do
+  def list(items, opts \\ [])
+
+  def list(items, opts) when is_list(items) and is_list(opts) do
     %Content.List{
       children: Enum.map(items, &%Content.ListItem{body: Content.to_content(&1)}),
       tight: Keyword.get(opts, :tight, true),
       marker: Keyword.get(opts, :marker)
     }
+  end
+
+  def list(items, opts) do
+    raise ArgumentError,
+          "list/2 expects a list of items and a keyword list, got: #{inspect({items, opts})}"
   end
 
   @doc """
@@ -476,7 +605,9 @@ defmodule Folio.DSL do
       enum(["A", "B"], start: 3)                   # start from 3
   """
   @spec enum([term()], keyword()) :: Content.EnumList.t()
-  def enum(items, opts \\ []) when is_list(items) do
+  def enum(items, opts \\ [])
+
+  def enum(items, opts) when is_list(items) and is_list(opts) do
     %Content.EnumList{
       children:
         Enum.map(items, fn
@@ -486,6 +617,11 @@ defmodule Folio.DSL do
       tight: Keyword.get(opts, :tight, true),
       start: Keyword.get(opts, :start)
     }
+  end
+
+  def enum(items, opts) do
+    raise ArgumentError,
+          "enum/2 expects a list of items and a keyword list, got: #{inspect({items, opts})}"
   end
 
   # ── Links ──
@@ -507,6 +643,10 @@ defmodule Folio.DSL do
   @doc "Label a position for cross-references."
   @spec label(String.t()) :: Content.Label.t()
   def label(name) when is_binary(name), do: %Content.Label{name: name}
+
+  def label(name) do
+    raise ArgumentError, "label/1 expects a string, got: #{inspect(name)}"
+  end
 
   @doc "Reference a labelled element."
   @spec ref(String.t(), nil | Content.t() | [Content.t()] | String.t()) :: Content.Ref.t()
@@ -574,7 +714,7 @@ defmodule Folio.DSL do
   @doc """
   Raw Typst source injected directly.
 
-      raw_typst("#set text(hyphenate: false)\nHello")
+      raw_typst("#set text(hyphenate: false)\\nHello")
   """
   @spec raw_typst(String.t()) :: Content.RawTypst.t()
   def raw_typst(source) when is_binary(source) do
@@ -632,7 +772,7 @@ defmodule Folio.DSL do
 
   @doc "Block quote. Options: `:block`, `:attribution`."
   @spec blockquote(Content.t() | [Content.t()] | String.t(), keyword()) :: Content.Quote.t()
-  def blockquote(content, opts \\ []) do
+  def blockquote(content, opts \\ []) when is_list(opts) do
     %Content.Quote{
       body: Content.to_content(content),
       block: Keyword.get(opts, :block, true),
