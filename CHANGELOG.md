@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.3.0 (2026-04-25)
+
+### Content
+
+- `text/2` now accepts styling options: `:size`, `:weight` ("bold", "semibold", numeric), `:fill` (color), `:tracking`
+- `rect/1` now supports `:inset` and `:radius` for rounded corners and inner padding
+- `block/2` now supports `:fill`, `:inset`, `:radius`, and `:stroke`
+- `grid/2` now supports `:column_gutter` and `:row_gutter` for independent gutter control
+- `table/2` now supports `:inset` (cell padding) and `:fill` (background color)
+- `table/2` `:columns` now accepts sizing lists (e.g. `["1fr", "2fr", "auto"]`) with full Typst track sizing — previously restricted to a string like `"3"`
+
+### DX
+
+- All 47 DSL functions now have `@doc` examples in hexdocs
+- All DSL functions raise `ArgumentError` with clear messages on bad input instead of `FunctionClauseError` or cryptic NIF decode errors
+- Rust NIF decode errors (e.g. "Could not decode field :body on %ExPad{}") are reformatted into readable messages (e.g. "invalid value for Pad.body")
+- `Content.to_content/1` raises `ArgumentError` for invalid types
+- `table_header/1` and `table_row/1` reject empty lists
+- `term_list/2` reports which element is not a 2-tuple
+- 128 tests (up from 107), including 21 guard validation tests
+
 ## 0.2.3 (2026-04-24)
 
 ### Fixes

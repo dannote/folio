@@ -1,7 +1,7 @@
 defmodule Folio.MixProject do
   use Mix.Project
 
-  @version "0.2.3"
+  @version "0.3.0"
   @source_url "https://github.com/dannote/folio"
 
   def project do

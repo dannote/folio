@@ -122,6 +122,24 @@ For full control, compose content with the DSL — every function returns a plai
 ])
 ```
 
+Style text inline, build shaped containers, and use full Typst track sizing in tables:
+
+```elixir
+{:ok, pdf} = Folio.to_pdf([
+  rect(width: "100%", fill: "#6c63ff", radius: "8pt", inset: "20pt",
+    body: [text("INVOICE", size: "24pt", weight: "bold", fill: "white")]
+  ),
+  table([columns: ["1fr", "1fr", "auto"], gutter: "8pt", inset: "10pt", fill: "#f8f8ff"],
+    do: [
+      table_header([table_cell("Item"), table_cell("Qty"), table_cell("Price")]),
+      for item <- items do
+        table_row([table_cell(item.name), table_cell("#{item.qty}"), table_cell(item.price)])
+      end
+    ]
+  ),
+])
+```
+
 Export to PDF, SVG, or PNG with configurable resolution:
 
 ```elixir
