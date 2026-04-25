@@ -95,7 +95,7 @@ pub fn parse_color(s: &str) -> Option<typst::visualize::Color> {
     use std::str::FromStr;
     let s = s.trim();
 
-    // Handle rgb() function syntax (Typst doesn't parse this)
+    // Handle rgb() function syntax
     if s.starts_with("rgb(") && s.ends_with(')') {
         let inner = &s[4..s.len()-1];
         let p: Vec<&str> = inner.split(',').map(|x| x.trim()).collect();
@@ -104,8 +104,35 @@ pub fn parse_color(s: &str) -> Option<typst::visualize::Color> {
                 p[0].parse().ok()?, p[1].parse().ok()?, p[2].parse().ok()?, 0xFF))
         } else { None }
     } else {
-        // Delegate everything else (hex, named colors) to Typst
+        // Try Typst hex parsing first
         typst::visualize::Color::from_str(s).ok()
+            .or_else(|| named_color(s))
+    }
+}
+
+fn named_color(s: &str) -> Option<typst::visualize::Color> {
+    use typst::visualize::Color;
+    match s.to_ascii_lowercase().as_str() {
+        "black" => Some(Color::from_u8(0,0,0,255)),
+        "white" => Some(Color::from_u8(255,255,255,255)),
+        "red" => Some(Color::from_u8(255,0,0,255)),
+        "green" => Some(Color::from_u8(0,128,0,255)),
+        "blue" => Some(Color::from_u8(0,0,255,255)),
+        "yellow" => Some(Color::from_u8(255,255,0,255)),
+        "cyan" | "aqua" => Some(Color::from_u8(0,255,255,255)),
+        "magenta" | "fuchsia" => Some(Color::from_u8(255,0,255,255)),
+        "silver" | "gray" | "grey" => Some(Color::from_u8(192,192,192,255)),
+        "maroon" => Some(Color::from_u8(128,0,0,255)),
+        "olive" => Some(Color::from_u8(128,128,0,255)),
+        "lime" => Some(Color::from_u8(0,255,0,255)),
+        "purple" => Some(Color::from_u8(128,0,128,255)),
+        "teal" => Some(Color::from_u8(0,128,128,255)),
+        "navy" => Some(Color::from_u8(0,0,128,255)),
+        "orange" => Some(Color::from_u8(255,165,0,255)),
+        "pink" => Some(Color::from_u8(255,192,203,255)),
+        "brown" => Some(Color::from_u8(165,42,42,255)),
+        "transparent" => Some(Color::from_u8(0,0,0,0)),
+        _ => None,
     }
 }
 

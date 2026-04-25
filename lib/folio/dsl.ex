@@ -316,7 +316,7 @@ defmodule Folio.DSL do
   """
   @spec table_header([Content.t() | String.t()]) :: Content.TableHeader.t()
   def table_header([_ | _] = cells) do
-    %Content.TableHeader{children: Enum.map(cells, &table_cell/1)}
+    %Content.TableHeader{children: Enum.map(cells, &ensure_cell/1)}
   end
 
   def table_header(cells) do
@@ -334,7 +334,7 @@ defmodule Folio.DSL do
   """
   @spec table_row([Content.t() | String.t()]) :: Content.TableRow.t()
   def table_row([_ | _] = cells) do
-    %Content.TableRow{children: Enum.map(cells, &table_cell/1)}
+    %Content.TableRow{children: Enum.map(cells, &ensure_cell/1)}
   end
 
   def table_row(cells) do
@@ -362,6 +362,9 @@ defmodule Folio.DSL do
       stroke: Keyword.get(opts, :stroke)
     }
   end
+
+  defp ensure_cell(%Content.TableCell{} = cell), do: cell
+  defp ensure_cell(content), do: table_cell(content)
 
   # ── Layout ──
 
