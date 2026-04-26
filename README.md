@@ -75,7 +75,7 @@ Add Folio to your dependencies:
 
 ```elixir
 def deps do
-  [{:folio, "~> 0.2"}]
+  [{:folio, "~> 0.3"}]
 end
 ```
 
