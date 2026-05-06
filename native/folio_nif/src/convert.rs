@@ -9,7 +9,7 @@ use typst::layout::{
     Abs, AlignElem, Alignment, Axes, BlockBody, BlockElem, Celled, ColbreakElem,
     ColumnsElem, Corners, Dir, Em, Fr, HElem, HideElem, Length, PadElem,
     PagebreakElem, PlaceElem, Ratio, Rel, RepeatElem, Sides, Sizing,
-    StackChild, StackElem, TrackSizings, VElem,
+    Spacing, StackChild, StackElem, TrackSizings, VElem,
 };
 use typst::text::SpaceElem as TextSpace;
 use typst::model::{
@@ -555,7 +555,11 @@ fn convert_node(engine: &mut Engine, node: &ExContent) -> Content {
         ExContent::Stack(st) => {
             let ch: Vec<StackChild> = st.children.iter()
                 .map(|c| StackChild::Block(convert_node(engine, c))).collect();
-            StackElem::new(ch).with_dir(parse_dir(&st.dir)).pack()
+            let mut e = StackElem::new(ch).with_dir(parse_dir(&st.dir));
+            if let Some(sp) = st.spacing.as_deref().and_then(parse_rel) {
+                e = e.with_spacing(Some(Spacing::Rel(sp)));
+            }
+            e.pack()
         }
 
         // Shapes
