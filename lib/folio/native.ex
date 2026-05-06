@@ -16,7 +16,9 @@ defmodule Folio.Native do
     otp_app: :folio,
     crate: :folio_nif,
     base_url: "https://github.com/dannote/folio/releases/download/v#{version}",
-    force_build: local_test_build or System.get_env("FOLIO_BUILD") in ["1", "true"],
+    force_build:
+      local_test_build or System.get_env("FOLIO_BUILD") in ["1", "true"] or
+        Application.compile_env(:rustler_precompiled, [:force_build, :folio], false),
     targets: ~w(
       aarch64-apple-darwin
       aarch64-unknown-linux-gnu
