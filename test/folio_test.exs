@@ -136,6 +136,20 @@ defmodule FolioTest do
       assert is_binary(svg)
       assert String.starts_with?(svg, "<svg")
     end
+
+    test "page_numbering advances the counter across pages" do
+      import Folio.DSL
+
+      assert {:ok, [page1, page2 | _] = pages} =
+               Folio.to_svg(
+                 [text("body"), pagebreak(), text("body")],
+                 styles: [Folio.Styles.page_numbering("1")]
+               )
+
+      assert length(pages) >= 2
+      # Body content should be the same, but page numbering should differ
+      assert page1 != page2
+    end
   end
 
   describe "to_png/2" do
