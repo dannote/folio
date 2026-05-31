@@ -435,6 +435,8 @@ rustler::atoms! {
     atom_struct = "__struct__",
 }
 
+include!("generated_rustq_sample.rs");
+
 impl<'a> rustler::Decoder<'a> for ExContent {
     fn decode(term: rustler::Term<'a>) -> rustler::NifResult<Self> {
         use rustler::Decoder;

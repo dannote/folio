@@ -14,7 +14,8 @@ defmodule Folio.MixProject do
       aliases: aliases(),
       elixirc_paths: elixirc_paths(Mix.env()),
       dialyzer: [
-        plt_file: {:no_warn, "_build/dev/dialyxir_plt.plt"}
+        plt_file: {:no_warn, "_build/dev/dialyxir_plt.plt"},
+        plt_add_apps: [:rustq]
       ],
 
       # Hex
@@ -35,6 +36,7 @@ defmodule Folio.MixProject do
     [
       {:rustler, "~> 0.37", optional: true},
       {:rustler_precompiled, "~> 0.8"},
+      {:rustq, path: "../rustq", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.34", only: :dev, runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
@@ -66,6 +68,7 @@ defmodule Folio.MixProject do
     [
       ci: [
         "compile --warnings-as-errors",
+        "rustq.gen --check",
         "format --check-formatted",
         "credo --strict",
         "dialyzer",
