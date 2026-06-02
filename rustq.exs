@@ -1,8 +1,7 @@
-import RustQ.Config
+use RustQ.Config
 
-unless Code.ensure_loaded?(Folio.Codegen.ContentSchema) do
-  Code.require_file("lib/folio/codegen/content_schema.ex")
+require_file("lib/folio/codegen/content_schema.ex")
+
+rust "native/folio_nif/src/generated_rustq_sample.rs" do
+  Folio.Codegen.ContentSchema.rust_items()
 end
-
-rust_items "native/folio_nif/src/generated_rustq_sample.rs",
-  items: Folio.Codegen.ContentSchema.rust_items()
