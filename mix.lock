@@ -14,5 +14,5 @@
   "nimble_parsec": {:hex, :nimble_parsec, "1.4.2", "8efba0122db06df95bfaa78f791344a89352ba04baedd3849593bfce4d0dc1c6", [:mix], [], "hexpm", "4b21398942dda052b403bbe1da991ccd03a053668d147d53fb8c4e0efe09c973"},
   "rustler": {:hex, :rustler, "0.38.0", "7a8906998ff0d28e3021c0a73264abcda719bda344b2e58307c6805b0f87c9b4", [:mix], [{:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: false]}], "hexpm", "704c03c1bf66be12b031c5a389347b91c81c5cb819a24b068b0de36fe4a5652a"},
   "rustler_precompiled": {:hex, :rustler_precompiled, "0.9.0", "3a052eda09f3d2436364645cc1f13279cf95db310eb0c17b0d8f25484b233aa0", [:mix], [{:rustler, "~> 0.23", [hex: :rustler, repo: "hexpm", optional: true]}], "hexpm", "471d97315bd3bf7b64623418b3693eedd8e47de3d1cb79a0ac8f9da7d770d94c"},
-  "rustq": {:hex, :rustq, "0.2.0", "c9d8a91ac1c4be8c97eb58e979052a50c0a05098ac30949680edefdf23d551fd", [:mix], [{:rustler, "~> 0.37", [hex: :rustler, repo: "hexpm", optional: false]}], "hexpm", "c10ee36be98cf292b03aa87d3f85a0c8670635b60b199c88e6a888dd0f992f5b"},
+  "rustq": {:hex, :rustq, "0.2.1", "f8caf986331fde95dcd3d8bb981c2fbe341c24d15f5f6ffa7bfb6513bdfccc99", [:mix], [{:rustler, "~> 0.37", [hex: :rustler, repo: "hexpm", optional: false]}], "hexpm", "998f58e3d31c9b64d7959376329800de95228706c8f1adb83606b797d3efea33"},
 }
