@@ -13,6 +13,8 @@ use world::FolioWorld;
 use world as world_mod;
 use types::{ExContent, ExStyle};
 
+include!("generated_nifs.rs");
+
 /// Wrap a NIF body in `catch_unwind` so Rust panics become structured
 /// Rustler errors instead of crashing the BEAM.
 ///
@@ -41,8 +43,7 @@ where
     }
 }
 
-#[rustler::nif(schedule = "DirtyCpu")]
-fn parse_markdown(markdown: String) -> NifResult<Vec<ExContent>> {
+fn parse_markdown_impl(markdown: String) -> NifResult<Vec<ExContent>> {
     catch_nif("parse_markdown", || {
         let arena = typed_arena::Arena::new();
         let mut options = comrak::Options::default();
@@ -61,8 +62,7 @@ fn parse_markdown(markdown: String) -> NifResult<Vec<ExContent>> {
     })
 }
 
-#[rustler::nif(schedule = "DirtyCpu")]
-fn compile_pdf<'a>(
+fn compile_pdf_impl<'a>(
     env: Env<'a>,
     content: Vec<ExContent>,
     styles: Vec<ExStyle>,
@@ -80,8 +80,7 @@ fn compile_pdf<'a>(
     })
 }
 
-#[rustler::nif(schedule = "DirtyCpu")]
-fn compile_svg<'a>(
+fn compile_svg_impl<'a>(
     content: Vec<ExContent>,
     styles: Vec<ExStyle>,
     files: std::collections::HashMap<String, rustler::Binary<'a>>,
@@ -100,8 +99,7 @@ fn compile_svg<'a>(
 /// Compile to PNG. Each page is rendered and encoded independently so peak
 /// memory is proportional to the largest page, not the total document.
 /// `dpi` is the render scale factor (1.0 = 72 DPI, 2.0 = 144 DPI, etc.).
-#[rustler::nif(schedule = "DirtyCpu")]
-fn compile_png<'a>(
+fn compile_png_impl<'a>(
     env: Env<'a>,
     content: Vec<ExContent>,
     styles: Vec<ExStyle>,
@@ -120,14 +118,12 @@ fn compile_png<'a>(
     })
 }
 
-#[rustler::nif]
-fn register_file(path: String, data: rustler::Binary) -> rustler::Atom {
+fn register_file_impl(path: String, data: rustler::Binary) -> rustler::Atom {
     world_mod::register_file(path, data.as_slice().to_vec());
     ok()
 }
 
-#[rustler::nif]
-fn unregister_file(path: String) -> rustler::Atom {
+fn unregister_file_impl(path: String) -> rustler::Atom {
     world_mod::unregister_file(path);
     ok()
 }
