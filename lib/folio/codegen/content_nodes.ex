@@ -17,6 +17,19 @@ defmodule Folio.Codegen.ContentNodes do
       field(:height, {:option, :String})
     end
 
+    field_group :weak do
+      field(:weak, :bool)
+    end
+
+    field_group :children_content do
+      field(:children, {:vec, :content})
+    end
+
+    field_group :table_span do
+      field(:colspan, {:option, :u32})
+      field(:rowspan, {:option, :u32})
+    end
+
     type(:content, :ExContent)
 
     node Text do
@@ -78,6 +91,33 @@ defmodule Folio.Codegen.ContentNodes do
       field(:fit, {:option, :String})
     end
 
+    node Table do
+      field(:columns, {:option, {:vec, :String}})
+      field(:rows, {:option, :String})
+      fields(:children_content)
+      field(:stroke, {:option, :String})
+      field(:gutter, {:option, :String})
+      field(:align, {:option, :String})
+      field(:inset, {:option, :String})
+      fields(:optional_fill)
+    end
+
+    node TableHeader do
+      fields(:children_content)
+    end
+
+    node TableRow do
+      fields(:children_content)
+    end
+
+    node TableCell do
+      fields(:body_content)
+      fields(:table_span)
+      field(:align, {:option, :String})
+      fields(:optional_fill)
+      field(:stroke, {:option, :String})
+    end
+
     node Math do
       field(:content, :String)
       field(:block, :bool)
@@ -92,6 +132,27 @@ defmodule Folio.Codegen.ContentNodes do
       field(:text, :String)
       field(:lang, {:option, :String})
       field(:block, :bool)
+    end
+
+    node List do
+      fields(:children_content)
+      field(:tight, :bool)
+      field(:marker, {:option, :String})
+    end
+
+    node ListItem do
+      fields(:body_content)
+    end
+
+    node Enum, module: "Folio.Content.EnumList" do
+      fields(:children_content)
+      field(:tight, :bool)
+      field(:start, {:option, :u32})
+    end
+
+    node EnumItem do
+      fields(:body_content)
+      field(:number, {:option, :u32})
     end
 
     node Label do
@@ -116,12 +177,50 @@ defmodule Folio.Codegen.ContentNodes do
       fields(:body_content)
     end
 
+    node Place do
+      field(:alignment, {:option, :String})
+      fields(:body_content)
+      field(:float, {:option, :bool})
+    end
+
+    node VSpace do
+      field(:amount, :String)
+      fields(:weak)
+    end
+
+    node HSpace do
+      field(:amount, :String)
+      fields(:weak)
+    end
+
+    node Pad do
+      fields(:body_content)
+      field(:left, {:option, :String})
+      field(:right, {:option, :String})
+      field(:top, {:option, :String})
+      field(:bottom, {:option, :String})
+    end
+
+    node Stack do
+      field(:dir, :String)
+      fields(:children_content)
+      field(:spacing, {:option, :String})
+    end
+
     node Title do
       fields(:body_content)
     end
 
     node Footnote do
       fields(:body_content)
+    end
+
+    node Colbreak do
+      fields(:weak)
+    end
+
+    node Pagebreak do
+      fields(:weak)
     end
 
     node Parbreak do
