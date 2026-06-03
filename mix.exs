@@ -36,7 +36,7 @@ defmodule Folio.MixProject do
     [
       {:rustler, "~> 0.37", optional: true},
       {:rustler_precompiled, "~> 0.8"},
-      {:rustq, "~> 0.1", only: [:dev, :test], runtime: false},
+      {:rustq, "~> 0.2.2", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.34", only: :dev, runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},

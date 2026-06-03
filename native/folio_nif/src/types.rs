@@ -2,19 +2,7 @@ use rustler::{NifStruct, NifUntaggedEnum};
 
 // --- Content Nodes ---
 
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.Text"]
-pub struct ExText {
-    pub text: String,
-    pub size: Option<String>,
-    pub weight: Option<String>,
-    pub fill: Option<String>,
-    pub tracking: Option<String>,
-}
-
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.Space"]
-pub struct ExSpace {}
+include!("generated_content_nodes.rs");
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Heading"]
@@ -39,40 +27,8 @@ pub struct ExBibliography {
 }
 
 #[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.Paragraph"]
-pub struct ExParagraph { pub body: Vec<ExContent> }
-
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.Strong"]
-pub struct ExStrong { pub body: Vec<ExContent> }
-
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.Emph"]
-pub struct ExEmph { pub body: Vec<ExContent> }
-
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.Strike"]
-pub struct ExStrike { pub body: Vec<ExContent> }
-
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.Underline"]
-pub struct ExUnderline { pub body: Vec<ExContent> }
-
-#[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Highlight"]
 pub struct ExHighlight { pub body: Vec<ExContent>, pub fill: Option<String> }
-
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.Super"]
-pub struct ExSuper { pub body: Vec<ExContent> }
-
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.Sub"]
-pub struct ExSub { pub body: Vec<ExContent> }
-
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.Smallcaps"]
-pub struct ExSmallcaps { pub body: Vec<ExContent> }
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Image"]
@@ -137,14 +93,6 @@ pub struct ExColbreak { pub weak: bool }
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Pagebreak"]
 pub struct ExPagebreak { pub weak: bool }
-
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.Parbreak"]
-pub struct ExParbreak {}
-
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.Linebreak"]
-pub struct ExLinebreak {}
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Math"]
@@ -319,10 +267,6 @@ pub struct ExTermItem { pub term: Vec<ExContent>, pub description: Vec<ExContent
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Footnote"]
 pub struct ExFootnote { pub body: Vec<ExContent> }
-
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.Divider"]
-pub struct ExDivider {}
 
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Grid"]

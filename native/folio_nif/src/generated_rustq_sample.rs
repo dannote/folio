@@ -22,6 +22,24 @@ pub struct ExRustQHeading {
     pub level: u8,
 }
 #[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Cite"]
+#[allow(dead_code)]
+pub struct ExRustQCite {
+    pub key: String,
+    pub supplement: Option<Vec<ExRustQContentSample>>,
+    pub form: Option<String>,
+    pub style: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Bibliography"]
+#[allow(dead_code)]
+pub struct ExRustQBibliography {
+    pub sources: Vec<String>,
+    pub title: Option<Vec<ExRustQContentSample>>,
+    pub full: bool,
+    pub style: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Paragraph"]
 #[allow(dead_code)]
 pub struct ExRustQParagraph {
@@ -34,6 +52,49 @@ pub struct ExRustQStrong {
     pub body: Vec<ExRustQContentSample>,
 }
 #[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Emph"]
+#[allow(dead_code)]
+pub struct ExRustQEmph {
+    pub body: Vec<ExRustQContentSample>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Strike"]
+#[allow(dead_code)]
+pub struct ExRustQStrike {
+    pub body: Vec<ExRustQContentSample>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Underline"]
+#[allow(dead_code)]
+pub struct ExRustQUnderline {
+    pub body: Vec<ExRustQContentSample>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Highlight"]
+#[allow(dead_code)]
+pub struct ExRustQHighlight {
+    pub body: Vec<ExRustQContentSample>,
+    pub fill: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Super"]
+#[allow(dead_code)]
+pub struct ExRustQSuper {
+    pub body: Vec<ExRustQContentSample>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Sub"]
+#[allow(dead_code)]
+pub struct ExRustQSub {
+    pub body: Vec<ExRustQContentSample>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Smallcaps"]
+#[allow(dead_code)]
+pub struct ExRustQSmallcaps {
+    pub body: Vec<ExRustQContentSample>,
+}
+#[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Image"]
 #[allow(dead_code)]
 pub struct ExRustQImage {
@@ -41,6 +102,42 @@ pub struct ExRustQImage {
     pub width: Option<String>,
     pub height: Option<String>,
     pub fit: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Figure"]
+#[allow(dead_code)]
+pub struct ExRustQFigure {
+    pub body: Vec<ExRustQContentSample>,
+    pub caption: Option<Vec<ExRustQContentSample>>,
+    pub placement: Option<String>,
+    pub scope: Option<String>,
+    pub numbering: Option<String>,
+    pub separator: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Table"]
+#[allow(dead_code)]
+pub struct ExRustQTable {
+    pub columns: Option<Vec<String>>,
+    pub rows: Option<String>,
+    pub children: Vec<ExRustQContentSample>,
+    pub stroke: Option<String>,
+    pub gutter: Option<String>,
+    pub align: Option<String>,
+    pub inset: Option<String>,
+    pub fill: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.TableHeader"]
+#[allow(dead_code)]
+pub struct ExRustQTableHeader {
+    pub children: Vec<ExRustQContentSample>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.TableRow"]
+#[allow(dead_code)]
+pub struct ExRustQTableRow {
+    pub children: Vec<ExRustQContentSample>,
 }
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.TableCell"]
@@ -53,16 +150,377 @@ pub struct ExRustQTableCell {
     pub fill: Option<String>,
     pub stroke: Option<String>,
 }
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Columns"]
+#[allow(dead_code)]
+pub struct ExRustQColumns {
+    pub count: u32,
+    pub body: Vec<ExRustQContentSample>,
+    pub gutter: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Colbreak"]
+#[allow(dead_code)]
+pub struct ExRustQColbreak {
+    pub weak: bool,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Pagebreak"]
+#[allow(dead_code)]
+pub struct ExRustQPagebreak {
+    pub weak: bool,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Parbreak"]
+#[allow(dead_code)]
+pub struct ExRustQParbreak {}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Linebreak"]
+#[allow(dead_code)]
+pub struct ExRustQLinebreak {}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Math"]
+#[allow(dead_code)]
+pub struct ExRustQMath {
+    pub content: String,
+    pub block: bool,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Link"]
+#[allow(dead_code)]
+pub struct ExRustQLink {
+    pub url: String,
+    pub body: Vec<ExRustQContentSample>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Raw"]
+#[allow(dead_code)]
+pub struct ExRustQRaw {
+    pub text: String,
+    pub lang: Option<String>,
+    pub block: bool,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Quote"]
+#[allow(dead_code)]
+pub struct ExRustQQuote {
+    pub body: Vec<ExRustQContentSample>,
+    pub block: bool,
+    pub attribution: Option<Vec<ExRustQContentSample>>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.List"]
+#[allow(dead_code)]
+pub struct ExRustQList {
+    pub children: Vec<ExRustQContentSample>,
+    pub tight: bool,
+    pub marker: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.ListItem"]
+#[allow(dead_code)]
+pub struct ExRustQListItem {
+    pub body: Vec<ExRustQContentSample>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.EnumList"]
+#[allow(dead_code)]
+pub struct ExRustQEnum {
+    pub children: Vec<ExRustQContentSample>,
+    pub tight: bool,
+    pub start: Option<u32>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.EnumItem"]
+#[allow(dead_code)]
+pub struct ExRustQEnumItem {
+    pub body: Vec<ExRustQContentSample>,
+    pub number: Option<u32>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Label"]
+#[allow(dead_code)]
+pub struct ExRustQLabel {
+    pub name: String,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Ref"]
+#[allow(dead_code)]
+pub struct ExRustQRef {
+    pub target: String,
+    pub supplement: Option<Vec<ExRustQContentSample>>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Align"]
+#[allow(dead_code)]
+pub struct ExRustQAlign {
+    pub alignment: String,
+    pub body: Vec<ExRustQContentSample>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Block"]
+#[allow(dead_code)]
+pub struct ExRustQBlock {
+    pub body: Vec<ExRustQContentSample>,
+    pub width: Option<String>,
+    pub height: Option<String>,
+    pub above: Option<String>,
+    pub below: Option<String>,
+    pub fill: Option<String>,
+    pub inset: Option<String>,
+    pub radius: Option<String>,
+    pub stroke: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Hide"]
+#[allow(dead_code)]
+pub struct ExRustQHide {
+    pub body: Vec<ExRustQContentSample>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Repeat"]
+#[allow(dead_code)]
+pub struct ExRustQRepeat {
+    pub body: Vec<ExRustQContentSample>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Place"]
+#[allow(dead_code)]
+pub struct ExRustQPlace {
+    pub alignment: Option<String>,
+    pub body: Vec<ExRustQContentSample>,
+    pub float: Option<bool>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.VSpace"]
+#[allow(dead_code)]
+pub struct ExRustQVSpace {
+    pub amount: String,
+    pub weak: bool,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.HSpace"]
+#[allow(dead_code)]
+pub struct ExRustQHSpace {
+    pub amount: String,
+    pub weak: bool,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Pad"]
+#[allow(dead_code)]
+pub struct ExRustQPad {
+    pub body: Vec<ExRustQContentSample>,
+    pub left: Option<String>,
+    pub right: Option<String>,
+    pub top: Option<String>,
+    pub bottom: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Stack"]
+#[allow(dead_code)]
+pub struct ExRustQStack {
+    pub dir: String,
+    pub children: Vec<ExRustQContentSample>,
+    pub spacing: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Rect"]
+#[allow(dead_code)]
+pub struct ExRustQRect {
+    pub body: Vec<ExRustQContentSample>,
+    pub width: Option<String>,
+    pub height: Option<String>,
+    pub fill: Option<String>,
+    pub inset: Option<String>,
+    pub radius: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Square"]
+#[allow(dead_code)]
+pub struct ExRustQSquare {
+    pub body: Vec<ExRustQContentSample>,
+    pub size: Option<String>,
+    pub fill: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Circle"]
+#[allow(dead_code)]
+pub struct ExRustQCircle {
+    pub body: Vec<ExRustQContentSample>,
+    pub radius: Option<String>,
+    pub fill: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Ellipse"]
+#[allow(dead_code)]
+pub struct ExRustQEllipse {
+    pub body: Vec<ExRustQContentSample>,
+    pub width: Option<String>,
+    pub height: Option<String>,
+    pub fill: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Line"]
+#[allow(dead_code)]
+pub struct ExRustQLine {
+    pub start: Option<String>,
+    pub end: Option<String>,
+    pub length: Option<String>,
+    pub angle: Option<String>,
+    pub stroke: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Polygon"]
+#[allow(dead_code)]
+pub struct ExRustQPolygon {
+    pub vertices: Vec<String>,
+    pub fill: Option<String>,
+    pub stroke: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Outline"]
+#[allow(dead_code)]
+pub struct ExRustQOutline {
+    pub title: Option<String>,
+    pub indent: Option<String>,
+    pub depth: Option<u32>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Title"]
+#[allow(dead_code)]
+pub struct ExRustQTitle {
+    pub body: Vec<ExRustQContentSample>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.TermList"]
+#[allow(dead_code)]
+pub struct ExRustQTermList {
+    pub children: Vec<ExRustQContentSample>,
+    pub tight: bool,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.TermItem"]
+#[allow(dead_code)]
+pub struct ExRustQTermItem {
+    pub term: Vec<ExRustQContentSample>,
+    pub description: Vec<ExRustQContentSample>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Footnote"]
+#[allow(dead_code)]
+pub struct ExRustQFootnote {
+    pub body: Vec<ExRustQContentSample>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Divider"]
+#[allow(dead_code)]
+pub struct ExRustQDivider {}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Grid"]
+#[allow(dead_code)]
+pub struct ExRustQGrid {
+    pub columns: Option<Vec<String>>,
+    pub rows: Option<Vec<String>>,
+    pub gutter: Option<String>,
+    pub column_gutter: Option<String>,
+    pub row_gutter: Option<String>,
+    pub children: Vec<ExRustQContentSample>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.GridCell"]
+#[allow(dead_code)]
+pub struct ExRustQGridCell {
+    pub body: Vec<ExRustQContentSample>,
+    pub colspan: Option<u32>,
+    pub rowspan: Option<u32>,
+    pub align: Option<String>,
+    pub fill: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.LocalSet"]
+#[allow(dead_code)]
+pub struct ExRustQLocalSet {
+    pub body: Vec<ExRustQContentSample>,
+    pub hyphenate: Option<bool>,
+    pub justify: Option<bool>,
+    pub first_line_indent: Option<f64>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.RawTypst"]
+#[allow(dead_code)]
+pub struct ExRustQRawTypst {
+    pub source: String,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Sequence"]
+#[allow(dead_code)]
+pub struct ExRustQSequence {
+    pub children: Vec<ExRustQContentSample>,
+}
 #[derive(Clone, Debug)]
 #[allow(dead_code)]
 pub enum ExRustQContentSample {
     Text(ExRustQText),
     Space(ExRustQSpace),
     Heading(ExRustQHeading),
+    Cite(ExRustQCite),
+    Bibliography(ExRustQBibliography),
     Paragraph(ExRustQParagraph),
     Strong(ExRustQStrong),
+    Emph(ExRustQEmph),
+    Strike(ExRustQStrike),
+    Underline(ExRustQUnderline),
+    Highlight(ExRustQHighlight),
+    Super(ExRustQSuper),
+    Sub(ExRustQSub),
+    Smallcaps(ExRustQSmallcaps),
     Image(ExRustQImage),
+    Figure(ExRustQFigure),
+    Table(ExRustQTable),
+    TableHeader(ExRustQTableHeader),
+    TableRow(ExRustQTableRow),
     TableCell(ExRustQTableCell),
+    Columns(ExRustQColumns),
+    Colbreak(ExRustQColbreak),
+    Pagebreak(ExRustQPagebreak),
+    Parbreak(ExRustQParbreak),
+    Linebreak(ExRustQLinebreak),
+    Math(ExRustQMath),
+    Link(ExRustQLink),
+    Raw(ExRustQRaw),
+    Quote(ExRustQQuote),
+    List(ExRustQList),
+    ListItem(ExRustQListItem),
+    Enum(ExRustQEnum),
+    EnumItem(ExRustQEnumItem),
+    Label(ExRustQLabel),
+    Ref(ExRustQRef),
+    Align(ExRustQAlign),
+    Block(ExRustQBlock),
+    Hide(ExRustQHide),
+    Repeat(ExRustQRepeat),
+    Place(ExRustQPlace),
+    VSpace(ExRustQVSpace),
+    HSpace(ExRustQHSpace),
+    Pad(ExRustQPad),
+    Stack(ExRustQStack),
+    Rect(ExRustQRect),
+    Square(ExRustQSquare),
+    Circle(ExRustQCircle),
+    Ellipse(ExRustQEllipse),
+    Line(ExRustQLine),
+    Polygon(ExRustQPolygon),
+    Outline(ExRustQOutline),
+    Title(ExRustQTitle),
+    TermList(ExRustQTermList),
+    TermItem(ExRustQTermItem),
+    Footnote(ExRustQFootnote),
+    Divider(ExRustQDivider),
+    Grid(ExRustQGrid),
+    GridCell(ExRustQGridCell),
+    LocalSet(ExRustQLocalSet),
+    RawTypst(ExRustQRawTypst),
+    Sequence(ExRustQSequence),
 }
 impl<'a> rustler::Decoder<'a> for ExRustQContentSample {
     fn decode(term: rustler::Term<'a>) -> rustler::NifResult<Self> {
@@ -80,17 +538,179 @@ impl<'a> rustler::Decoder<'a> for ExRustQContentSample {
             "Elixir.Folio.Content.Heading" => {
                 Ok(ExRustQContentSample::Heading(Decoder::decode(term)?))
             }
+            "Elixir.Folio.Content.Cite" => {
+                Ok(ExRustQContentSample::Cite(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Bibliography" => {
+                Ok(ExRustQContentSample::Bibliography(Decoder::decode(term)?))
+            }
             "Elixir.Folio.Content.Paragraph" => {
                 Ok(ExRustQContentSample::Paragraph(Decoder::decode(term)?))
             }
             "Elixir.Folio.Content.Strong" => {
                 Ok(ExRustQContentSample::Strong(Decoder::decode(term)?))
             }
+            "Elixir.Folio.Content.Emph" => {
+                Ok(ExRustQContentSample::Emph(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Strike" => {
+                Ok(ExRustQContentSample::Strike(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Underline" => {
+                Ok(ExRustQContentSample::Underline(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Highlight" => {
+                Ok(ExRustQContentSample::Highlight(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Super" => {
+                Ok(ExRustQContentSample::Super(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Sub" => {
+                Ok(ExRustQContentSample::Sub(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Smallcaps" => {
+                Ok(ExRustQContentSample::Smallcaps(Decoder::decode(term)?))
+            }
             "Elixir.Folio.Content.Image" => {
                 Ok(ExRustQContentSample::Image(Decoder::decode(term)?))
             }
+            "Elixir.Folio.Content.Figure" => {
+                Ok(ExRustQContentSample::Figure(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Table" => {
+                Ok(ExRustQContentSample::Table(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.TableHeader" => {
+                Ok(ExRustQContentSample::TableHeader(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.TableRow" => {
+                Ok(ExRustQContentSample::TableRow(Decoder::decode(term)?))
+            }
             "Elixir.Folio.Content.TableCell" => {
                 Ok(ExRustQContentSample::TableCell(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Columns" => {
+                Ok(ExRustQContentSample::Columns(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Colbreak" => {
+                Ok(ExRustQContentSample::Colbreak(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Pagebreak" => {
+                Ok(ExRustQContentSample::Pagebreak(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Parbreak" => {
+                Ok(ExRustQContentSample::Parbreak(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Linebreak" => {
+                Ok(ExRustQContentSample::Linebreak(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Math" => {
+                Ok(ExRustQContentSample::Math(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Link" => {
+                Ok(ExRustQContentSample::Link(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Raw" => {
+                Ok(ExRustQContentSample::Raw(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Quote" => {
+                Ok(ExRustQContentSample::Quote(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.List" => {
+                Ok(ExRustQContentSample::List(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.ListItem" => {
+                Ok(ExRustQContentSample::ListItem(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.EnumList" => {
+                Ok(ExRustQContentSample::Enum(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.EnumItem" => {
+                Ok(ExRustQContentSample::EnumItem(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Label" => {
+                Ok(ExRustQContentSample::Label(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Ref" => {
+                Ok(ExRustQContentSample::Ref(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Align" => {
+                Ok(ExRustQContentSample::Align(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Block" => {
+                Ok(ExRustQContentSample::Block(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Hide" => {
+                Ok(ExRustQContentSample::Hide(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Repeat" => {
+                Ok(ExRustQContentSample::Repeat(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Place" => {
+                Ok(ExRustQContentSample::Place(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.VSpace" => {
+                Ok(ExRustQContentSample::VSpace(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.HSpace" => {
+                Ok(ExRustQContentSample::HSpace(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Pad" => {
+                Ok(ExRustQContentSample::Pad(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Stack" => {
+                Ok(ExRustQContentSample::Stack(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Rect" => {
+                Ok(ExRustQContentSample::Rect(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Square" => {
+                Ok(ExRustQContentSample::Square(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Circle" => {
+                Ok(ExRustQContentSample::Circle(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Ellipse" => {
+                Ok(ExRustQContentSample::Ellipse(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Line" => {
+                Ok(ExRustQContentSample::Line(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Polygon" => {
+                Ok(ExRustQContentSample::Polygon(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Outline" => {
+                Ok(ExRustQContentSample::Outline(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Title" => {
+                Ok(ExRustQContentSample::Title(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.TermList" => {
+                Ok(ExRustQContentSample::TermList(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.TermItem" => {
+                Ok(ExRustQContentSample::TermItem(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Footnote" => {
+                Ok(ExRustQContentSample::Footnote(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Divider" => {
+                Ok(ExRustQContentSample::Divider(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Grid" => {
+                Ok(ExRustQContentSample::Grid(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.GridCell" => {
+                Ok(ExRustQContentSample::GridCell(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.LocalSet" => {
+                Ok(ExRustQContentSample::LocalSet(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.RawTypst" => {
+                Ok(ExRustQContentSample::RawTypst(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Sequence" => {
+                Ok(ExRustQContentSample::Sequence(Decoder::decode(term)?))
             }
             _ => Err(rustler::Error::RaiseAtom("unknown_content_variant")),
         }
@@ -102,10 +722,64 @@ impl rustler::Encoder for ExRustQContentSample {
             ExRustQContentSample::Text(value) => value.encode(env),
             ExRustQContentSample::Space(value) => value.encode(env),
             ExRustQContentSample::Heading(value) => value.encode(env),
+            ExRustQContentSample::Cite(value) => value.encode(env),
+            ExRustQContentSample::Bibliography(value) => value.encode(env),
             ExRustQContentSample::Paragraph(value) => value.encode(env),
             ExRustQContentSample::Strong(value) => value.encode(env),
+            ExRustQContentSample::Emph(value) => value.encode(env),
+            ExRustQContentSample::Strike(value) => value.encode(env),
+            ExRustQContentSample::Underline(value) => value.encode(env),
+            ExRustQContentSample::Highlight(value) => value.encode(env),
+            ExRustQContentSample::Super(value) => value.encode(env),
+            ExRustQContentSample::Sub(value) => value.encode(env),
+            ExRustQContentSample::Smallcaps(value) => value.encode(env),
             ExRustQContentSample::Image(value) => value.encode(env),
+            ExRustQContentSample::Figure(value) => value.encode(env),
+            ExRustQContentSample::Table(value) => value.encode(env),
+            ExRustQContentSample::TableHeader(value) => value.encode(env),
+            ExRustQContentSample::TableRow(value) => value.encode(env),
             ExRustQContentSample::TableCell(value) => value.encode(env),
+            ExRustQContentSample::Columns(value) => value.encode(env),
+            ExRustQContentSample::Colbreak(value) => value.encode(env),
+            ExRustQContentSample::Pagebreak(value) => value.encode(env),
+            ExRustQContentSample::Parbreak(value) => value.encode(env),
+            ExRustQContentSample::Linebreak(value) => value.encode(env),
+            ExRustQContentSample::Math(value) => value.encode(env),
+            ExRustQContentSample::Link(value) => value.encode(env),
+            ExRustQContentSample::Raw(value) => value.encode(env),
+            ExRustQContentSample::Quote(value) => value.encode(env),
+            ExRustQContentSample::List(value) => value.encode(env),
+            ExRustQContentSample::ListItem(value) => value.encode(env),
+            ExRustQContentSample::Enum(value) => value.encode(env),
+            ExRustQContentSample::EnumItem(value) => value.encode(env),
+            ExRustQContentSample::Label(value) => value.encode(env),
+            ExRustQContentSample::Ref(value) => value.encode(env),
+            ExRustQContentSample::Align(value) => value.encode(env),
+            ExRustQContentSample::Block(value) => value.encode(env),
+            ExRustQContentSample::Hide(value) => value.encode(env),
+            ExRustQContentSample::Repeat(value) => value.encode(env),
+            ExRustQContentSample::Place(value) => value.encode(env),
+            ExRustQContentSample::VSpace(value) => value.encode(env),
+            ExRustQContentSample::HSpace(value) => value.encode(env),
+            ExRustQContentSample::Pad(value) => value.encode(env),
+            ExRustQContentSample::Stack(value) => value.encode(env),
+            ExRustQContentSample::Rect(value) => value.encode(env),
+            ExRustQContentSample::Square(value) => value.encode(env),
+            ExRustQContentSample::Circle(value) => value.encode(env),
+            ExRustQContentSample::Ellipse(value) => value.encode(env),
+            ExRustQContentSample::Line(value) => value.encode(env),
+            ExRustQContentSample::Polygon(value) => value.encode(env),
+            ExRustQContentSample::Outline(value) => value.encode(env),
+            ExRustQContentSample::Title(value) => value.encode(env),
+            ExRustQContentSample::TermList(value) => value.encode(env),
+            ExRustQContentSample::TermItem(value) => value.encode(env),
+            ExRustQContentSample::Footnote(value) => value.encode(env),
+            ExRustQContentSample::Divider(value) => value.encode(env),
+            ExRustQContentSample::Grid(value) => value.encode(env),
+            ExRustQContentSample::GridCell(value) => value.encode(env),
+            ExRustQContentSample::LocalSet(value) => value.encode(env),
+            ExRustQContentSample::RawTypst(value) => value.encode(env),
+            ExRustQContentSample::Sequence(value) => value.encode(env),
         }
     }
 }
