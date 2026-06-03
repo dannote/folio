@@ -13,6 +13,12 @@ pub struct ExText {
 #[module = "Folio.Content.Space"]
 pub struct ExSpace {}
 #[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Heading"]
+pub struct ExHeading {
+    pub body: Vec<ExContent>,
+    pub level: u8,
+}
+#[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Paragraph"]
 pub struct ExParagraph {
     pub body: Vec<ExContent>,
@@ -38,6 +44,12 @@ pub struct ExUnderline {
     pub body: Vec<ExContent>,
 }
 #[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Highlight"]
+pub struct ExHighlight {
+    pub body: Vec<ExContent>,
+    pub fill: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Super"]
 pub struct ExSuper {
     pub body: Vec<ExContent>,
@@ -50,6 +62,70 @@ pub struct ExSub {
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Smallcaps"]
 pub struct ExSmallcaps {
+    pub body: Vec<ExContent>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Image"]
+pub struct ExImage {
+    pub src: String,
+    pub width: Option<String>,
+    pub height: Option<String>,
+    pub fit: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Math"]
+pub struct ExMath {
+    pub content: String,
+    pub block: bool,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Link"]
+pub struct ExLink {
+    pub url: String,
+    pub body: Vec<ExContent>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Raw"]
+pub struct ExRaw {
+    pub text: String,
+    pub lang: Option<String>,
+    pub block: bool,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Label"]
+pub struct ExLabel {
+    pub name: String,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Ref"]
+pub struct ExRef {
+    pub target: String,
+    pub supplement: Option<Vec<ExContent>>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Align"]
+pub struct ExAlign {
+    pub alignment: String,
+    pub body: Vec<ExContent>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Hide"]
+pub struct ExHide {
+    pub body: Vec<ExContent>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Repeat"]
+pub struct ExRepeat {
+    pub body: Vec<ExContent>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Title"]
+pub struct ExTitle {
+    pub body: Vec<ExContent>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Footnote"]
+pub struct ExFootnote {
     pub body: Vec<ExContent>,
 }
 #[derive(Clone, Debug, NifStruct)]

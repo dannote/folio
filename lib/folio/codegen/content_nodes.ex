@@ -8,6 +8,15 @@ defmodule Folio.Codegen.ContentNodes do
       field(:body, {:vec, :content})
     end
 
+    field_group :optional_fill do
+      field(:fill, {:option, :String})
+    end
+
+    field_group :optional_size do
+      field(:width, {:option, :String})
+      field(:height, {:option, :String})
+    end
+
     type(:content, :ExContent)
 
     node Text do
@@ -19,6 +28,11 @@ defmodule Folio.Codegen.ContentNodes do
     end
 
     node Space do
+    end
+
+    node Heading do
+      fields(:body_content)
+      field(:level, :u8)
     end
 
     node Paragraph do
@@ -41,6 +55,11 @@ defmodule Folio.Codegen.ContentNodes do
       fields(:body_content)
     end
 
+    node Highlight do
+      fields(:body_content)
+      fields(:optional_fill)
+    end
+
     node Super do
       fields(:body_content)
     end
@@ -50,6 +69,58 @@ defmodule Folio.Codegen.ContentNodes do
     end
 
     node Smallcaps do
+      fields(:body_content)
+    end
+
+    node Image do
+      field(:src, :String)
+      fields(:optional_size)
+      field(:fit, {:option, :String})
+    end
+
+    node Math do
+      field(:content, :String)
+      field(:block, :bool)
+    end
+
+    node Link do
+      field(:url, :String)
+      fields(:body_content)
+    end
+
+    node Raw do
+      field(:text, :String)
+      field(:lang, {:option, :String})
+      field(:block, :bool)
+    end
+
+    node Label do
+      field(:name, :String)
+    end
+
+    node Ref do
+      field(:target, :String)
+      field(:supplement, {:option, {:vec, :content}})
+    end
+
+    node Align do
+      field(:alignment, :String)
+      fields(:body_content)
+    end
+
+    node Hide do
+      fields(:body_content)
+    end
+
+    node Repeat do
+      fields(:body_content)
+    end
+
+    node Title do
+      fields(:body_content)
+    end
+
+    node Footnote do
       fields(:body_content)
     end
 
