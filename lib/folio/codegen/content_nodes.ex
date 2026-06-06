@@ -34,6 +34,20 @@ defmodule Folio.Codegen.ContentNodes do
   schema Folio.Content, rust_prefix: "Ex", tag_field: :__struct__ do
     type(:content, :ExContent)
 
+    node Cite do
+      field(:key, :String)
+      field(:supplement, {:option, {:vec, :content}})
+      field(:form, {:option, :String})
+      field(:style, {:option, :String})
+    end
+
+    node Bibliography do
+      field(:sources, {:vec, :String})
+      field(:title, {:option, {:vec, :content}})
+      field(:full, :bool)
+      field(:style, {:option, :String})
+    end
+
     node Text do
       field(:text, :String)
       field(:size, {:option, :String})
@@ -75,6 +89,15 @@ defmodule Folio.Codegen.ContentNodes do
       field(:width, {:option, :String})
       field(:height, {:option, :String})
       field(:fit, {:option, :String})
+    end
+
+    node Figure do
+      field(:body, {:vec, :content})
+      field(:caption, {:option, {:vec, :content}})
+      field(:placement, {:option, :String})
+      field(:scope, {:option, :String})
+      field(:numbering, {:option, :String})
+      field(:separator, {:option, :String})
     end
 
     node Table do
@@ -119,6 +142,18 @@ defmodule Folio.Codegen.ContentNodes do
       field(:text, :String)
       field(:lang, {:option, :String})
       field(:block, :bool)
+    end
+
+    node Columns do
+      field(:count, :u32)
+      field(:body, {:vec, :content})
+      field(:gutter, {:option, :String})
+    end
+
+    node Quote do
+      field(:body, {:vec, :content})
+      field(:block, :bool)
+      field(:attribution, {:option, {:vec, :content}})
     end
 
     node List do
@@ -242,7 +277,55 @@ defmodule Folio.Codegen.ContentNodes do
       field(:stroke, {:option, :String})
     end
 
+    node Outline do
+      field(:title, {:option, :String})
+      field(:indent, {:option, :String})
+      field(:depth, {:option, :u32})
+    end
+
     body_node(Title)
+
+    node TermList do
+      field(:children, {:vec, :content})
+      field(:tight, :bool)
+    end
+
+    node TermItem do
+      field(:term, {:vec, :content})
+      field(:description, {:vec, :content})
+    end
+
+    node Grid do
+      field(:columns, {:option, {:vec, :String}})
+      field(:rows, {:option, {:vec, :String}})
+      field(:gutter, {:option, :String})
+      field(:column_gutter, {:option, :String})
+      field(:row_gutter, {:option, :String})
+      field(:children, {:vec, :content})
+    end
+
+    node GridCell do
+      field(:body, {:vec, :content})
+      field(:colspan, {:option, :u32})
+      field(:rowspan, {:option, :u32})
+      field(:align, {:option, :String})
+      field(:fill, {:option, :String})
+    end
+
+    node LocalSet do
+      field(:body, {:vec, :content})
+      field(:hyphenate, {:option, :bool})
+      field(:justify, {:option, :bool})
+      field(:first_line_indent, {:option, :f64})
+    end
+
+    node RawTypst do
+      field(:source, :String)
+    end
+
+    node Sequence do
+      field(:children, {:vec, :content})
+    end
 
     body_node(Footnote)
 

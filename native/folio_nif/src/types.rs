@@ -4,103 +4,6 @@ use rustler::{NifStruct, NifUntaggedEnum};
 
 include!("generated_content_nodes.rs");
 
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.Cite"]
-pub struct ExCite {
-    pub key: String,
-    pub supplement: Option<Vec<ExContent>>,
-    pub form: Option<String>,
-    pub style: Option<String>,
-}
-
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.Bibliography"]
-pub struct ExBibliography {
-    pub sources: Vec<String>,
-    pub title: Option<Vec<ExContent>>,
-    pub full: bool,
-    pub style: Option<String>,
-}
-
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.Figure"]
-pub struct ExFigure {
-    pub body: Vec<ExContent>,
-    pub caption: Option<Vec<ExContent>>,
-    pub placement: Option<String>,
-    pub scope: Option<String>,
-    pub numbering: Option<String>,
-    pub separator: Option<String>,
-}
-
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.Columns"]
-pub struct ExColumns { pub count: u32, pub body: Vec<ExContent>, pub gutter: Option<String> }
-
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.Quote"]
-pub struct ExQuote {
-    pub body: Vec<ExContent>,
-    pub block: bool,
-    pub attribution: Option<Vec<ExContent>>,
-}
-
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.Outline"]
-pub struct ExOutline {
-    pub title: Option<String>,
-    pub indent: Option<String>,
-    pub depth: Option<u32>,
-}
-
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.TermList"]
-pub struct ExTermList { pub children: Vec<ExContent>, pub tight: bool }
-
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.TermItem"]
-pub struct ExTermItem { pub term: Vec<ExContent>, pub description: Vec<ExContent> }
-
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.Grid"]
-pub struct ExGrid {
-    pub columns: Option<Vec<String>>,
-    pub rows: Option<Vec<String>>,
-    pub gutter: Option<String>,
-    pub column_gutter: Option<String>,
-    pub row_gutter: Option<String>,
-    pub children: Vec<ExContent>,
-}
-
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.GridCell"]
-pub struct ExGridCell {
-    pub body: Vec<ExContent>,
-    pub colspan: Option<u32>,
-    pub rowspan: Option<u32>,
-    pub align: Option<String>,
-    pub fill: Option<String>,
-}
-
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.LocalSet"]
-pub struct ExLocalSet {
-    pub body: Vec<ExContent>,
-    pub hyphenate: Option<bool>,
-    pub justify: Option<bool>,
-    pub first_line_indent: Option<f64>,
-}
-
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.RawTypst"]
-pub struct ExRawTypst {
-    pub source: String,
-}
-
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.Sequence"]
-pub struct ExSequence { pub children: Vec<ExContent> }
-
 // O(1) decoder: read __struct__ atom, dispatch directly instead of
 // trying 56 variants sequentially like NifUntaggedEnum does.
 #[derive(Clone, Debug)]
@@ -171,8 +74,6 @@ pub enum ExContent {
 rustler::atoms! {
     atom_struct = "__struct__",
 }
-
-include!("generated_rustq_sample.rs");
 
 impl<'a> rustler::Decoder<'a> for ExContent {
     fn decode(term: rustler::Term<'a>) -> rustler::NifResult<Self> {
