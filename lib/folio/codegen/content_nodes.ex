@@ -1,35 +1,37 @@
+defmodule Folio.Codegen.ContentNodes.Macros do
+  @moduledoc false
+
+  defmacro body_node(name) do
+    quote do
+      node unquote(name) do
+        field(:body, {:vec, :content})
+      end
+    end
+  end
+
+  defmacro empty_node(name) do
+    quote do
+      node unquote(name) do
+      end
+    end
+  end
+
+  defmacro weak_node(name) do
+    quote do
+      node unquote(name) do
+        field(:weak, :bool)
+      end
+    end
+  end
+end
+
 defmodule Folio.Codegen.ContentNodes do
   @moduledoc false
 
   use RustQ.Rustler.Schema
+  import Folio.Codegen.ContentNodes.Macros
 
   schema Folio.Content, rust_prefix: "Ex", tag_field: :__struct__ do
-    field_group :body_content do
-      field(:body, {:vec, :content})
-    end
-
-    field_group :optional_fill do
-      field(:fill, {:option, :String})
-    end
-
-    field_group :optional_size do
-      field(:width, {:option, :String})
-      field(:height, {:option, :String})
-    end
-
-    field_group :weak do
-      field(:weak, :bool)
-    end
-
-    field_group :children_content do
-      field(:children, {:vec, :content})
-    end
-
-    field_group :table_span do
-      field(:colspan, {:option, :u32})
-      field(:rowspan, {:option, :u32})
-    end
-
     type(:content, :ExContent)
 
     node Text do
@@ -40,81 +42,66 @@ defmodule Folio.Codegen.ContentNodes do
       field(:tracking, {:option, :String})
     end
 
-    node Space do
-    end
+    empty_node(Space)
 
     node Heading do
-      fields(:body_content)
+      field(:body, {:vec, :content})
       field(:level, :u8)
     end
 
-    node Paragraph do
-      fields(:body_content)
-    end
+    body_node(Paragraph)
 
-    node Strong do
-      fields(:body_content)
-    end
+    body_node(Strong)
 
-    node Emph do
-      fields(:body_content)
-    end
+    body_node(Emph)
 
-    node Strike do
-      fields(:body_content)
-    end
+    body_node(Strike)
 
-    node Underline do
-      fields(:body_content)
-    end
+    body_node(Underline)
 
     node Highlight do
-      fields(:body_content)
-      fields(:optional_fill)
+      field(:body, {:vec, :content})
+      field(:fill, {:option, :String})
     end
 
-    node Super do
-      fields(:body_content)
-    end
+    body_node(Super)
 
-    node Sub do
-      fields(:body_content)
-    end
+    body_node(Sub)
 
-    node Smallcaps do
-      fields(:body_content)
-    end
+    body_node(Smallcaps)
 
     node Image do
       field(:src, :String)
-      fields(:optional_size)
+      field(:width, {:option, :String})
+      field(:height, {:option, :String})
       field(:fit, {:option, :String})
     end
 
     node Table do
       field(:columns, {:option, {:vec, :String}})
       field(:rows, {:option, :String})
-      fields(:children_content)
+      field(:children, {:vec, :content})
       field(:stroke, {:option, :String})
       field(:gutter, {:option, :String})
       field(:align, {:option, :String})
       field(:inset, {:option, :String})
-      fields(:optional_fill)
+      field(:fill, {:option, :String})
     end
 
     node TableHeader do
-      fields(:children_content)
+      field(:children, {:vec, :content})
     end
 
     node TableRow do
-      fields(:children_content)
+      field(:children, {:vec, :content})
     end
 
     node TableCell do
-      fields(:body_content)
-      fields(:table_span)
+      field(:body, {:vec, :content})
+      field(:colspan, {:option, :u32})
+      field(:rowspan, {:option, :u32})
       field(:align, {:option, :String})
-      fields(:optional_fill)
+      field(:fill, {:option, :String})
       field(:stroke, {:option, :String})
     end
 
@@ -125,7 +112,7 @@ defmodule Folio.Codegen.ContentNodes do
 
     node Link do
       field(:url, :String)
-      fields(:body_content)
+      field(:body, {:vec, :content})
     end
 
     node Raw do
@@ -135,23 +122,21 @@ defmodule Folio.Codegen.ContentNodes do
     end
 
     node List do
-      fields(:children_content)
+      field(:children, {:vec, :content})
       field(:tight, :bool)
       field(:marker, {:option, :String})
     end
 
-    node ListItem do
-      fields(:body_content)
-    end
+    body_node(ListItem)
 
     node Enum, module: "Folio.Content.EnumList" do
-      fields(:children_content)
+      field(:children, {:vec, :content})
       field(:tight, :bool)
       field(:start, {:option, :u32})
     end
 
     node EnumItem do
-      fields(:body_content)
+      field(:body, {:vec, :content})
       field(:number, {:option, :u32})
     end
 
@@ -166,35 +151,31 @@ defmodule Folio.Codegen.ContentNodes do
 
     node Align do
       field(:alignment, :String)
-      fields(:body_content)
+      field(:body, {:vec, :content})
     end
 
-    node Hide do
-      fields(:body_content)
-    end
+    body_node(Hide)
 
-    node Repeat do
-      fields(:body_content)
-    end
+    body_node(Repeat)
 
     node Place do
       field(:alignment, {:option, :String})
-      fields(:body_content)
+      field(:body, {:vec, :content})
       field(:float, {:option, :bool})
     end
 
     node VSpace do
       field(:amount, :String)
-      fields(:weak)
+      field(:weak, :bool)
     end
 
     node HSpace do
       field(:amount, :String)
-      fields(:weak)
+      field(:weak, :bool)
     end
 
     node Pad do
-      fields(:body_content)
+      field(:body, {:vec, :content})
       field(:left, {:option, :String})
       field(:right, {:option, :String})
       field(:top, {:option, :String})
@@ -203,33 +184,22 @@ defmodule Folio.Codegen.ContentNodes do
 
     node Stack do
       field(:dir, :String)
-      fields(:children_content)
+      field(:children, {:vec, :content})
       field(:spacing, {:option, :String})
     end
 
-    node Title do
-      fields(:body_content)
-    end
+    body_node(Title)
 
-    node Footnote do
-      fields(:body_content)
-    end
+    body_node(Footnote)
 
-    node Colbreak do
-      fields(:weak)
-    end
+    weak_node(Colbreak)
 
-    node Pagebreak do
-      fields(:weak)
-    end
+    weak_node(Pagebreak)
 
-    node Parbreak do
-    end
+    empty_node(Parbreak)
 
-    node Linebreak do
-    end
+    empty_node(Linebreak)
 
-    node Divider do
-    end
+    empty_node(Divider)
   end
 end
