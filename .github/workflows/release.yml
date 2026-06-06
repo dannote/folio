@@ -3,79 +3,19 @@ name: Build precompiled NIFs
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   build_release:
-    name: NIF ${{ matrix.nif }} - ${{ matrix.job.target }} (${{ matrix.job.os }})
-    runs-on: ${{ matrix.job.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        nif: ["2.15"]
-        job:
-          - { target: aarch64-unknown-linux-gnu, os: ubuntu-22.04 }
-          - { target: aarch64-apple-darwin, os: macos-14 }
-          - { target: x86_64-apple-darwin, os: macos-15 }
-          - { target: x86_64-unknown-linux-gnu, os: ubuntu-22.04 }
-
-    steps:
-      - name: Checkout source code
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Extract project version
-        shell: bash
-        run: |
-          echo "PROJECT_VERSION=$(sed -n 's/^  @version "\(.*\)"/\1/p' mix.exs | head -n1)" >> $GITHUB_ENV
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          target: ${{ matrix.job.target }}
-
-      - name: Install cross-compilation tools (Linux aarch64)
-        if: matrix.job.target == 'aarch64-unknown-linux-gnu'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu libc6-dev-arm64-cross
-          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
-
-      - name: Build folio_nif
-        id: build-crate
-        uses: philss/rustler-precompiled-action@v1.1.4
-        with:
-          project-name: folio_nif
-          project-version: ${{ env.PROJECT_VERSION }}
-          target: ${{ matrix.job.target }}
-          nif-version: ${{ matrix.nif }}
-          project-dir: "native/folio_nif"
-          cross-version: "from-source"
-
-      - name: Artifact upload
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ steps.build-crate.outputs.file-name }}
-          path: ${{ steps.build-crate.outputs.file-path }}
-
-  publish_release:
-    name: Publish release
-    needs: build_release
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-          pattern: "*.tar.gz"
-          merge-multiple: true
-
-      - name: Publish archives and packages
-        uses: softprops/action-gh-release@v2
-        with:
-          files: artifacts/*.tar.gz
-
-
+    uses: elixir-vibe/actions/.github/workflows/elixir-rustler-release.yml@v1
+    with:
+      project-name: folio_nif
+      project-dir: native/folio_nif
+      checkout-submodules: recursive
+      jobs: >-
+        [
+          {"target":"aarch64-unknown-linux-gnu","os":"ubuntu-22.04","use-cross":true},
+          {"target":"aarch64-apple-darwin","os":"macos-14"},
+          {"target":"x86_64-apple-darwin","os":"macos-15"},
+          {"target":"x86_64-unknown-linux-gnu","os":"ubuntu-22.04"}
+        ]
