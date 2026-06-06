@@ -13,5 +13,6 @@ jobs:
   ci:
     uses: elixir-vibe/actions/.github/workflows/elixir-rustler-ci.yml@v1
     with:
+      checkout-submodules: recursive
       rust-cache-workspaces: |
         native/folio_nif -> target
