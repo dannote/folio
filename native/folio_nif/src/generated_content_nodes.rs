@@ -396,3 +396,278 @@ pub struct ExLinebreak {}
 #[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Divider"]
 pub struct ExDivider {}
+#[derive(Clone, Debug)]
+pub enum ExContent {
+    Cite(ExCite),
+    Bibliography(ExBibliography),
+    Text(ExText),
+    Space(ExSpace),
+    Heading(ExHeading),
+    Paragraph(ExParagraph),
+    Strong(ExStrong),
+    Emph(ExEmph),
+    Strike(ExStrike),
+    Underline(ExUnderline),
+    Highlight(ExHighlight),
+    Super(ExSuper),
+    Sub(ExSub),
+    Smallcaps(ExSmallcaps),
+    Image(ExImage),
+    Figure(ExFigure),
+    Table(ExTable),
+    TableHeader(ExTableHeader),
+    TableRow(ExTableRow),
+    TableCell(ExTableCell),
+    Math(ExMath),
+    Link(ExLink),
+    Raw(ExRaw),
+    Columns(ExColumns),
+    Quote(ExQuote),
+    List(ExList),
+    ListItem(ExListItem),
+    Enum(ExEnum),
+    EnumItem(ExEnumItem),
+    Label(ExLabel),
+    Ref(ExRef),
+    Align(ExAlign),
+    Hide(ExHide),
+    Repeat(ExRepeat),
+    Place(ExPlace),
+    VSpace(ExVSpace),
+    HSpace(ExHSpace),
+    Pad(ExPad),
+    Stack(ExStack),
+    Block(ExBlock),
+    Rect(ExRect),
+    Square(ExSquare),
+    Circle(ExCircle),
+    Ellipse(ExEllipse),
+    Line(ExLine),
+    Polygon(ExPolygon),
+    Outline(ExOutline),
+    Title(ExTitle),
+    TermList(ExTermList),
+    TermItem(ExTermItem),
+    Grid(ExGrid),
+    GridCell(ExGridCell),
+    LocalSet(ExLocalSet),
+    RawTypst(ExRawTypst),
+    Sequence(ExSequence),
+    Footnote(ExFootnote),
+    Colbreak(ExColbreak),
+    Pagebreak(ExPagebreak),
+    Parbreak(ExParbreak),
+    Linebreak(ExLinebreak),
+    Divider(ExDivider),
+}
+impl<'a> rustler::Decoder<'a> for ExContent {
+    fn decode(term: rustler::Term<'a>) -> rustler::NifResult<Self> {
+        use rustler::Decoder;
+        let env = term.get_env();
+        let module: rustler::Atom = term.map_get(atom_struct())?.decode()?;
+        let name_str = module.to_term(env).atom_to_string()?;
+        match name_str.as_str() {
+            "Elixir.Folio.Content.Cite" => Ok(ExContent::Cite(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.Bibliography" => {
+                Ok(ExContent::Bibliography(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Text" => Ok(ExContent::Text(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.Space" => Ok(ExContent::Space(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.Heading" => {
+                Ok(ExContent::Heading(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Paragraph" => {
+                Ok(ExContent::Paragraph(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Strong" => {
+                Ok(ExContent::Strong(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Emph" => Ok(ExContent::Emph(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.Strike" => {
+                Ok(ExContent::Strike(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Underline" => {
+                Ok(ExContent::Underline(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Highlight" => {
+                Ok(ExContent::Highlight(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Super" => Ok(ExContent::Super(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.Sub" => Ok(ExContent::Sub(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.Smallcaps" => {
+                Ok(ExContent::Smallcaps(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Image" => Ok(ExContent::Image(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.Figure" => {
+                Ok(ExContent::Figure(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Table" => Ok(ExContent::Table(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.TableHeader" => {
+                Ok(ExContent::TableHeader(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.TableRow" => {
+                Ok(ExContent::TableRow(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.TableCell" => {
+                Ok(ExContent::TableCell(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Math" => Ok(ExContent::Math(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.Link" => Ok(ExContent::Link(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.Raw" => Ok(ExContent::Raw(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.Columns" => {
+                Ok(ExContent::Columns(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Quote" => Ok(ExContent::Quote(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.List" => Ok(ExContent::List(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.ListItem" => {
+                Ok(ExContent::ListItem(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.EnumList" => {
+                Ok(ExContent::Enum(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.EnumItem" => {
+                Ok(ExContent::EnumItem(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Label" => Ok(ExContent::Label(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.Ref" => Ok(ExContent::Ref(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.Align" => Ok(ExContent::Align(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.Hide" => Ok(ExContent::Hide(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.Repeat" => {
+                Ok(ExContent::Repeat(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Place" => Ok(ExContent::Place(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.VSpace" => {
+                Ok(ExContent::VSpace(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.HSpace" => {
+                Ok(ExContent::HSpace(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Pad" => Ok(ExContent::Pad(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.Stack" => Ok(ExContent::Stack(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.Block" => Ok(ExContent::Block(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.Rect" => Ok(ExContent::Rect(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.Square" => {
+                Ok(ExContent::Square(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Circle" => {
+                Ok(ExContent::Circle(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Ellipse" => {
+                Ok(ExContent::Ellipse(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Line" => Ok(ExContent::Line(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.Polygon" => {
+                Ok(ExContent::Polygon(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Outline" => {
+                Ok(ExContent::Outline(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Title" => Ok(ExContent::Title(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.TermList" => {
+                Ok(ExContent::TermList(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.TermItem" => {
+                Ok(ExContent::TermItem(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Grid" => Ok(ExContent::Grid(Decoder::decode(term)?)),
+            "Elixir.Folio.Content.GridCell" => {
+                Ok(ExContent::GridCell(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.LocalSet" => {
+                Ok(ExContent::LocalSet(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.RawTypst" => {
+                Ok(ExContent::RawTypst(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Sequence" => {
+                Ok(ExContent::Sequence(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Footnote" => {
+                Ok(ExContent::Footnote(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Colbreak" => {
+                Ok(ExContent::Colbreak(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Pagebreak" => {
+                Ok(ExContent::Pagebreak(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Parbreak" => {
+                Ok(ExContent::Parbreak(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Linebreak" => {
+                Ok(ExContent::Linebreak(Decoder::decode(term)?))
+            }
+            "Elixir.Folio.Content.Divider" => {
+                Ok(ExContent::Divider(Decoder::decode(term)?))
+            }
+            _ => Err(rustler::Error::RaiseAtom("unknown_content_variant")),
+        }
+    }
+}
+impl rustler::Encoder for ExContent {
+    fn encode<'a>(&self, env: rustler::Env<'a>) -> rustler::Term<'a> {
+        match self {
+            ExContent::Cite(value) => value.encode(env),
+            ExContent::Bibliography(value) => value.encode(env),
+            ExContent::Text(value) => value.encode(env),
+            ExContent::Space(value) => value.encode(env),
+            ExContent::Heading(value) => value.encode(env),
+            ExContent::Paragraph(value) => value.encode(env),
+            ExContent::Strong(value) => value.encode(env),
+            ExContent::Emph(value) => value.encode(env),
+            ExContent::Strike(value) => value.encode(env),
+            ExContent::Underline(value) => value.encode(env),
+            ExContent::Highlight(value) => value.encode(env),
+            ExContent::Super(value) => value.encode(env),
+            ExContent::Sub(value) => value.encode(env),
+            ExContent::Smallcaps(value) => value.encode(env),
+            ExContent::Image(value) => value.encode(env),
+            ExContent::Figure(value) => value.encode(env),
+            ExContent::Table(value) => value.encode(env),
+            ExContent::TableHeader(value) => value.encode(env),
+            ExContent::TableRow(value) => value.encode(env),
+            ExContent::TableCell(value) => value.encode(env),
+            ExContent::Math(value) => value.encode(env),
+            ExContent::Link(value) => value.encode(env),
+            ExContent::Raw(value) => value.encode(env),
+            ExContent::Columns(value) => value.encode(env),
+            ExContent::Quote(value) => value.encode(env),
+            ExContent::List(value) => value.encode(env),
+            ExContent::ListItem(value) => value.encode(env),
+            ExContent::Enum(value) => value.encode(env),
+            ExContent::EnumItem(value) => value.encode(env),
+            ExContent::Label(value) => value.encode(env),
+            ExContent::Ref(value) => value.encode(env),
+            ExContent::Align(value) => value.encode(env),
+            ExContent::Hide(value) => value.encode(env),
+            ExContent::Repeat(value) => value.encode(env),
+            ExContent::Place(value) => value.encode(env),
+            ExContent::VSpace(value) => value.encode(env),
+            ExContent::HSpace(value) => value.encode(env),
+            ExContent::Pad(value) => value.encode(env),
+            ExContent::Stack(value) => value.encode(env),
+            ExContent::Block(value) => value.encode(env),
+            ExContent::Rect(value) => value.encode(env),
+            ExContent::Square(value) => value.encode(env),
+            ExContent::Circle(value) => value.encode(env),
+            ExContent::Ellipse(value) => value.encode(env),
+            ExContent::Line(value) => value.encode(env),
+            ExContent::Polygon(value) => value.encode(env),
+            ExContent::Outline(value) => value.encode(env),
+            ExContent::Title(value) => value.encode(env),
+            ExContent::TermList(value) => value.encode(env),
+            ExContent::TermItem(value) => value.encode(env),
+            ExContent::Grid(value) => value.encode(env),
+            ExContent::GridCell(value) => value.encode(env),
+            ExContent::LocalSet(value) => value.encode(env),
+            ExContent::RawTypst(value) => value.encode(env),
+            ExContent::Sequence(value) => value.encode(env),
+            ExContent::Footnote(value) => value.encode(env),
+            ExContent::Colbreak(value) => value.encode(env),
+            ExContent::Pagebreak(value) => value.encode(env),
+            ExContent::Parbreak(value) => value.encode(env),
+            ExContent::Linebreak(value) => value.encode(env),
+            ExContent::Divider(value) => value.encode(env),
+        }
+    }
+}

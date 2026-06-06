@@ -338,5 +338,10 @@ defmodule Folio.Codegen.ContentNodes do
     empty_node(Linebreak)
 
     empty_node(Divider)
+
+    tagged_enum Content do
+      variants(:all)
+      unknown(:unknown_content_variant)
+    end
   end
 end
