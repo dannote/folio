@@ -38,31 +38,6 @@ pub struct ExRustQQuote {
     pub attribution: Option<Vec<ExRustQContentSample>>,
 }
 #[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.Block"]
-#[allow(dead_code)]
-pub struct ExRustQBlock {
-    pub body: Vec<ExRustQContentSample>,
-    pub width: Option<String>,
-    pub height: Option<String>,
-    pub above: Option<String>,
-    pub below: Option<String>,
-    pub fill: Option<String>,
-    pub inset: Option<String>,
-    pub radius: Option<String>,
-    pub stroke: Option<String>,
-}
-#[derive(Clone, Debug, NifStruct)]
-#[module = "Folio.Content.Rect"]
-#[allow(dead_code)]
-pub struct ExRustQRect {
-    pub body: Vec<ExRustQContentSample>,
-    pub width: Option<String>,
-    pub height: Option<String>,
-    pub fill: Option<String>,
-    pub inset: Option<String>,
-    pub radius: Option<String>,
-}
-#[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Grid"]
 #[allow(dead_code)]
 pub struct ExRustQGrid {
@@ -111,8 +86,6 @@ pub enum ExRustQContentSample {
     Bibliography(ExRustQBibliography),
     Figure(ExRustQFigure),
     Quote(ExRustQQuote),
-    Block(ExRustQBlock),
-    Rect(ExRustQRect),
     Grid(ExRustQGrid),
     GridCell(ExRustQGridCell),
     LocalSet(ExRustQLocalSet),
@@ -137,12 +110,6 @@ impl<'a> rustler::Decoder<'a> for ExRustQContentSample {
             }
             "Elixir.Folio.Content.Quote" => {
                 Ok(ExRustQContentSample::Quote(Decoder::decode(term)?))
-            }
-            "Elixir.Folio.Content.Block" => {
-                Ok(ExRustQContentSample::Block(Decoder::decode(term)?))
-            }
-            "Elixir.Folio.Content.Rect" => {
-                Ok(ExRustQContentSample::Rect(Decoder::decode(term)?))
             }
             "Elixir.Folio.Content.Grid" => {
                 Ok(ExRustQContentSample::Grid(Decoder::decode(term)?))
@@ -170,8 +137,6 @@ impl rustler::Encoder for ExRustQContentSample {
             ExRustQContentSample::Bibliography(value) => value.encode(env),
             ExRustQContentSample::Figure(value) => value.encode(env),
             ExRustQContentSample::Quote(value) => value.encode(env),
-            ExRustQContentSample::Block(value) => value.encode(env),
-            ExRustQContentSample::Rect(value) => value.encode(env),
             ExRustQContentSample::Grid(value) => value.encode(env),
             ExRustQContentSample::GridCell(value) => value.encode(env),
             ExRustQContentSample::LocalSet(value) => value.encode(env),

@@ -211,6 +211,67 @@ pub struct ExStack {
     pub spacing: Option<String>,
 }
 #[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Block"]
+pub struct ExBlock {
+    pub body: Vec<ExContent>,
+    pub width: Option<String>,
+    pub height: Option<String>,
+    pub above: Option<String>,
+    pub below: Option<String>,
+    pub fill: Option<String>,
+    pub inset: Option<String>,
+    pub radius: Option<String>,
+    pub stroke: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Rect"]
+pub struct ExRect {
+    pub body: Vec<ExContent>,
+    pub width: Option<String>,
+    pub height: Option<String>,
+    pub fill: Option<String>,
+    pub inset: Option<String>,
+    pub radius: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Square"]
+pub struct ExSquare {
+    pub body: Vec<ExContent>,
+    pub size: Option<String>,
+    pub fill: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Circle"]
+pub struct ExCircle {
+    pub body: Vec<ExContent>,
+    pub radius: Option<String>,
+    pub fill: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Ellipse"]
+pub struct ExEllipse {
+    pub body: Vec<ExContent>,
+    pub width: Option<String>,
+    pub height: Option<String>,
+    pub fill: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Line"]
+pub struct ExLine {
+    pub start: Option<String>,
+    pub end: Option<String>,
+    pub length: Option<String>,
+    pub angle: Option<String>,
+    pub stroke: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
+#[module = "Folio.Content.Polygon"]
+pub struct ExPolygon {
+    pub vertices: Vec<String>,
+    pub fill: Option<String>,
+    pub stroke: Option<String>,
+}
+#[derive(Clone, Debug, NifStruct)]
 #[module = "Folio.Content.Title"]
 pub struct ExTitle {
     pub body: Vec<ExContent>,

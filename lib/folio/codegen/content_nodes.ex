@@ -188,6 +188,60 @@ defmodule Folio.Codegen.ContentNodes do
       field(:spacing, {:option, :String})
     end
 
+    node Block do
+      field(:body, {:vec, :content})
+      field(:width, {:option, :String})
+      field(:height, {:option, :String})
+      field(:above, {:option, :String})
+      field(:below, {:option, :String})
+      field(:fill, {:option, :String})
+      field(:inset, {:option, :String})
+      field(:radius, {:option, :String})
+      field(:stroke, {:option, :String})
+    end
+
+    node Rect do
+      field(:body, {:vec, :content})
+      field(:width, {:option, :String})
+      field(:height, {:option, :String})
+      field(:fill, {:option, :String})
+      field(:inset, {:option, :String})
+      field(:radius, {:option, :String})
+    end
+
+    node Square do
+      field(:body, {:vec, :content})
+      field(:size, {:option, :String})
+      field(:fill, {:option, :String})
+    end
+
+    node Circle do
+      field(:body, {:vec, :content})
+      field(:radius, {:option, :String})
+      field(:fill, {:option, :String})
+    end
+
+    node Ellipse do
+      field(:body, {:vec, :content})
+      field(:width, {:option, :String})
+      field(:height, {:option, :String})
+      field(:fill, {:option, :String})
+    end
+
+    node Line do
+      field(:start, {:option, :String})
+      field(:end, {:option, :String})
+      field(:length, {:option, :String})
+      field(:angle, {:option, :String})
+      field(:stroke, {:option, :String})
+    end
+
+    node Polygon do
+      field(:vertices, {:vec, :String})
+      field(:fill, {:option, :String})
+      field(:stroke, {:option, :String})
+    end
+
     body_node(Title)
 
     body_node(Footnote)

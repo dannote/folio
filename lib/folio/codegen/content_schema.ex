@@ -36,27 +36,6 @@ defmodule Folio.Codegen.ContentSchema do
       field(:attribution, {:option, {:vec, :content}})
     end
 
-    node Block do
-      field(:body, {:vec, :content})
-      field(:width, {:option, :String})
-      field(:height, {:option, :String})
-      field(:above, {:option, :String})
-      field(:below, {:option, :String})
-      field(:fill, {:option, :String})
-      field(:inset, {:option, :String})
-      field(:radius, {:option, :String})
-      field(:stroke, {:option, :String})
-    end
-
-    node Rect do
-      field(:body, {:vec, :content})
-      field(:width, {:option, :String})
-      field(:height, {:option, :String})
-      field(:fill, {:option, :String})
-      field(:inset, {:option, :String})
-      field(:radius, {:option, :String})
-    end
-
     node Grid do
       field(:columns, {:option, {:vec, :String}})
       field(:rows, {:option, {:vec, :String}})
