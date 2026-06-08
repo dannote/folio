@@ -3,14 +3,14 @@ use std::collections::HashMap;
 use std::str::FromStr;
 use std::sync::{Arc, LazyLock, Mutex};
 
-use typst::comemo::{Track, TrackedMut};
+use typst::comemo::{Constraint, Track, TrackedMut};
 use typst::diag::{FileError, FileResult};
 use typst::engine::{Engine, Route, Sink, Traced};
 use typst::foundations::{
-    Bytes, Content, Context, Datetime, Derived, Duration, NativeElement, Smart, StyleChain, Styles,
-    Target, TargetElem,
+    Bytes, Content, Context, Datetime, Derived, Duration, NativeElement, Output, Smart,
+    StyleChain, Styles, Target, TargetElem,
 };
-use typst::introspection::EmptyIntrospector;
+use typst::introspection::{EmptyIntrospector, Introspector, MAX_ITERS};
 use typst::layout::{Abs, Margin, Sides};
 use typst::layout::PageElem;
 use typst::loading::{DataSource, LoadSource, Loaded};
@@ -147,31 +147,56 @@ impl FolioWorld {
     }
 
     fn layout(&self, content: &[ExContent]) -> Result<typst_layout::PagedDocument, String> {
-        let mut sink = Sink::new();
-        let introspector = EmptyIntrospector;
         let traced = Traced::default();
+        let empty = EmptyIntrospector;
 
-        let mut engine = Engine {
-            routines: &typst::ROUTINES,
-            world: Track::track(self),
-            introspector: typst::utils::Protected::new(introspector.track()),
-            traced: traced.track(),
-            sink: sink.track_mut(),
-            route: Route::root(),
+        let mut build_sink = Sink::new();
+        let (body, user_styles) = {
+            let mut engine = Engine {
+                routines: &typst::ROUTINES,
+                world: Track::track(self),
+                introspector: typst::utils::Protected::new(empty.track()),
+                traced: traced.track(),
+                sink: build_sink.track_mut(),
+                route: Route::root(),
+            };
+            let body = build_content(&mut engine, content);
+            let mut styles = typst::foundations::Styles::new();
+            apply_styles(&mut styles, &self.styles, &mut engine);
+            (body, styles)
         };
-
-        let body = build_content(&mut engine, content);
 
         let lib = &GLOBAL.library;
         let base = StyleChain::new(&lib.styles);
-        let mut user_styles = typst::foundations::Styles::new();
-        apply_styles(&mut user_styles, &self.styles, &mut engine);
         let target_style: Styles = TargetElem::target.set(Target::Paged).wrap().into();
         let chained = base.chain(&target_style);
         let styles = chained.chain(&user_styles);
 
-        layout_document(&mut engine, &body, styles)
-            .map_err(|e| format!("Layout error: {:?}", e))
+        let mut prev: Option<typst_layout::PagedDocument> = None;
+        for _ in 0..MAX_ITERS {
+            let constraint = Constraint::new();
+            let introspector: &dyn Introspector = match &prev {
+                Some(doc) => Output::introspector(doc),
+                None => &empty,
+            };
+            let mut iter_sink = Sink::new();
+            let mut engine = Engine {
+                routines: &typst::ROUTINES,
+                world: Track::track(self),
+                introspector: typst::utils::Protected::new(introspector.track_with(&constraint)),
+                traced: traced.track(),
+                sink: iter_sink.track_mut(),
+                route: Route::root(),
+            };
+            let doc = layout_document(&mut engine, &body, styles)
+                .map_err(|e| format!("Layout error: {:?}", e))?;
+            drop(engine);
+            if constraint.validate(Output::introspector(&doc)) {
+                return Ok(doc);
+            }
+            prev = Some(doc);
+        }
+        prev.ok_or_else(|| "Layout error: introspection did not converge".to_string())
     }
 
     pub fn eval_math(engine: &mut Engine, math_str: &str, block: bool) -> Content {

@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use ecow::{eco_format, EcoString};
 use typst::engine::Engine;
-use typst::foundations::{Bytes, Content, NativeElement, OneOrMultiple, Smart};
+use typst::foundations::{Bytes, Content, NativeElement, OneOrMultiple, Smart, Unlabellable};
 use std::sync::Arc;
 use typst::layout::{
     Abs, AlignElem, Alignment, Axes, BlockBody, BlockElem, Celled, ColbreakElem,
@@ -232,6 +232,7 @@ pub fn build_content(engine: &mut Engine, nodes: &[ExContent]) -> Content {
                 (ExContent::Parbreak(_), _) | (_, ExContent::Parbreak(_)) => false,
                 (ExContent::Pagebreak(_), _) | (_, ExContent::Pagebreak(_)) => false,
                 (ExContent::Colbreak(_), _) | (_, ExContent::Colbreak(_)) => false,
+                (_, ExContent::Label(_)) => false,
                 // Between two paragraph-like blocks
                 (p, n) if is_paragraph_like(p) && is_paragraph_like(n) => true,
                 // After a paragraph-like block and before another block
@@ -244,9 +245,21 @@ pub fn build_content(engine: &mut Engine, nodes: &[ExContent]) -> Content {
                 seq.push(ParbreakElem::shared().clone());
             }
         }
-        seq.push(convert_node(engine, node));
+        push_or_attach_label(engine, &mut seq, node);
     }
     Content::sequence(seq)
+}
+
+fn push_or_attach_label(engine: &mut Engine, seq: &mut Vec<Content>, node: &ExContent) {
+    if let ExContent::Label(label) = node {
+        if let Some(lbl) = typst::foundations::Label::new(PicoStr::intern(&label.name)) {
+            if let Some(elem) = seq.iter_mut().rev().find(|n| !n.can::<dyn Unlabellable>()) {
+                *elem = std::mem::take(elem).labelled(lbl);
+                return;
+            }
+        }
+    }
+    seq.push(convert_node(engine, node));
 }
 
 fn is_block(node: &ExContent) -> bool {
@@ -275,7 +288,11 @@ fn is_paragraph_like(node: &ExContent) -> bool {
 }
 
 fn cc(engine: &mut Engine, nodes: &[ExContent]) -> Content {
-    Content::sequence(nodes.iter().map(|n| convert_node(engine, n)).collect::<Vec<_>>())
+    let mut seq: Vec<Content> = Vec::with_capacity(nodes.len());
+    for n in nodes {
+        push_or_attach_label(engine, &mut seq, n);
+    }
+    Content::sequence(seq)
 }
 
 fn convert_node(engine: &mut Engine, node: &ExContent) -> Content {
